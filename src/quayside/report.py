@@ -10,6 +10,7 @@ from pathlib import Path
 import jinja2
 
 from quayside.db import get_all_prices_for_date, get_latest_date
+from quayside.species import normalise_species
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,8 @@ def _build_report_data(date: str) -> dict:
     highest = None
 
     for r in rows:
-        _, port, species, grade, low, high, avg = r
+        _, port, raw_species, grade, low, high, avg = r
+        species = normalise_species(raw_species)
         ports_seen.add(port)
         species_seen.add(species)
 
@@ -82,7 +84,8 @@ def _build_report_data(date: str) -> dict:
     # --- Ticker: top price per port ---
     port_best: dict[str, dict] = {}
     for r in rows:
-        _, port, species, grade, low, high, avg = r
+        _, port, raw_species, grade, low, high, avg = r
+        species = normalise_species(raw_species)
         if avg and (port not in port_best or avg > port_best[port]["price"]):
             port_best[port] = {
                 "port": port,
@@ -93,10 +96,11 @@ def _build_report_data(date: str) -> dict:
     ticker_items = sorted(port_best.values(), key=lambda t: t["price"], reverse=True)
 
     # --- Cross-port comparisons ---
-    # Find species appearing at 2+ ports
+    # Find species appearing at 2+ ports (using normalised names)
     species_ports: dict[str, dict[str, float]] = defaultdict(dict)
     for r in rows:
-        _, port, species, grade, low, high, avg = r
+        _, port, raw_species, grade, low, high, avg = r
+        species = normalise_species(raw_species)
         if avg and (port not in species_ports[species] or avg > species_ports[species][port]):
             species_ports[species][port] = avg
 

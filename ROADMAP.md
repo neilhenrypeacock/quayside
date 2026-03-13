@@ -2,9 +2,11 @@
 
 UK fish auction data pipeline. Scrapes landings + prices, stores in SQLite, delivers daily reports.
 
+**Repo**: github.com/neilhenrypeacock/quayside (private)
+
 ---
 
-## Phase 1 — Peterhead Pipeline [DONE]
+## Phase 1 — Peterhead Pipeline ✅ DONE
 
 **Goal**: Scrape Peterhead landings + prices daily, store & export CSVs.
 
@@ -15,61 +17,62 @@ UK fish auction data pipeline. Scrapes landings + prices, stores in SQLite, deli
 - [x] launchd scheduled at 10:15 AM weekdays
 - [x] Tests with saved fixtures (9 passing)
 
-**Data sources**:
-- Landings: `https://www.peterheadport.co.uk/fish-auction/` — vessels, species, boxes (regular + MSC)
-- Prices: SWFPA XLS via `https://swfpa.com/downloads/daily-fish-prices/` — £/kg per species per grade
-
 **Known risk**: Peterhead launching new E-Auction system March 31, 2026. Scraper may need updating.
 
 ---
 
-## Phase 2 — More Ports
+## Phase 2 — More Ports (IN PROGRESS)
 
-**Goal**: Expand beyond Peterhead to other Scottish ports.
+**Goal**: Expand to all UK ports with public price/landing data.
 
-### Lerwick (Shetland) — IN PROGRESS
-- [x] Landings: `shetlandauction.com/ssa-today` — clean HTML table, 83 records/day
-- [ ] Prices: **BLOCKED** — requires login to Kosmos auction system or SSA Web Portal. No public price feed. Contact norma@shetlandauction.com to request access.
+### Brixham (Devon) ✅ DONE
+- [x] Prices: SWFPA daily PDF parsed with pdfplumber. Day average only (no low/high split).
+- [ ] Landings: Not publicly available. BrixhamFish Ltd private operator.
 
-### Brixham (Devon) — DONE
-- [x] Prices: SWFPA daily PDF (`Daily-Fish-Sales-Report-N.pdf`) on same event page as Peterhead XLS. Parsed with pdfplumber. Format: `SPECIES [GRADE] DEFRA_CODE WEIGHT DAY_AVG WEEK_AVG`. Only day average price (no low/high split).
-- [ ] Landings: Not available via SWFPA or public web. Brixham Fish Market is privately operated (BrixhamFish Ltd). Would need direct contact.
+### Lerwick (Shetland) — PARTIAL
+- [x] Landings: `shetlandauction.com/ssa-today` — clean HTML table
+- [ ] Prices: **BLOCKED** — requires Kosmos auction login. Contact norma@shetlandauction.com.
 
-### Fraserburgh — IN PROGRESS
-- [ ] Landings: **BLOCKED** — page embeds a Google Drive PDF iframe, not an HTML table. Needs Playwright/Selenium or direct contact with harbour for a data feed. Email: enquiries@fraserburgh-harbour.co.uk
-- [ ] Prices: **BLOCKED** — SWFPA hosted HTML price files historically (pattern: `swfpa.com/wp-content/uploads/YYYY/MM/Fraserburgh-DD.MM.html`) but as of March 2026 they are not linked from the calendar and appear to no longer be published. Scraper is in place and will pick them up automatically if SWFPA resumes. Only a single price per species (no low/high/avg split like Peterhead).
+### Newlyn (Cornwall) ✅ DONE
+- [x] Prices: SWFPA daily PDF parsed with pdfplumber. Same format as Brixham.
+- [ ] Landings: Not publicly available.
 
-### Aberdeen
-- [ ] **SKIP** — Aberdeen Fish Market closed 2007. Fish routes through Peterhead.
+### Scrabster ✅ DONE
+- [x] Prices: HTML table at `scrabster.co.uk/port-information/fish-prices/`
+- [ ] Landings: Don Fishing PDF — **TODO** (also covers Kinlochbervie)
 
-### Scrabster
-- [ ] Prices: partial HTML at `scrabster.co.uk/port-information/fish-prices/` — prices per kg but thin data, no SWFPA XLS. Lower priority.
-- [ ] Landings: FIS integration (`seafood.media/fis/marketprices/prices.asp?marketid=07`) — needs investigation.
+### Fraserburgh — DORMANT
+- [x] Prices scraper built but **SWFPA stopped publishing** Fraserburgh files as of March 2026. Scraper will auto-detect if they resume.
+- [ ] Landings: **BLOCKED** — Google Drive PDF iframe. Needs Playwright or direct contact (enquiries@fraserburgh-harbour.co.uk).
 
-### Lochinver
-- [ ] **DEFERRED** — no public data source. Annual stats only from Marine Scotland. Would need direct contact with Highland Council harbours.
+### Not yet started
+- [ ] **Kinlochbervie** — Don Fishing PDF (same source as Scrabster landings)
+- [ ] **Lochinver** — no public data. Would need Highland Council contact.
+- [ ] **Aberdeen** — market closed 2007, fish routes through Peterhead.
+
+### Cross-cutting
+- [ ] Species name normalisation across ports (e.g. "Monks" vs "Monkfish" vs "Monk Or Anglers")
+- [ ] Don Fishing PDF scraper for Scrabster + Kinlochbervie landings
+- [ ] Shetland detailed PDF scraper (grades + Scalloway port)
 
 ---
 
-**For each remaining port:**
-- Find landings data source (website, PDF, or other)
-- Check if SWFPA covers their prices (the XLS page may have sheets for other ports)
-- Build scraper, add to pipeline
-- Normalise species names across ports
+## Phase 3 — Daily Digest Report (IN PROGRESS)
 
----
+**Goal**: Aggregate all ports into a single formatted daily report.
 
-## Phase 3 — Daily Email Report
+### HTML Digest ✅ DONE
+- [x] Jinja2 template (`templates/digest.html`) — professional email-safe design
+- [x] Header ticker — top price from each reporting port
+- [x] Alert band — port count + species count
+- [x] Price table — all species, all ports, grouped by species, best-price markers
+- [x] Cross-port comparison bars — species at 2+ ports with visual bars
+- [x] Auto-generated at end of pipeline → `output/digest_{date}.html`
+- [x] Graceful empty state for no-data days
 
-**Goal**: Aggregate all ports into a single formatted morning email.
-
-- [ ] HTML email template — clean tables, mobile-friendly
-- [ ] Landings summary per port: total boxes by species, vessel count
-- [ ] Price summary per port: species, grade, low/high/avg in £/kg
-- [ ] Cross-port comparison (same species, different ports)
-- [ ] Price movement: vs yesterday / vs week avg (once we have history)
-- [ ] Email delivery (SMTP or SendGrid/Mailgun)
-- [ ] Add to daily launchd pipeline (scrape all ports → store → email)
+### Still TODO
+- [ ] "Biggest movers" section (needs 2+ days of history for day-over-day)
+- [ ] Email delivery (SMTP or SendGrid/Mailgun — template is ready)
 - [ ] Subscriber list (start simple: config file of email addresses)
 
 ---
@@ -88,7 +91,6 @@ UK fish auction data pipeline. Scrapes landings + prices, stores in SQLite, deli
 
 ## Phase 5 — Commercial / API
 
-
 **Goal**: Paid product for fish buyers, processors, merchants.
 
 - [ ] API access (REST or simple webhook)
@@ -96,6 +98,17 @@ UK fish auction data pipeline. Scrapes landings + prices, stores in SQLite, deli
 - [ ] Custom alerts (e.g. "notify me when Cod avg > £X")
 - [ ] Integration with buyer systems
 - [ ] Multi-port bundle pricing
+
+---
+
+## Project Foundations ✅ DONE
+
+- [x] Git + GitHub (private repo, clean history)
+- [x] CLAUDE.md project documentation
+- [x] Ruff linter + formatter configured (pyproject.toml)
+- [x] .gitignore (data/, output/, .env, IDE files, OS files)
+- [x] Codebase fully lint-clean (0 issues)
+- [x] pytest test suite (9 tests passing)
 
 ---
 
@@ -107,3 +120,15 @@ UK fish auction data pipeline. Scrapes landings + prices, stores in SQLite, deli
 - All scrapers need User-Agent headers (403 without)
 - SWFPA uses `var customQuery` (not `window.customQuery`) for event data
 - Prices often lag landings by a day (SWFPA posts after auction)
+
+---
+
+## Partnership Strategy
+
+**Short-term**: Scrape all publicly available ports (7 ports max in UK).
+
+**Medium-term**: Partner with a fisheries media company for access to gated ports via revenue-share.
+- **Fish Daily** (fishdaily.co.uk) — insider daily newsletter, likely has private data feeds
+- **Undercurrent News** — already scrapes Peterhead + Brixham via Global Groundfish Price Tracker. Validates our model. Potential data licensing partner.
+
+The scarcity of public port data IS the value proposition. Only ~7 of ~25-30 UK/Ireland auction ports publish anything publicly.

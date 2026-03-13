@@ -19,6 +19,7 @@ src/quayside/
 ├── models.py           # PriceRecord and LandingRecord dataclasses
 ├── export.py           # Per-port CSV export
 ├── report.py           # Daily HTML digest generator (Jinja2)
+├── species.py          # Species name normalisation (raw → canonical)
 ├── templates/
 │   └── digest.html     # Jinja2 template for the daily digest
 └── scrapers/
@@ -46,7 +47,7 @@ Upsert strategy: `INSERT OR REPLACE` — latest scrape wins for the same key.
 
 - **Scrapers return dataclass lists**: Every scraper returns `list[PriceRecord]` or `list[LandingRecord]`. No raw dicts.
 - **Resilient pipeline**: Each scraper is wrapped in `_run_scraper()` which catches exceptions. One failing port doesn't kill the pipeline.
-- **Species names are raw**: Each port has its own naming (e.g. "Monks" vs "Monkfish" vs "Monk Or Anglers"). No normalization layer yet — that's a future task.
+- **Species names are normalised at display time**: Raw names stored in DB exactly as scraped. `species.py` maps raw names to canonical names (e.g. "Monks" → "Monkfish") for cross-port comparison in the digest report. Add new mappings to `_CANONICAL_MAP` in `species.py` when adding new ports.
 - **Grade systems differ by port**: Peterhead uses A1-A5, Brixham uses 1-10, Scrabster has none. The `grade` field stores whatever the source provides.
 - **Dates are ISO 8601**: Always `YYYY-MM-DD` in the database and filenames.
 - **Output goes to `output/`**: CSVs as `prices_{port}_{date}.csv`, digest as `digest_{date}.html`. This directory is gitignored.
@@ -58,7 +59,8 @@ Upsert strategy: `INSERT OR REPLACE` — latest scrape wins for the same key.
 2. Implement `scrape_prices() -> list[PriceRecord]` or `scrape_landings() -> list[LandingRecord]`
 3. Add to `run.py` pipeline (import + `_run_scraper()` call + CSV export)
 4. Add port code to `PORT_CODES` dict in `report.py`
-5. Test: `python -m quayside` then check `output/digest_*.html`
+5. Add species name mappings to `_CANONICAL_MAP` in `species.py`
+6. Test: `python -m quayside` then check `output/digest_*.html`
 
 ## Scheduling
 
