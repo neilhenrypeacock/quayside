@@ -23,7 +23,6 @@ import logging
 import re
 from datetime import datetime
 from io import BytesIO
-from typing import Optional
 
 import pdfplumber
 import requests
@@ -35,23 +34,21 @@ logger = logging.getLogger(__name__)
 PORT = "Newlyn"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
 }
 
 # Match lines like: SPECIES (GRADE) SIZE WEIGHT AVG
 # or: SPECIES SIZE WEIGHT AVG (no grade)
 # or: SPECIES - WEIGHT AVG (dash as size placeholder)
-_ROW_RE = re.compile(
-    r"^(.+?)\s+([\d,.]+)\s+([\d,.]+)\s*$"
-)
+_ROW_RE = re.compile(r"^(.+?)\s+([\d,.]+)\s+([\d,.]+)\s*$")
 
 _SKIP = {"grand total", "newlyn market"}
 
 
 def scrape_prices(
-    pdf_url: Optional[str] = None,
-    pdf_bytes: Optional[bytes] = None,
-    target_date: Optional[str] = None,
+    pdf_url: str | None = None,
+    pdf_bytes: bytes | None = None,
+    target_date: str | None = None,
 ) -> list[PriceRecord]:
     """Scrape Newlyn prices from a SWFPA daily PDF report."""
     if pdf_bytes is None:
@@ -92,7 +89,7 @@ def scrape_prices(
             continue
 
         prefix = m.group(1).strip()
-        weight_str = m.group(2).replace(",", "")
+        m.group(2).replace(",", "")
         avg_str = m.group(3).replace(",", "")
 
         try:
@@ -130,8 +127,8 @@ def scrape_prices(
             grade_match = re.search(r"\(([^)]+)\)", prefix)
             if grade_match:
                 grade = grade_match.group(1)
-                species_part = prefix[:grade_match.start()].strip()
-                after_grade = prefix[grade_match.end():].strip()
+                species_part = prefix[: grade_match.start()].strip()
+                after_grade = prefix[grade_match.end() :].strip()
                 if "damaged" in after_grade.lower():
                     species_part = f"{species_part} Damaged"
             else:
@@ -153,16 +150,18 @@ def scrape_prices(
         if not cont_match and "damaged" not in species.lower():
             current_species = species
 
-        records.append(PriceRecord(
-            date=date,
-            port=PORT,
-            species=species,
-            grade=grade,
-            price_low=None,
-            price_high=None,
-            price_avg=round(avg, 2),
-            scraped_at=scraped_at,
-        ))
+        records.append(
+            PriceRecord(
+                date=date,
+                port=PORT,
+                species=species,
+                grade=grade,
+                price_low=None,
+                price_high=None,
+                price_avg=round(avg, 2),
+                scraped_at=scraped_at,
+            )
+        )
 
     logger.info("Scraped %d price records for %s on %s", len(records), PORT, date)
     return records
@@ -178,7 +177,7 @@ def _extract_lines(pdf_bytes: bytes) -> list[str]:
     return lines
 
 
-def _extract_date(lines: list[str]) -> Optional[str]:
+def _extract_date(lines: list[str]) -> str | None:
     """Look for a date in the first few lines.
 
     Header format: "Newlyn Market 9th March 2026"
@@ -187,9 +186,7 @@ def _extract_date(lines: list[str]) -> Optional[str]:
         m = re.search(r"(\d+)(?:st|nd|rd|th)\s+(\w+)\s+(\d{4})", line)
         if m:
             try:
-                dt = datetime.strptime(
-                    f"{m.group(1)} {m.group(2)} {m.group(3)}", "%d %B %Y"
-                )
+                dt = datetime.strptime(f"{m.group(1)} {m.group(2)} {m.group(3)}", "%d %B %Y")
                 return dt.strftime("%Y-%m-%d")
             except ValueError:
                 continue

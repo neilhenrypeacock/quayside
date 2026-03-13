@@ -22,7 +22,6 @@ import logging
 import re
 from datetime import datetime
 from io import BytesIO
-from typing import Optional
 
 import pdfplumber
 import requests
@@ -34,23 +33,21 @@ logger = logging.getLogger(__name__)
 PORT = "Brixham"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
 }
 
 # Matches: SPECIES [GRADE] DEFRA_CODE WEIGHT DAY_AVG WEEK_AVG
 # DEFRA code = exactly 3 uppercase letters (e.g. COD, RJH, TUR, SBR)
-_ROW_RE = re.compile(
-    r"^(.+?)\s+([A-Z]{3})\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*$"
-)
+_ROW_RE = re.compile(r"^(.+?)\s+([A-Z]{3})\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*$")
 
 # Lines to skip even if they match the row regex
 _SKIP_KEYWORDS = {"DAILY TOTAL", "GRAND TOTAL", "WEEKLY TOTAL", "END OF REPORT"}
 
 
 def scrape_prices(
-    pdf_url: Optional[str] = None,
-    pdf_bytes: Optional[bytes] = None,
-    target_date: Optional[str] = None,
+    pdf_url: str | None = None,
+    pdf_bytes: bytes | None = None,
+    target_date: str | None = None,
 ) -> list[PriceRecord]:
     """Scrape Brixham prices from a SWFPA daily PDF report.
 
@@ -108,16 +105,18 @@ def scrape_prices(
             species = species_grade_raw.title()
             grade = "ALL"
 
-        records.append(PriceRecord(
-            date=date,
-            port=PORT,
-            species=species,
-            grade=grade,
-            price_low=None,
-            price_high=None,
-            price_avg=round(day_avg, 2),
-            scraped_at=scraped_at,
-        ))
+        records.append(
+            PriceRecord(
+                date=date,
+                port=PORT,
+                species=species,
+                grade=grade,
+                price_low=None,
+                price_high=None,
+                price_avg=round(day_avg, 2),
+                scraped_at=scraped_at,
+            )
+        )
 
     logger.info("Scraped %d price records for %s on %s", len(records), PORT, date)
     return records
@@ -133,7 +132,7 @@ def _extract_lines(pdf_bytes: bytes) -> list[str]:
     return lines
 
 
-def _extract_date(lines: list[str]) -> Optional[str]:
+def _extract_date(lines: list[str]) -> str | None:
     """Look for a date in the first 30 lines of PDF text.
 
     Handles formats: DD/MM/YYYY, DD.MM.YYYY, 'DDth Month YYYY'.
@@ -152,9 +151,7 @@ def _extract_date(lines: list[str]) -> Optional[str]:
         m2 = re.search(r"(\d+)(?:st|nd|rd|th)\s+(\w+)\s+(\d{4})", line)
         if m2:
             try:
-                dt = datetime.strptime(
-                    f"{m2.group(1)} {m2.group(2)} {m2.group(3)}", "%d %B %Y"
-                )
+                dt = datetime.strptime(f"{m2.group(1)} {m2.group(2)} {m2.group(3)}", "%d %B %Y")
                 return dt.strftime("%Y-%m-%d")
             except ValueError:
                 continue

@@ -40,7 +40,7 @@ def test_scrape_landings_vessel_parsing():
     records = scrape_landings(html)
 
     # Find a known vessel from the fixture
-    vessel_names = {r.vessel_name for r in records}
+    {r.vessel_name for r in records}
     # At least one vessel should have a code like BF/PD/INS etc.
     codes = {r.vessel_code for r in records if r.vessel_code}
     assert len(codes) > 0, "Should parse vessel registration codes"
@@ -61,5 +61,6 @@ def test_scrape_landings_no_zero_only():
     records = scrape_landings(html)
 
     for r in records:
-        assert r.boxes > 0 or r.boxes_msc > 0, \
+        assert r.boxes > 0 or r.boxes_msc > 0, (
             f"Record {r.vessel_name}/{r.species} has 0 boxes and 0 MSC"
+        )

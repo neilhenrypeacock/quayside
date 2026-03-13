@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import re
 from datetime import datetime
-from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -18,7 +17,7 @@ URL = "https://www.shetlandauction.com/ssa-today"
 PORT = "Lerwick"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
 }
 
 # Column indices (0-based, after removing vessel/method/total/shots cols)
@@ -30,10 +29,10 @@ HEADERS = {
 # 19-22: SAITHE grades 2,3,4,5
 # 23-38: single-species columns
 GRADED_SPECIES = {
-    "Haddock": (4, 11),    # cols 4-10 inclusive
-    "Whiting": (11, 15),   # cols 11-14
-    "Cod":     (15, 19),   # cols 15-18
-    "Saithe":  (19, 23),   # cols 19-22
+    "Haddock": (4, 11),  # cols 4-10 inclusive
+    "Whiting": (11, 15),  # cols 11-14
+    "Cod": (15, 19),  # cols 15-18
+    "Saithe": (19, 23),  # cols 19-22
 }
 SINGLE_SPECIES = [
     (23, "Plaice"),
@@ -55,7 +54,7 @@ SINGLE_SPECIES = [
 ]
 
 
-def scrape_landings(html: Optional[str] = None) -> list[LandingRecord]:
+def scrape_landings(html: str | None = None) -> list[LandingRecord]:
     if html is None:
         logger.info("Fetching %s", URL)
         resp = requests.get(URL, headers=HEADERS, timeout=30)
@@ -81,8 +80,10 @@ def scrape_landings(html: Optional[str] = None) -> list[LandingRecord]:
         # Skip header rows
         if row.get("class") and any(
             c in row.get("class", [])
-            for c in ["ssal-landings-display-reportHeadRow1",
-                      "ssal-landings-display-reportHeadRow2"]
+            for c in [
+                "ssal-landings-display-reportHeadRow1",
+                "ssal-landings-display-reportHeadRow2",
+            ]
         ):
             continue
 
@@ -110,37 +111,41 @@ def scrape_landings(html: Optional[str] = None) -> list[LandingRecord]:
         for species, (start, end) in GRADED_SPECIES.items():
             total = sum(_int(cells[i].get_text(strip=True)) for i in range(start, end))
             if total > 0:
-                records.append(LandingRecord(
-                    date=date,
-                    port=PORT,
-                    vessel_name=vessel_name,
-                    vessel_code=vessel_code,
-                    species=species,
-                    boxes=total,
-                    boxes_msc=0,
-                    scraped_at=scraped_at,
-                ))
+                records.append(
+                    LandingRecord(
+                        date=date,
+                        port=PORT,
+                        vessel_name=vessel_name,
+                        vessel_code=vessel_code,
+                        species=species,
+                        boxes=total,
+                        boxes_msc=0,
+                        scraped_at=scraped_at,
+                    )
+                )
 
         # Single-species columns
         for col_idx, species in SINGLE_SPECIES:
             boxes = _int(cells[col_idx].get_text(strip=True))
             if boxes > 0:
-                records.append(LandingRecord(
-                    date=date,
-                    port=PORT,
-                    vessel_name=vessel_name,
-                    vessel_code=vessel_code,
-                    species=species,
-                    boxes=boxes,
-                    boxes_msc=0,
-                    scraped_at=scraped_at,
-                ))
+                records.append(
+                    LandingRecord(
+                        date=date,
+                        port=PORT,
+                        vessel_name=vessel_name,
+                        vessel_code=vessel_code,
+                        species=species,
+                        boxes=boxes,
+                        boxes_msc=0,
+                        scraped_at=scraped_at,
+                    )
+                )
 
     logger.info("Scraped %d landing records for %s on %s", len(records), PORT, date)
     return records
 
 
-def _extract_date(soup: BeautifulSoup) -> Optional[str]:
+def _extract_date(soup: BeautifulSoup) -> str | None:
     """Parse date from h3 text like 'Friday, 13th March 2026'."""
     h3 = soup.find("h3")
     if not h3:

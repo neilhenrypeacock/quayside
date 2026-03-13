@@ -10,7 +10,8 @@ from quayside.export import export_landings_csv, export_prices_csv
 from quayside.report import generate_report
 from quayside.scrapers import brixham, fraserburgh, lerwick, newlyn, scrabster
 from quayside.scrapers.peterhead import scrape_landings as peterhead_landings
-from quayside.scrapers.swfpa import get_swfpa_event_links, scrape_prices as peterhead_prices
+from quayside.scrapers.swfpa import get_swfpa_event_links
+from quayside.scrapers.swfpa import scrape_prices as peterhead_prices
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,7 +43,12 @@ def main() -> int:
         swfpa_links = get_swfpa_event_links()
     except Exception:
         logger.exception("SWFPA event discovery failed")
-        swfpa_links = {"peterhead_xls": None, "brixham_pdf": None, "newlyn_pdf": None, "event_date": None}
+        swfpa_links = {
+            "peterhead_xls": None,
+            "brixham_pdf": None,
+            "newlyn_pdf": None,
+            "event_date": None,
+        }
 
     event_date = swfpa_links.get("event_date")
 

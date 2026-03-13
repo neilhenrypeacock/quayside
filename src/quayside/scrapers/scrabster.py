@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 import re
 from datetime import datetime
-from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -23,11 +22,11 @@ PORT = "Scrabster"
 PRICES_URL = "https://scrabster.co.uk/port-information/fish-prices/"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
 }
 
 
-def scrape_prices(html: Optional[str] = None) -> list[PriceRecord]:
+def scrape_prices(html: str | None = None) -> list[PriceRecord]:
     """Scrape Scrabster prices from the port website."""
     if html is None:
         try:
@@ -89,22 +88,24 @@ def scrape_prices(html: Optional[str] = None) -> list[PriceRecord]:
         elif top is not None:
             avg = top
 
-        records.append(PriceRecord(
-            date=date,
-            port=PORT,
-            species=species,
-            grade="ALL",
-            price_low=bottom,
-            price_high=top,
-            price_avg=avg,
-            scraped_at=scraped_at,
-        ))
+        records.append(
+            PriceRecord(
+                date=date,
+                port=PORT,
+                species=species,
+                grade="ALL",
+                price_low=bottom,
+                price_high=top,
+                price_avg=avg,
+                scraped_at=scraped_at,
+            )
+        )
 
     logger.info("Scraped %d price records for %s on %s", len(records), PORT, date)
     return records
 
 
-def _parse_price(s: str) -> Optional[float]:
+def _parse_price(s: str) -> float | None:
     """Parse a price string, returning None for empty/invalid."""
     s = s.strip().replace(",", "")
     if not s or s == "-":
@@ -116,7 +117,7 @@ def _parse_price(s: str) -> Optional[float]:
         return None
 
 
-def _extract_date(soup: BeautifulSoup) -> Optional[str]:
+def _extract_date(soup: BeautifulSoup) -> str | None:
     """Extract date from page heading like 'Fish Prices for 12/03/2026'."""
     text = soup.get_text()
     # DD/MM/YYYY after "for" or "prices"

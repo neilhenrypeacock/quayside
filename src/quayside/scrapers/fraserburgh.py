@@ -14,7 +14,6 @@ from __future__ import annotations
 import logging
 import re
 from datetime import datetime, timedelta
-from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -26,7 +25,7 @@ logger = logging.getLogger(__name__)
 PORT = "Fraserburgh"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
 }
 # URL pattern: Fraserburgh-DD.MM.html
 SWFPA_HTML_PATTERN = (
@@ -34,12 +33,9 @@ SWFPA_HTML_PATTERN = (
 )
 
 
-def find_fraserburgh_html_url(target_date: Optional[str] = None) -> Optional[str]:
+def find_fraserburgh_html_url(target_date: str | None = None) -> str | None:
     """Try to find a Fraserburgh HTML price file for target_date or recent days."""
-    if target_date:
-        dt = datetime.strptime(target_date, "%Y-%m-%d")
-    else:
-        dt = datetime.utcnow()
+    dt = datetime.strptime(target_date, "%Y-%m-%d") if target_date else datetime.utcnow()
 
     # Try today and the previous 3 trading days
     for days_back in range(4):
@@ -57,14 +53,16 @@ def find_fraserburgh_html_url(target_date: Optional[str] = None) -> Optional[str
         except requests.RequestException:
             continue
 
-    logger.info("No Fraserburgh HTML price file found on SWFPA for %s (tried 4 days back)", dt.date())
+    logger.info(
+        "No Fraserburgh HTML price file found on SWFPA for %s (tried 4 days back)", dt.date()
+    )
     return None
 
 
 def scrape_prices(
-    html_url: Optional[str] = None,
-    html_bytes: Optional[bytes] = None,
-    target_date: Optional[str] = None,
+    html_url: str | None = None,
+    html_bytes: bytes | None = None,
+    target_date: str | None = None,
 ) -> list[PriceRecord]:
     """Scrape Fraserburgh prices from a SWFPA HTML file."""
 
@@ -117,22 +115,24 @@ def scrape_prices(
         if price is None:
             continue
 
-        records.append(PriceRecord(
-            date=date,
-            port=PORT,
-            species=species,
-            grade=grade,
-            price_low=None,
-            price_high=None,
-            price_avg=price,
-            scraped_at=scraped_at,
-        ))
+        records.append(
+            PriceRecord(
+                date=date,
+                port=PORT,
+                species=species,
+                grade=grade,
+                price_low=None,
+                price_high=None,
+                price_avg=price,
+                scraped_at=scraped_at,
+            )
+        )
 
     logger.info("Scraped %d price records for %s on %s", len(records), PORT, date)
     return records
 
 
-def _extract_date(soup: BeautifulSoup) -> Optional[str]:
+def _extract_date(soup: BeautifulSoup) -> str | None:
     """Extract date from text like 'Date : 21st October 2022'."""
     text = soup.get_text(" ", strip=True)
     m = re.search(r"Date\s*:\s*(\d+)(?:st|nd|rd|th)\s+(\w+)\s+(\d{4})", text)
@@ -154,7 +154,7 @@ def _parse_species_grade(raw: str) -> tuple[str, str]:
     return raw.strip(), "ALL"
 
 
-def _float(val: str) -> Optional[float]:
+def _float(val: str) -> float | None:
     try:
         return float(val)
     except (ValueError, TypeError):

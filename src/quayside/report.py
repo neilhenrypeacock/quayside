@@ -97,18 +97,12 @@ def _build_report_data(date: str) -> dict:
     species_ports: dict[str, dict[str, float]] = defaultdict(dict)
     for r in rows:
         _, port, species, grade, low, high, avg = r
-        if avg:
-            # Keep the best price per port per species
-            if port not in species_ports[species] or avg > species_ports[species][port]:
-                species_ports[species][port] = avg
+        if avg and (port not in species_ports[species] or avg > species_ports[species][port]):
+            species_ports[species][port] = avg
 
-    multi_port = {
-        sp: ports for sp, ports in species_ports.items() if len(ports) >= 2
-    }
+    multi_port = {sp: ports for sp, ports in species_ports.items() if len(ports) >= 2}
     # Sort by number of ports desc, then alphabetically
-    sorted_comparisons = sorted(
-        multi_port.items(), key=lambda x: (-len(x[1]), x[0])
-    )
+    sorted_comparisons = sorted(multi_port.items(), key=lambda x: (-len(x[1]), x[0]))
 
     comparisons = []
     for species, port_prices in sorted_comparisons[:5]:  # Top 5
@@ -168,5 +162,10 @@ def generate_report(date: str | None = None) -> Path:
     path = OUTPUT_DIR / f"digest_{date}.html"
     path.write_text(html, encoding="utf-8")
 
-    logger.info("Generated digest: %s (%d species, %d rows)", path, data["total_species"], data["total_rows"])
+    logger.info(
+        "Generated digest: %s (%d species, %d rows)",
+        path,
+        data["total_species"],
+        data["total_rows"],
+    )
     return path

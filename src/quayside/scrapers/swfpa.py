@@ -6,7 +6,6 @@ import json
 import logging
 import re
 from datetime import datetime
-from typing import Optional
 
 import requests
 import xlrd
@@ -20,11 +19,11 @@ SWFPA_URL = "https://swfpa.com/downloads/daily-fish-prices/"
 PORT = "Peterhead"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
 }
 
 
-def get_swfpa_event_links(target_date: Optional[str] = None) -> dict:
+def get_swfpa_event_links(target_date: str | None = None) -> dict:
     """Fetch SWFPA calendar once and return all relevant file links.
 
     Returns dict with keys: 'peterhead_xls', 'brixham_pdf', 'event_date'
@@ -90,7 +89,11 @@ def get_swfpa_event_links(target_date: Optional[str] = None) -> dict:
         elif "daily-fish-sales" in href.lower() and href.endswith(".pdf"):
             logger.info("Found Brixham PDF: %s", href)
             result["brixham_pdf"] = href
-        elif href.endswith(".pdf") and result["brixham_pdf"] != href and "peterhead" not in href.lower():
+        elif (
+            href.endswith(".pdf")
+            and result["brixham_pdf"] != href
+            and "peterhead" not in href.lower()
+        ):
             # Newlyn PDFs are named by date (e.g. "9TH.pdf", "6th.pdf")
             logger.info("Found Newlyn PDF: %s", href)
             result["newlyn_pdf"] = href
@@ -98,12 +101,12 @@ def get_swfpa_event_links(target_date: Optional[str] = None) -> dict:
     return result
 
 
-def find_todays_xls_url(target_date: Optional[str] = None) -> Optional[str]:
+def find_todays_xls_url(target_date: str | None = None) -> str | None:
     """Find the Peterhead XLS URL for today (or target_date YYYY-MM-DD)."""
     return get_swfpa_event_links(target_date)["peterhead_xls"]
 
 
-def scrape_prices(xls_url: Optional[str] = None, xls_bytes: Optional[bytes] = None) -> list[PriceRecord]:
+def scrape_prices(xls_url: str | None = None, xls_bytes: bytes | None = None) -> list[PriceRecord]:
     """Parse Peterhead price data from XLS. Pass xls_bytes for testing."""
     if xls_bytes is None:
         if xls_url is None:
@@ -148,11 +151,18 @@ def scrape_prices(xls_url: Optional[str] = None, xls_bytes: Optional[bytes] = No
                 low, high, avg = _read_prices(sheet, row_idx)
                 species_name = f"{current_species} Round" if current_species else "Round"
                 if _has_any_price(low, high, avg):
-                    records.append(PriceRecord(
-                        date=date, port=PORT, species=species_name,
-                        grade=grade, price_low=low, price_high=high,
-                        price_avg=avg, scraped_at=scraped_at,
-                    ))
+                    records.append(
+                        PriceRecord(
+                            date=date,
+                            port=PORT,
+                            species=species_name,
+                            grade=grade,
+                            price_low=low,
+                            price_high=high,
+                            price_avg=avg,
+                            scraped_at=scraped_at,
+                        )
+                    )
             continue
 
         # New species header
@@ -165,11 +175,18 @@ def scrape_prices(xls_url: Optional[str] = None, xls_bytes: Optional[bytes] = No
                 # Single-row species: Catfish Scottish, Turbot, Halibut, Brill, Witches, Tusk, Skate
                 if low is not None or high is not None:
                     # Has LOW/HIGH → actual price data
-                    records.append(PriceRecord(
-                        date=date, port=PORT, species=col0,
-                        grade="ALL", price_low=low, price_high=high,
-                        price_avg=avg, scraped_at=scraped_at,
-                    ))
+                    records.append(
+                        PriceRecord(
+                            date=date,
+                            port=PORT,
+                            species=col0,
+                            grade="ALL",
+                            price_low=low,
+                            price_high=high,
+                            price_avg=avg,
+                            scraped_at=scraped_at,
+                        )
+                    )
                 # If only AVG → species average summary row, skip
                 current_species = col0
             elif col1 == "":
@@ -193,11 +210,18 @@ def scrape_prices(xls_url: Optional[str] = None, xls_bytes: Optional[bytes] = No
                 grade = f"{parts[0]}-{parts[1]}"
 
             if _has_any_price(low, high, avg):
-                records.append(PriceRecord(
-                    date=date, port=PORT, species=species_name,
-                    grade=grade, price_low=low, price_high=high,
-                    price_avg=avg, scraped_at=scraped_at,
-                ))
+                records.append(
+                    PriceRecord(
+                        date=date,
+                        port=PORT,
+                        species=species_name,
+                        grade=grade,
+                        price_low=low,
+                        price_high=high,
+                        price_avg=avg,
+                        scraped_at=scraped_at,
+                    )
+                )
 
     logger.info("Scraped %d price records for %s on %s", len(records), PORT, date)
     return records
@@ -205,11 +229,13 @@ def scrape_prices(xls_url: Optional[str] = None, xls_bytes: Optional[bytes] = No
 
 def _read_prices(sheet, row_idx: int) -> tuple:
     """Read LOW (col 3), HIGH (col 4), AVG (col 5) from a row."""
+
     def _val(col):
         v = sheet.cell_value(row_idx, col)
         if isinstance(v, (int, float)) and v > 0:
             return round(v, 2)
         return None
+
     return _val(3), _val(4), _val(5)
 
 

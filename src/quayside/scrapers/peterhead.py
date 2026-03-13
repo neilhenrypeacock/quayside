@@ -9,7 +9,7 @@ from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 
-from quayside.models import LANDING_SPECIES, LandingRecord
+from quayside.models import LandingRecord
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ URL = "https://www.peterheadport.co.uk/fish-auction/"
 PORT = "Peterhead"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
 }
 
 
@@ -79,7 +79,10 @@ def scrape_landings(html: str | None = None) -> list[LandingRecord]:
         msc_boxes = [0] * len(species_names)
         if i + 1 < len(rows):
             msc_row = rows[i + 1]
-            if "uk-background-muted" in msc_row.get("class", []) or msc_row.get("bgcolor", "").lower() == "#cccccc":
+            if (
+                "uk-background-muted" in msc_row.get("class", [])
+                or msc_row.get("bgcolor", "").lower() == "#cccccc"
+            ):
                 msc_tds = msc_row.find_all("td")
                 msc_boxes = _parse_box_values(msc_tds)
                 i += 1  # skip the MSC row
@@ -90,16 +93,18 @@ def scrape_landings(html: str | None = None) -> list[LandingRecord]:
             reg = regular_boxes[j + 1] if j + 1 < len(regular_boxes) else 0
             msc = msc_boxes[j + 1] if j + 1 < len(msc_boxes) else 0
             if reg > 0 or msc > 0:
-                records.append(LandingRecord(
-                    date=date,
-                    port=PORT,
-                    vessel_name=vessel_name,
-                    vessel_code=vessel_code,
-                    species=species,
-                    boxes=reg,
-                    boxes_msc=msc,
-                    scraped_at=scraped_at,
-                ))
+                records.append(
+                    LandingRecord(
+                        date=date,
+                        port=PORT,
+                        vessel_name=vessel_name,
+                        vessel_code=vessel_code,
+                        species=species,
+                        boxes=reg,
+                        boxes_msc=msc,
+                        scraped_at=scraped_at,
+                    )
+                )
 
         i += 1
 

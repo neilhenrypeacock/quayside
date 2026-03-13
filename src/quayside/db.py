@@ -54,8 +54,16 @@ def upsert_landings(records: list[LandingRecord]) -> int:
            (date, port, vessel_name, vessel_code, species, boxes, boxes_msc, scraped_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
         [
-            (r.date, r.port, r.vessel_name, r.vessel_code, r.species,
-             r.boxes, r.boxes_msc, r.scraped_at)
+            (
+                r.date,
+                r.port,
+                r.vessel_name,
+                r.vessel_code,
+                r.species,
+                r.boxes,
+                r.boxes_msc,
+                r.scraped_at,
+            )
             for r in records
         ],
     )
@@ -74,8 +82,16 @@ def upsert_prices(records: list[PriceRecord]) -> int:
            (date, port, species, grade, price_low, price_high, price_avg, scraped_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
         [
-            (r.date, r.port, r.species, r.grade,
-             r.price_low, r.price_high, r.price_avg, r.scraped_at)
+            (
+                r.date,
+                r.port,
+                r.species,
+                r.grade,
+                r.price_low,
+                r.price_high,
+                r.price_avg,
+                r.scraped_at,
+            )
             for r in records
         ],
     )
@@ -133,8 +149,6 @@ def get_latest_date() -> str | None:
 def get_previous_date(date: str) -> str | None:
     """Most recent date before the given date (for day-over-day comparison)."""
     conn = get_connection()
-    row = conn.execute(
-        "SELECT MAX(date) FROM prices WHERE date < ?", (date,)
-    ).fetchone()
+    row = conn.execute("SELECT MAX(date) FROM prices WHERE date < ?", (date,)).fetchone()
     conn.close()
     return row[0] if row else None

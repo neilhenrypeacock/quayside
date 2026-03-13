@@ -1,4 +1,5 @@
-from quayside.run import main
 import sys
+
+from quayside.run import main
 
 sys.exit(main())

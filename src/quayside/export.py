@@ -24,7 +24,9 @@ def export_landings_csv(date: str, port: str) -> Path | None:
 
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["date", "port", "vessel_name", "vessel_code", "species", "boxes", "boxes_msc"])
+        writer.writerow(
+            ["date", "port", "vessel_name", "vessel_code", "species", "boxes", "boxes_msc"]
+        )
         writer.writerows(rows)
 
     logger.info("Exported %d landings rows to %s", len(rows), path)
@@ -42,7 +44,9 @@ def export_prices_csv(date: str, port: str) -> Path | None:
 
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["date", "port", "species", "grade", "price_low", "price_high", "price_avg"])
+        writer.writerow(
+            ["date", "port", "species", "grade", "price_low", "price_high", "price_avg"]
+        )
         writer.writerows(rows)
 
     logger.info("Exported %d price rows to %s", len(rows), path)
