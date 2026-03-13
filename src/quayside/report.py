@@ -9,7 +9,7 @@ from pathlib import Path
 
 import jinja2
 
-from quayside.db import get_all_prices_for_date, get_latest_date
+from quayside.db import get_all_prices_for_date, get_latest_date, get_previous_date
 from quayside.species import normalise_species
 
 logger = logging.getLogger(__name__)
@@ -25,6 +25,72 @@ PORT_CODES = {
     "Fraserburgh": "FRB",
     "Kinlochbervie": "KLB",
 }
+
+
+def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
+    """Build biggest movers: species with largest day-over-day price change.
+
+    Compares today's best avg price per species (normalised) to the previous
+    day's best avg for the same species. Returns up to 6 movers sorted by
+    absolute percentage change (mix of risers and fallers).
+    """
+    prev_date = get_previous_date(date)
+    if not prev_date:
+        return []
+
+    prev_rows = get_all_prices_for_date(prev_date)
+    if not prev_rows:
+        return []
+
+    # Skip noisy damaged/mixed items that cause extreme swings
+    _NOISE_SUFFIXES = ("dam", "mx", "mixed", "tails", "bru", "link")
+
+    def _is_noisy(raw_species: str) -> bool:
+        low = raw_species.lower().strip()
+        return any(low.endswith(s) for s in _NOISE_SUFFIXES) or "damaged" in low
+
+    def _best_by_species(rows: list[tuple]) -> dict[str, float]:
+        """Best avg price per normalised species across all ports (skip noisy items)."""
+        best: dict[str, float] = {}
+        for r in rows:
+            _, _port, raw_species, _grade, _low, _high, avg = r
+            if not avg or _is_noisy(raw_species):
+                continue
+            species = normalise_species(raw_species)
+            if species not in best or avg > best[species]:
+                best[species] = avg
+        return best
+
+    today_best = _best_by_species(today_rows)
+    prev_best = _best_by_species(prev_rows)
+
+    changes = []
+    for species, today_price in today_best.items():
+        prev_price = prev_best.get(species)
+        if not prev_price or prev_price == 0:
+            continue
+        pct = round(((today_price - prev_price) / prev_price) * 100, 1)
+        if abs(pct) < 0.5:
+            continue  # Skip negligible changes
+        direction = "up" if pct > 0 else "down"
+        arrow = "▲" if pct > 0 else "▼"
+        sign = "+" if pct > 0 else ""
+        changes.append({
+            "species": species,
+            "price": today_price,
+            "price_yesterday": prev_price,
+            "change_pct": pct,
+            "pct_str": f"{sign}{pct}%",
+            "direction": direction,
+            "arrow": arrow,
+            "label": "Rising" if pct > 0 else "Falling",
+            "port": "",  # Cross-port best, no single port
+            "grade": f"was £{prev_price:.2f}",
+        })
+
+    # Sort by absolute change, take top 6
+    changes.sort(key=lambda c: abs(c["change_pct"]), reverse=True)
+    return changes[:6]
 
 
 def _build_report_data(date: str) -> dict:
@@ -125,6 +191,9 @@ def _build_report_data(date: str) -> dict:
         )
         comparisons.append({"species": species, "ports": ports})
 
+    # --- Biggest movers (day-over-day) ---
+    movers = _build_movers(date, rows)
+
     dt = datetime.strptime(date, "%Y-%m-%d")
 
     return {
@@ -137,7 +206,7 @@ def _build_report_data(date: str) -> dict:
         "ticker_items": ticker_items,
         "prices_by_species": prices_by_species,
         "comparisons": comparisons,
-        "movers": [],  # Future: day-over-day comparison
+        "movers": movers,
         "highest_price": highest,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
