@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quayside Digest — Wed 11 Mar</title>
+<!--[if mso]>
+<noscript>
+<xml>
+<o:OfficeDocumentSettings>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+</noscript>
+<![endif]-->
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #e8e0d0;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 300;
+    color: #0f0e0c;
+    -webkit-font-smoothing: antialiased;
+  }
+  .email-wrap {
+    max-width: 640px;
+    margin: 32px auto;
+    background: #f5f0e8;
+    border: 1px solid #c8bfaa;
+  }
+
+  /* HEADER */
+  .email-header {
+    background: #1a3a4a;
+    padding: 0;
+    border-bottom: 3px solid #c8401a;
+  }
+  .header-top {
+    padding: 20px 32px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .logo {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #f5f0e8;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  .logo span { color: #c8401a; }
+  .header-meta {
+    text-align: right;
+  }
+  .header-date {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #7ab0c8;
+    display: block;
+  }
+  .header-edition {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #4a7a8a;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .header-ticker {
+    padding: 10px 32px;
+    display: flex;
+    gap: 24px;
+    overflow: hidden;
+    flex-wrap: wrap;
+  }
+  .ticker-item {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #a8c8d8;
+    white-space: nowrap;
+  }
+  .ticker-item .port { color: #4a7a8a; margin-right: 4px; }
+  .ticker-item .up { color: #6db88a; }
+  .ticker-item .down { color: #e07060; }
+
+  /* ALERT BAND */
+  .alert-band {
+    background: #c8401a;
+    padding: 10px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .alert-label {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    white-space: nowrap;
+  }
+  .alert-text {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: white;
+    letter-spacing: 0.04em;
+  }
+  .alert-text strong { font-weight: 700; }
+
+  /* BODY */
+  .email-body { padding: 0; }
+
+  /* SECTION LABEL */
+  .section-label {
+    padding: 24px 32px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #7a7060;
+    border-bottom: 1px solid #c8bfaa;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #c8bfaa;
+  }
+
+  /* LEAD STORY */
+  .lead-story {
+    padding: 28px 32px 24px;
+    border-bottom: 1px solid #c8bfaa;
+  }
+  .lead-kicker {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c8401a;
+    margin-bottom: 10px;
+  }
+  .lead-headline {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: #0f0e0c;
+    margin-bottom: 14px;
+  }
+  .lead-headline em {
+    font-style: italic;
+    color: #1a3a4a;
+  }
+  .lead-body {
+    font-size: 14px;
+    line-height: 1.75;
+    color: #3a3428;
+    font-weight: 300;
+  }
+
+  /* PRICE TABLE */
+  .price-table-wrap {
+    padding: 0 32px 28px;
+    border-bottom: 1px solid #c8bfaa;
+  }
+  .price-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+  }
+  .price-table thead tr {
+    border-bottom: 2px solid #0f0e0c;
+  }
+  .price-table thead th {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #7a7060;
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 400;
+  }
+  .price-table thead th.right { text-align: right; }
+  .price-table tbody tr {
+    border-bottom: 1px solid #e8e0d0;
+    transition: background 0.15s;
+  }
+  .price-table tbody tr:last-child { border-bottom: none; }
+  .price-table tbody td {
+    padding: 11px 8px;
+    font-size: 13px;
+    color: #0f0e0c;
+    vertical-align: middle;
+  }
+  .species-name {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: #0f0e0c;
+  }
+  .port-name {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #7a7060;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-top: 2px;
+  }
+  .grade-badge {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    background: #e8e0d0;
+    color: #5a5040;
+    padding: 2px 6px;
+    border-radius: 2px;
+    border: 1px solid #c8bfaa;
+  }
+  .price-val {
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: right;
+    color: #0f0e0c;
+  }
+  .price-change {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .price-change.up { color: #3a8a5a; }
+  .price-change.down { color: #c8401a; }
+  .price-change.flat { color: #7a7060; }
+  .vol {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #9a9080;
+    text-align: right;
+  }
+  .table-best {
+    background: #f0ebe0;
+  }
+  .best-label {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #c8401a;
+    background: rgba(200,64,26,0.1);
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid rgba(200,64,26,0.2);
+    display: inline-block;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* MOVERS */
+  .movers-grid {
+    padding: 0 32px 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    border-bottom: 1px solid #c8bfaa;
+  }
+  .mover-card {
+    background: #f0ebe0;
+    border: 1px solid #c8bfaa;
+    padding: 14px 16px;
+  }
+  .mover-card.down-card {
+    background: #fdf0ec;
+    border-color: #e8c8b8;
+  }
+  .mover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+  .mover-species {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: #0f0e0c;
+  }
+  .mover-pct {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .mover-pct.up { color: #3a8a5a; }
+  .mover-pct.down { color: #c8401a; }
+  .mover-detail {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #7a7060;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+  }
+  .mover-label {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #9a9080;
+    margin-bottom: 8px;
+  }
+
+  /* CROSS PORT COMPARISON */
+  .comparison-wrap {
+    padding: 0 32px 28px;
+    border-bottom: 1px solid #c8bfaa;
+  }
+  .comparison-species {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 18px;
+    font-weight: 700;
+    font-style: italic;
+    color: #0f0e0c;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .comparison-species span {
+    font-style: normal;
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+    color: #7a7060;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 400;
+    margin-left: 8px;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .bar-port {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #5a5040;
+    letter-spacing: 0.04em;
+    width: 100px;
+    flex-shrink: 0;
+  }
+  .bar-track {
+    flex: 1;
+    height: 20px;
+    background: #e8e0d0;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    background: #1a3a4a;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+  .bar-fill.best { background: #c8401a; }
+  .bar-price {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: #0f0e0c;
+    width: 52px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .bar-change {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    width: 44px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .bar-change.up { color: #3a8a5a; }
+  .bar-change.down { color: #c8401a; }
+
+  /* INSIGHT BOX */
+  .insight-box {
+    margin: 0 32px 28px;
+    border-left: 3px solid #1a3a4a;
+    padding: 16px 20px;
+    background: #eee8d8;
+    border-right: 1px solid #c8bfaa;
+    border-top: 1px solid #c8bfaa;
+    border-bottom: 1px solid #c8bfaa;
+  }
+  .insight-label {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #1a3a4a;
+    margin-bottom: 8px;
+  }
+  .insight-text {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #2a2418;
+    font-style: italic;
+    font-family: Georgia, serif;
+  }
+  .insight-text strong {
+    font-style: normal;
+    font-weight: 700;
+    color: #0f0e0c;
+  }
+
+  /* UPGRADE BAND */
+  .upgrade-band {
+    background: #1a3a4a;
+    padding: 28px 32px;
+    border-bottom: 1px solid #0a1a24;
+  }
+  .upgrade-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+  .upgrade-left {}
+  .upgrade-label {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #4a7a8a;
+    margin-bottom: 6px;
+  }
+  .upgrade-headline {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #f0ebe0;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .upgrade-headline em { font-style: italic; color: #7ab0c8; }
+  .upgrade-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .upgrade-features li {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #7ab0c8;
+    letter-spacing: 0.03em;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .upgrade-features li::before {
+    content: '→';
+    color: #c8401a;
+    font-size: 10px;
+  }
+  .upgrade-cta {
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .upgrade-price {
+    font-family: Georgia, serif;
+    font-size: 32px;
+    font-weight: 900;
+    color: #f0ebe0;
+    line-height: 1;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .upgrade-period {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #4a7a8a;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 14px;
+  }
+  .upgrade-btn {
+    display: block;
+    background: #c8401a;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* CSV DOWNLOAD */
+  .csv-row {
+    padding: 16px 32px;
+    border-bottom: 1px solid #c8bfaa;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f0ebe0;
+  }
+  .csv-label {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #5a5040;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .csv-icon {
+    width: 28px;
+    height: 28px;
+    background: #1a3a4a;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', monospace;
+    font-size: 7px;
+    color: #7ab0c8;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+  }
+  .csv-link {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #1a3a4a;
+    text-decoration: none;
+    border-bottom: 1px solid #1a3a4a;
+    padding-bottom: 1px;
+  }
+
+  /* DASHBOARD LINK */
+  .dashboard-row {
+    padding: 20px 32px;
+    border-bottom: 1px solid #c8bfaa;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .dashboard-text {
+    font-size: 13px;
+    color: #5a5040;
+    line-height: 1.5;
+    font-weight: 300;
+  }
+  .dashboard-text strong {
+    font-weight: 500;
+    color: #0f0e0c;
+    display: block;
+    margin-bottom: 2px;
+    font-size: 14px;
+  }
+  .dashboard-btn {
+    flex-shrink: 0;
+    background: #0f0e0c;
+    color: #f0ebe0;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    text-decoration: none;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* FOOTER */
+  .email-footer {
+    background: #0f0e0c;
+    padding: 24px 32px;
+  }
+  .footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #2a2820;
+  }
+  .footer-logo {
+    font-family: Georgia, serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #f5f0e8;
+  }
+  .footer-logo span { color: #c8401a; }
+  .footer-links {
+    display: flex;
+    gap: 20px;
+  }
+  .footer-links a {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #3a3428;
+    text-decoration: none;
+  }
+  .footer-copy {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #2a2418;
+    letter-spacing: 0.06em;
+    line-height: 1.7;
+  }
+  .footer-copy a { color: #3a3428; }
+</style>
+</head>
+<body>
+<div class="email-wrap">
+
+  <!-- HEADER -->
+  <div class="email-header">
+    <div class="header-top">
+      <a href="#" class="logo">Quay<span>side</span></a>
+      <div class="header-meta">
+        <span class="header-date">Wednesday 11 March 2026 · 06:47</span>
+        <span class="header-edition">Daily Market Digest · Issue 47</span>
+      </div>
+    </div>
+    <div class="header-ticker">
+      <span class="ticker-item"><span class="port">PTH</span> Haddock GI <span class="up">£2.84 ▲8%</span></span>
+      <span class="ticker-item"><span class="port">LWK</span> Cod GI <span class="down">£3.12 ▼3%</span></span>
+      <span class="ticker-item"><span class="port">ABD</span> Saithe GI <span class="up">£1.67 ▲4%</span></span>
+      <span class="ticker-item"><span class="port">FRB</span> Whiting GII <span class="up">£1.23 ▲1%</span></span>
+      <span class="ticker-item"><span class="port">BRX</span> Dover Sole GI <span class="up">£9.40 ▲5%</span></span>
+      <span class="ticker-item"><span class="port">GRM</span> Monkfish GI <span class="up">£5.60 ▲2%</span></span>
+    </div>
+  </div>
+
+  <!-- ALERT BAND -->
+  <div class="alert-band">
+    <span class="alert-label">⚑ Today's signal</span>
+    <span class="alert-text"><strong>Cod up 12% at Peterhead</strong> vs last week · Saithe soft across all Scottish ports · Monkfish best price at Lerwick in 3 weeks</span>
+  </div>
+
+  <!-- LEAD STORY -->
+  <div class="email-body">
+    <div class="section-label">Market overview</div>
+    <div class="lead-story">
+      <div class="lead-kicker">White fish · Scottish ports</div>
+      <div class="lead-headline">Cod surges at Peterhead.<br><em>Saithe tells a different story.</em></div>
+      <div class="lead-body">
+        A strong morning at Peterhead with cod up 12% on last week's average — volume was higher than usual, yet prices held firm, suggesting solid buyer demand from mainland processors. Haddock Grade I continues its run, now up for the third consecutive session.<br><br>
+        Saithe is the outlier. Soft pricing across Aberdeen, Fraserburgh and Lerwick points to oversupply, likely from larger pelagic vessels landing bigger volumes than buyers can absorb. If you're flexible on species this week, saithe represents the clearest value in the market.
+      </div>
+    </div>
+
+    <!-- PRICE TABLE -->
+    <div class="section-label">Today's prices — all ports</div>
+    <div class="price-table-wrap">
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>Species</th>
+            <th>Grade</th>
+            <th class="right">Price/kg</th>
+            <th class="right">vs yesterday</th>
+            <th class="right">Volume</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="table-best">
+            <td>
+              <span class="species-name">Haddock <span class="best-label">best</span></span>
+              <span class="port-name">Peterhead</span>
+            </td>
+            <td><span class="grade-badge">GI</span></td>
+            <td class="price-val">£2.84</td>
+            <td class="price-change up">▲ 8%</td>
+            <td class="vol">4,200 kg</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="species-name">Haddock</span>
+              <span class="port-name">Aberdeen</span>
+            </td>
+            <td><span class="grade-badge">GI</span></td>
+            <td class="price-val">£2.71</td>
+            <td class="price-change down">▼ 2%</td>
+            <td class="vol">2,100 kg</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="species-name">Haddock</span>
+              <span class="port-name">Fraserburgh</span>
+            </td>
+            <td><span class="grade-badge">GI</span></td>
+            <td class="price-val">£2.66</td>
+            <td class="price-change up">▲ 1%</td>
+            <td class="vol">1,840 kg</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="species-name">Cod</span>
+              <span class="port-name">Peterhead</span>
+            </td>
+            <td><span class="grade-badge">GI</span></td>
+            <td class="price-val">£3.44</td>
+            <td class="price-change up">▲ 12%</td>
+            <td class="vol">3,100 kg</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="species-name">Cod</span>
+              <span class="port-name">Lerwick</span>
+            </td>
+            <td><span class="grade-badge">LI</span></td>
+            <td class="price-val">£3.12</td>
+            <td class="price-change down">▼ 3%</td>
+            <td class="vol">980 kg</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="species-name">Saithe</span>
+              <span class="port-name">Aberdeen</span>
+            </td>
+            <td><span class="grade-badge">GI</span></td>
+            <td class="price-val">£1.67</td>
+            <td class="price-change down">▼ 11%</td>
+            <td class="vol">5,400 kg</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="species-name">Monkfish</span>
+              <span class="port-name">Lerwick</span>
+            </td>
+            <td><span class="grade-badge">GI</span></td>
+            <td class="price-val">£5.60</td>
+            <td class="price-change up">▲ 6%</td>
+            <td class="vol">620 kg</td>
+          </tr>
+          <tr class="table-best">
+            <td>
+              <span class="species-name">Dover Sole <span class="best-label">best</span></span>
+              <span class="port-name">Brixham</span>
+            </td>
+            <td><span class="grade-badge">GI</span></td>
+            <td class="price-val">£9.40</td>
+            <td class="price-change up">▲ 5%</td>
+            <td class="vol">340 kg</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="species-name">Plaice</span>
+              <span class="port-name">Grimsby</span>
+            </td>
+            <td><span class="grade-badge">GI</span></td>
+            <td class="price-val">£2.88</td>
+            <td class="price-change down">▼ 4%</td>
+            <td class="vol">1,200 kg</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="species-name">Whiting</span>
+              <span class="port-name">Fraserburgh</span>
+            </td>
+            <td><span class="grade-badge">GII</span></td>
+            <td class="price-val">£1.23</td>
+            <td class="price-change up">▲ 1%</td>
+            <td class="vol">2,800 kg</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CROSS PORT COMPARISON -->
+    <div class="section-label">Cross-port — Haddock GI</div>
+    <div class="comparison-wrap">
+      <div class="comparison-species">Haddock <span>Grade I · today vs 7-day avg</span></div>
+      <div class="bar-row">
+        <span class="bar-port">Peterhead</span>
+        <div class="bar-track"><div class="bar-fill best" style="width:100%"></div></div>
+        <span class="bar-price">£2.84</span>
+        <span class="bar-change up">▲ 8%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-port">Aberdeen</span>
+        <div class="bar-track"><div class="bar-fill" style="width:89%"></div></div>
+        <span class="bar-price">£2.71</span>
+        <span class="bar-change down">▼ 2%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-port">Fraserburgh</span>
+        <div class="bar-track"><div class="bar-fill" style="width:86%"></div></div>
+        <span class="bar-price">£2.66</span>
+        <span class="bar-change up">▲ 1%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-port">Lerwick</span>
+        <div class="bar-track"><div class="bar-fill" style="width:82%"></div></div>
+        <span class="bar-price">£2.61</span>
+        <span class="bar-change down">▼ 4%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-port">Scalloway</span>
+        <div class="bar-track"><div class="bar-fill" style="width:78%"></div></div>
+        <span class="bar-price">£2.54</span>
+        <span class="bar-change flat">— 0%</span>
+      </div>
+    </div>
+
+    <!-- MOVERS -->
+    <div class="section-label">Biggest movers</div>
+    <div class="movers-grid">
+      <div class="mover-card">
+        <div class="mover-label">↑ Biggest riser</div>
+        <div class="mover-header">
+          <span class="mover-species">Cod</span>
+          <span class="mover-pct up">+12%</span>
+        </div>
+        <div class="mover-detail">
+          Peterhead · Grade I<br>
+          £3.44/kg · was £3.07 last week<br>
+          Volume: 3,100 kg landed
+        </div>
+      </div>
+      <div class="mover-card down-card">
+        <div class="mover-label">↓ Biggest faller</div>
+        <div class="mover-header">
+          <span class="mover-species">Saithe</span>
+          <span class="mover-pct down">−11%</span>
+        </div>
+        <div class="mover-detail">
+          Aberdeen · Grade I<br>
+          £1.67/kg · was £1.88 last week<br>
+          Volume: 5,400 kg landed
+        </div>
+      </div>
+    </div>
+
+    <!-- INSIGHT -->
+    <div class="insight-box">
+      <div class="insight-label">◆ Quayside view</div>
+      <div class="insight-text">
+        <strong>The Peterhead cod move is worth watching.</strong> A 12% single-session rise on strong volume typically signals either a sharp demand spike from a large processor or an unusually light landing from the fleet. If the fleet's out for another day or two, this price could hold or go higher. Saithe at these levels hasn't been seen since November — if you can move it, the volumes are there.
+      </div>
+    </div>
+
+    <!-- CSV DOWNLOAD -->
+    <div class="csv-row">
+      <div class="csv-label">
+        <div class="csv-icon">CSV</div>
+        Today's full dataset — all ports, all species, all grades
+      </div>
+      <a href="#" class="csv-link">Download CSV</a>
+    </div>
+
+    <!-- DASHBOARD LINK -->
+    <div class="dashboard-row">
+      <div class="dashboard-text">
+        <strong>View on dashboard</strong>
+        90-day price history · trend charts · species filter · port comparison
+      </div>
+      <a href="#" class="dashboard-btn">Open dashboard →</a>
+    </div>
+
+    <!-- UPGRADE BAND -->
+    <div class="upgrade-band">
+      <div class="upgrade-inner">
+        <div class="upgrade-left">
+          <div class="upgrade-label">You're on the free digest</div>
+          <div class="upgrade-headline">Upgrade to <em>Trade</em> and ask the market questions.</div>
+          <ul class="upgrade-features">
+            <li>Full dashboard — 90-day history, all ports</li>
+            <li>AI chat — plain English queries on live data</li>
+            <li>WhatsApp morning alert before 7am</li>
+            <li>CSV export for your procurement team</li>
+            <li>Cancel any time</li>
+          </ul>
+        </div>
+        <div class="upgrade-cta">
+          <span class="upgrade-price">£95</span>
+          <span class="upgrade-period">per month</span>
+          <a href="#" class="upgrade-btn">Start free trial</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="email-footer">
+    <div class="footer-top">
+      <div class="footer-logo">Quay<span>side</span></div>
+      <div class="footer-links">
+        <a href="#">Dashboard</a>
+        <a href="#">Pricing</a>
+        <a href="#">Unsubscribe</a>
+      </div>
+    </div>
+    <div class="footer-copy">
+      Quayside Data Ltd · All prices indicative · Sources: Peterhead Port Authority, Shetland Seafood Auctions, SWFPA, Fraserburgh Harbour, Brixham Trawler Agents, Grimsby Fish Market<br>
+      You're receiving this because you signed up at quaysidedata.co.uk · <a href="#">Manage preferences</a> · <a href="#">Unsubscribe</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

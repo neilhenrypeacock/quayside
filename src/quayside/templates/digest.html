@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quayside Digest — {{ report_date_short }}</title>
+<!--[if mso]>
+<noscript>
+<xml>
+<o:OfficeDocumentSettings>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+</noscript>
+<![endif]-->
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #e8e0d0;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 300;
+    color: #0f0e0c;
+    -webkit-font-smoothing: antialiased;
+  }
+  .email-wrap {
+    max-width: 640px;
+    margin: 32px auto;
+    background: #f5f0e8;
+    border: 1px solid #c8bfaa;
+  }
+
+  /* HEADER */
+  .email-header {
+    background: #1a3a4a;
+    padding: 0;
+    border-bottom: 3px solid #c8401a;
+  }
+  .header-top {
+    padding: 20px 32px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .logo {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #f5f0e8;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  .logo span { color: #c8401a; }
+  .header-meta {
+    text-align: right;
+  }
+  .header-date {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #7ab0c8;
+    display: block;
+  }
+  .header-edition {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #4a7a8a;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .header-ticker {
+    padding: 10px 32px;
+    display: flex;
+    gap: 24px;
+    overflow: hidden;
+    flex-wrap: wrap;
+  }
+  .ticker-item {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #a8c8d8;
+    white-space: nowrap;
+  }
+  .ticker-item .port { color: #4a7a8a; margin-right: 4px; }
+  .ticker-item .up { color: #6db88a; }
+  .ticker-item .down { color: #e07060; }
+
+  /* ALERT BAND */
+  .alert-band {
+    background: #c8401a;
+    padding: 10px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .alert-label {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    white-space: nowrap;
+  }
+  .alert-text {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: white;
+    letter-spacing: 0.04em;
+  }
+  .alert-text strong { font-weight: 700; }
+
+  /* BODY */
+  .email-body { padding: 0; }
+
+  /* SECTION LABEL */
+  .section-label {
+    padding: 24px 32px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #7a7060;
+    border-bottom: 1px solid #c8bfaa;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #c8bfaa;
+  }
+
+  /* LEAD STORY */
+  .lead-story {
+    padding: 28px 32px 24px;
+    border-bottom: 1px solid #c8bfaa;
+  }
+  .lead-kicker {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c8401a;
+    margin-bottom: 10px;
+  }
+  .lead-headline {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: #0f0e0c;
+    margin-bottom: 14px;
+  }
+  .lead-headline em {
+    font-style: italic;
+    color: #1a3a4a;
+  }
+  .lead-body {
+    font-size: 14px;
+    line-height: 1.75;
+    color: #3a3428;
+    font-weight: 300;
+  }
+
+  /* PRICE TABLE */
+  .price-table-wrap {
+    padding: 0 32px 28px;
+    border-bottom: 1px solid #c8bfaa;
+  }
+  .price-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+  }
+  .price-table thead tr {
+    border-bottom: 2px solid #1a3a4a;
+  }
+  .price-table th {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #5a5040;
+    padding: 8px 6px;
+    text-align: left;
+    font-weight: 400;
+  }
+  .price-table th.right,
+  .price-table td.right { text-align: right; }
+  .price-table td {
+    padding: 7px 6px;
+    font-size: 12px;
+    border-bottom: 1px solid #ddd5c8;
+    vertical-align: top;
+  }
+  .price-table tr.table-best td {
+    background: rgba(26,58,74,0.04);
+  }
+  .species-name {
+    display: block;
+    font-weight: 500;
+    font-size: 12px;
+    color: #0f0e0c;
+  }
+  .best-label {
+    display: inline-block;
+    background: #1a3a4a;
+    color: #f0ebe0;
+    font-family: 'Courier New', monospace;
+    font-size: 7px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-left: 4px;
+  }
+  .port-name {
+    display: block;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #7a7060;
+    letter-spacing: 0.04em;
+    margin-top: 1px;
+  }
+  .grade-badge {
+    display: inline-block;
+    background: #e8e0d0;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: #5a5040;
+    letter-spacing: 0.04em;
+  }
+  .price-val {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f0e0c;
+    text-align: right;
+  }
+
+  /* CROSS PORT COMPARISON */
+  .comparison-wrap {
+    padding: 20px 32px 28px;
+    border-bottom: 1px solid #c8bfaa;
+  }
+  .comparison-species {
+    font-family: Georgia, serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f0e0c;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+  .comparison-species span {
+    display: block;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    font-weight: 400;
+    color: #7a7060;
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .bar-port {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #5a5040;
+    width: 85px;
+    flex-shrink: 0;
+    text-align: right;
+    letter-spacing: 0.03em;
+  }
+  .bar-track {
+    flex: 1;
+    height: 18px;
+    background: #e8e0d0;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: #7ab0c8;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+  .bar-fill.best {
+    background: #1a3a4a;
+  }
+  .bar-price {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f0e0c;
+    width: 50px;
+    text-align: right;
+  }
+
+  /* MOVERS */
+  .movers-grid {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #c8bfaa;
+  }
+  .mover-card {
+    flex: 1;
+    padding: 20px 32px;
+    border-right: 1px solid #c8bfaa;
+  }
+  .mover-card:last-child { border-right: none; }
+  .mover-card.down-card { }
+  .mover-label {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #7a7060;
+    margin-bottom: 8px;
+  }
+  .mover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .mover-species {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f0e0c;
+  }
+  .mover-pct {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .mover-pct.up { color: #4a8a5a; }
+  .mover-pct.down { color: #c8401a; }
+  .mover-detail {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #5a5040;
+    line-height: 1.7;
+    letter-spacing: 0.02em;
+  }
+
+  /* INSIGHT */
+  .insight-box {
+    padding: 24px 32px;
+    background: #e8e0d0;
+    border-bottom: 1px solid #c8bfaa;
+  }
+  .insight-label {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #1a3a4a;
+    margin-bottom: 8px;
+  }
+  .insight-text {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #2a2418;
+    font-style: italic;
+    font-family: Georgia, serif;
+  }
+  .insight-text strong {
+    font-style: normal;
+    font-weight: 700;
+    color: #0f0e0c;
+  }
+
+  /* UPGRADE BAND */
+  .upgrade-band {
+    background: #1a3a4a;
+    padding: 28px 32px;
+    border-bottom: 1px solid #0a1a24;
+  }
+  .upgrade-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+  .upgrade-left {}
+  .upgrade-label {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #4a7a8a;
+    margin-bottom: 6px;
+  }
+  .upgrade-headline {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #f0ebe0;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .upgrade-headline em { font-style: italic; color: #7ab0c8; }
+  .upgrade-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .upgrade-features li {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #7ab0c8;
+    letter-spacing: 0.03em;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .upgrade-features li::before {
+    content: '\2192';
+    color: #c8401a;
+    font-size: 10px;
+  }
+  .upgrade-cta {
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .upgrade-price {
+    font-family: Georgia, serif;
+    font-size: 32px;
+    font-weight: 900;
+    color: #f0ebe0;
+    line-height: 1;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .upgrade-period {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #4a7a8a;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 14px;
+  }
+  .upgrade-btn {
+    display: block;
+    background: #c8401a;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* CSV DOWNLOAD */
+  .csv-row {
+    padding: 16px 32px;
+    border-bottom: 1px solid #c8bfaa;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f0ebe0;
+  }
+  .csv-label {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #5a5040;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .csv-icon {
+    width: 28px;
+    height: 28px;
+    background: #1a3a4a;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', monospace;
+    font-size: 7px;
+    color: #7ab0c8;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+  }
+  .csv-link {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #1a3a4a;
+    text-decoration: none;
+    border-bottom: 1px solid #1a3a4a;
+    padding-bottom: 1px;
+  }
+
+  /* DASHBOARD LINK */
+  .dashboard-row {
+    padding: 20px 32px;
+    border-bottom: 1px solid #c8bfaa;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .dashboard-text {
+    font-size: 13px;
+    color: #5a5040;
+    line-height: 1.5;
+    font-weight: 300;
+  }
+  .dashboard-text strong {
+    font-weight: 500;
+    color: #0f0e0c;
+    display: block;
+    margin-bottom: 2px;
+    font-size: 14px;
+  }
+  .dashboard-btn {
+    flex-shrink: 0;
+    background: #0f0e0c;
+    color: #f0ebe0;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    text-decoration: none;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* FOOTER */
+  .email-footer {
+    background: #0f0e0c;
+    padding: 24px 32px;
+  }
+  .footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #2a2820;
+  }
+  .footer-logo {
+    font-family: Georgia, serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #f5f0e8;
+  }
+  .footer-logo span { color: #c8401a; }
+  .footer-links {
+    display: flex;
+    gap: 20px;
+  }
+  .footer-links a {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #3a3428;
+    text-decoration: none;
+  }
+  .footer-copy {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #2a2418;
+    letter-spacing: 0.06em;
+    line-height: 1.7;
+  }
+  .footer-copy a { color: #3a3428; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    padding: 60px 32px;
+    text-align: center;
+  }
+  .empty-state h2 {
+    font-family: Georgia, serif;
+    font-size: 22px;
+    color: #1a3a4a;
+    margin-bottom: 12px;
+  }
+  .empty-state p {
+    font-size: 14px;
+    color: #7a7060;
+  }
+</style>
+</head>
+<body>
+<div class="email-wrap">
+
+  <!-- HEADER -->
+  <div class="email-header">
+    <div class="header-top">
+      <a href="#" class="logo">Quay<span>side</span></a>
+      <div class="header-meta">
+        <span class="header-date">{{ report_date }}</span>
+        <span class="header-edition">Daily Market Digest</span>
+      </div>
+    </div>
+    {% if ticker_items %}
+    <div class="header-ticker">
+      {% for t in ticker_items %}
+      <span class="ticker-item"><span class="port">{{ t.port_code }}</span> {{ t.species }} <span class="up">&pound;{{ "%.2f"|format(t.price) }}</span></span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if prices_by_species %}
+
+  <!-- ALERT BAND -->
+  <div class="alert-band">
+    <span class="alert-label">&#9873; Today</span>
+    <span class="alert-text"><strong>{{ ports_reporting|length }} ports reporting</strong> &middot; {{ total_species }} species tracked &middot; {{ total_rows }} price points</span>
+  </div>
+
+  <!-- LEAD STORY -->
+  <div class="email-body">
+    <div class="section-label">Market overview</div>
+    <div class="lead-story">
+      <div class="lead-kicker">All ports &middot; {{ report_date_iso }}</div>
+      <div class="lead-headline">Daily price report.<br><em>{{ ports_reporting|join(', ') }}.</em></div>
+      <div class="lead-body">
+        {% if highest_price %}
+        Today's top price: <strong>&pound;{{ "%.2f"|format(highest_price.price) }}/kg</strong> for {{ highest_price.species }} ({{ highest_price.grade }}) at {{ highest_price.port }}.
+        {% endif %}
+        {% if comparisons %}
+        Cross-port comparison available for {{ comparisons|length }} species appearing at multiple ports.
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- PRICE TABLE -->
+    <div class="section-label">Today's prices — all ports</div>
+    <div class="price-table-wrap">
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>Species</th>
+            <th>Grade</th>
+            <th class="right">Low</th>
+            <th class="right">High</th>
+            <th class="right">Avg/kg</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for group in prices_by_species %}
+          {% for row in group.rows %}
+          <tr{% if row.is_best %} class="table-best"{% endif %}>
+            <td>
+              <span class="species-name">{{ group.species }}{% if row.is_best %} <span class="best-label">best</span>{% endif %}</span>
+              <span class="port-name">{{ row.port }}</span>
+            </td>
+            <td><span class="grade-badge">{{ row.grade }}</span></td>
+            <td class="price-val">{% if row.price_low %}&pound;{{ "%.2f"|format(row.price_low) }}{% else %}&mdash;{% endif %}</td>
+            <td class="price-val">{% if row.price_high %}&pound;{{ "%.2f"|format(row.price_high) }}{% else %}&mdash;{% endif %}</td>
+            <td class="price-val">&pound;{{ "%.2f"|format(row.price_avg) }}</td>
+          </tr>
+          {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CROSS PORT COMPARISON -->
+    {% if comparisons %}
+    {% for comp in comparisons %}
+    <div class="section-label">Cross-port — {{ comp.species }}</div>
+    <div class="comparison-wrap">
+      <div class="comparison-species">{{ comp.species }} <span>Best grade per port &middot; today</span></div>
+      {% for p in comp.ports %}
+      <div class="bar-row">
+        <span class="bar-port">{{ p.port }}</span>
+        <div class="bar-track"><div class="bar-fill{% if loop.first %} best{% endif %}" style="width:{{ p.bar_width_pct }}%"></div></div>
+        <span class="bar-price">&pound;{{ "%.2f"|format(p.price_avg) }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- MOVERS (future — needs historical data) -->
+    {% if movers %}
+    <div class="section-label">Biggest movers</div>
+    <div class="movers-grid">
+      {% for m in movers %}
+      <div class="mover-card{% if m.direction == 'down' %} down-card{% endif %}">
+        <div class="mover-label">{{ m.arrow }} {{ m.label }}</div>
+        <div class="mover-header">
+          <span class="mover-species">{{ m.species }}</span>
+          <span class="mover-pct {{ m.direction }}">{{ m.pct_str }}</span>
+        </div>
+        <div class="mover-detail">
+          {{ m.port }} &middot; {{ m.grade }}<br>
+          &pound;{{ "%.2f"|format(m.price) }}/kg
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- CSV DOWNLOAD -->
+    <div class="csv-row">
+      <div class="csv-label">
+        <div class="csv-icon">CSV</div>
+        Today's full dataset — all ports, all species, all grades
+      </div>
+      <a href="#" class="csv-link">Download CSV</a>
+    </div>
+
+    <!-- DASHBOARD LINK -->
+    <div class="dashboard-row">
+      <div class="dashboard-text">
+        <strong>View on dashboard</strong>
+        90-day price history &middot; trend charts &middot; species filter &middot; port comparison
+      </div>
+      <a href="#" class="dashboard-btn">Open dashboard &rarr;</a>
+    </div>
+
+    <!-- UPGRADE BAND -->
+    <div class="upgrade-band">
+      <div class="upgrade-inner">
+        <div class="upgrade-left">
+          <div class="upgrade-label">You're on the free digest</div>
+          <div class="upgrade-headline">Upgrade to <em>Trade</em> and ask the market questions.</div>
+          <ul class="upgrade-features">
+            <li>Full dashboard — 90-day history, all ports</li>
+            <li>AI chat — plain English queries on live data</li>
+            <li>WhatsApp morning alert before 7am</li>
+            <li>CSV export for your procurement team</li>
+            <li>Cancel any time</li>
+          </ul>
+        </div>
+        <div class="upgrade-cta">
+          <span class="upgrade-price">&pound;95</span>
+          <span class="upgrade-period">per month</span>
+          <a href="#" class="upgrade-btn">Start free trial</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {% else %}
+
+  <!-- EMPTY STATE -->
+  <div class="empty-state">
+    <h2>No data for {{ report_date_iso }}</h2>
+    <p>The pipeline found no price data for this date. Markets may be closed or scrapers may have failed.</p>
+  </div>
+
+  {% endif %}
+
+  <!-- FOOTER -->
+  <div class="email-footer">
+    <div class="footer-top">
+      <div class="footer-logo">Quay<span>side</span></div>
+      <div class="footer-links">
+        <a href="#">Dashboard</a>
+        <a href="#">Pricing</a>
+        <a href="#">Unsubscribe</a>
+      </div>
+    </div>
+    <div class="footer-copy">
+      Quayside Data Ltd &middot; All prices indicative &middot; Sources: {{ ports_reporting|join(', ') }}<br>
+      Generated {{ generated_at }}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
