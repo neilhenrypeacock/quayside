@@ -26,6 +26,9 @@ PORT_CODES = {
     "Kinlochbervie": "KLB",
 }
 
+# Benchmark species shown in the market snapshot strip — ordered by commercial importance
+BENCHMARK_SPECIES = ["Haddock", "Cod", "Monkfish", "Hake", "Dover Sole", "Turbot", "Plaice"]
+
 
 def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
     """Build biggest movers: species with largest day-over-day price change.
@@ -108,6 +111,7 @@ def _build_report_data(date: str) -> dict:
             "total_rows": 0,
             "ticker_items": [],
             "prices_by_species": [],
+            "benchmark_snapshot": [],
             "key_species_summary": [],
             "prices_multi_port": [],
             "prices_single_port": [],
@@ -209,6 +213,36 @@ def _build_report_data(date: str) -> dict:
     # Sort: port count desc, then best price desc
     key_species_summary.sort(key=lambda s: (-s["port_count"], -s["best_price"]))
 
+    # --- Benchmark snapshot (top commercial species) ---
+    benchmark_snapshot = []
+    for species in BENCHMARK_SPECIES:
+        if species not in species_ports:
+            continue
+        port_prices = species_ports[species]
+        best_port = max(port_prices, key=port_prices.get)
+        best_price = port_prices[best_port]
+
+        prev_price = prev_best.get(species)
+        change = {}
+        if prev_price and prev_price > 0:
+            pct = round(((best_price - prev_price) / prev_price) * 100, 1)
+            if abs(pct) >= 0.5:
+                sign = "+" if pct > 0 else ""
+                change = {
+                    "pct": pct,
+                    "pct_str": f"{sign}{pct}%",
+                    "arrow": "▲" if pct > 0 else "▼",
+                    "direction": "up" if pct > 0 else "down",
+                }
+
+        benchmark_snapshot.append({
+            "species": species,
+            "best_price": best_price,
+            "best_port": best_port,
+            "best_port_code": PORT_CODES.get(best_port, best_port[:3].upper()),
+            "change": change,
+        })
+
     # --- Ticker: top price per port ---
     port_best: dict[str, dict] = {}
     for r in rows:
@@ -258,6 +292,7 @@ def _build_report_data(date: str) -> dict:
         "total_rows": len(rows),
         "ticker_items": ticker_items,
         "prices_by_species": prices_by_species,
+        "benchmark_snapshot": benchmark_snapshot,
         "key_species_summary": key_species_summary,
         "prices_multi_port": prices_multi_port,
         "prices_single_port": prices_single_port,

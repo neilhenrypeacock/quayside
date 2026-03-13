@@ -588,6 +588,48 @@
   }
   .footer-copy a { color: #3a3428; }
 
+  /* BENCHMARK SNAPSHOT */
+  .snapshot-strip {
+    padding: 20px 32px;
+    border-bottom: 1px solid #c8bfaa;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .snapshot-item {
+    flex: 1 1 0;
+    min-width: 80px;
+    text-align: center;
+    padding: 8px 4px;
+    border-right: 1px solid #ddd5c8;
+  }
+  .snapshot-item:last-child { border-right: none; }
+  .snapshot-species {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7a7060;
+    margin-bottom: 4px;
+  }
+  .snapshot-price {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f0e0c;
+    line-height: 1.2;
+  }
+  .snapshot-meta {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #7a7060;
+    margin-top: 3px;
+  }
+  .snapshot-change {
+    font-size: 10px;
+    font-weight: 700;
+  }
+
   /* SUMMARY TABLE */
   .summary-table td { padding: 6px 6px; }
   .change-up {
@@ -687,6 +729,23 @@
         {% endif %}
       </div>
     </div>
+
+    <!-- BENCHMARK SNAPSHOT -->
+    {% if benchmark_snapshot %}
+    <div class="section-label">Market snapshot</div>
+    <div class="snapshot-strip">
+      {% for b in benchmark_snapshot %}
+      <div class="snapshot-item">
+        <div class="snapshot-species">{{ b.species }}</div>
+        <div class="snapshot-price">&pound;{{ "%.2f"|format(b.best_price) }}</div>
+        <div class="snapshot-meta">
+          {{ b.best_port_code }}
+          {% if b.change %}<span class="snapshot-change change-{{ b.change.direction }}">{{ b.change.arrow }}{{ b.change.pct_str }}</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- KEY SPECIES SUMMARY -->
     {% if key_species_summary %}
