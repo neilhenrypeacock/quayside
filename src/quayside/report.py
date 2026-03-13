@@ -108,14 +108,18 @@ def _build_report_data(date: str) -> dict:
             "total_rows": 0,
             "ticker_items": [],
             "prices_by_species": [],
+            "key_species_summary": [],
+            "prices_multi_port": [],
+            "prices_single_port": [],
             "comparisons": [],
             "movers": [],
             "highest_price": None,
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         }
 
-    # --- Group by species ---
+    # --- Group by species + track ports per species ---
     species_map: dict[str, list[dict]] = defaultdict(list)
+    species_ports: dict[str, dict[str, float]] = defaultdict(dict)
     ports_seen: set[str] = set()
     species_seen: set[str] = set()
     highest = None
@@ -136,6 +140,10 @@ def _build_report_data(date: str) -> dict:
         }
         species_map[species].append(entry)
 
+        # Best price per species per port (for cross-port + tiering)
+        if avg and (port not in species_ports[species] or avg > species_ports[species][port]):
+            species_ports[species][port] = avg
+
         if avg and (highest is None or avg > highest["price"]):
             highest = {"species": species, "grade": grade, "port": port, "price": avg}
 
@@ -146,6 +154,60 @@ def _build_report_data(date: str) -> dict:
         if entries:
             entries[0]["is_best"] = True
         prices_by_species.append({"species": species, "rows": entries})
+
+    # --- Tier into multi-port (2+) and single-port ---
+    multi_port_species = {sp for sp, ports in species_ports.items() if len(ports) >= 2}
+
+    prices_multi_port = [g for g in prices_by_species if g["species"] in multi_port_species]
+    prices_single_port = [g for g in prices_by_species if g["species"] not in multi_port_species]
+
+    # --- Key species summary (one row per multi-port species) ---
+    # Get previous day's best prices for day-over-day change
+    prev_date = get_previous_date(date)
+    prev_best: dict[str, float] = {}
+    if prev_date:
+        prev_rows = get_all_prices_for_date(prev_date)
+        if prev_rows:
+            for r in prev_rows:
+                _, _port, raw_species, _grade, _low, _high, avg = r
+                if not avg:
+                    continue
+                sp = normalise_species(raw_species)
+                if sp not in prev_best or avg > prev_best[sp]:
+                    prev_best[sp] = avg
+
+    key_species_summary = []
+    for species in multi_port_species:
+        port_prices = species_ports[species]
+        best_port = max(port_prices, key=port_prices.get)
+        best_price = port_prices[best_port]
+        port_count = len(port_prices)
+
+        # Day-over-day change
+        prev_price = prev_best.get(species)
+        change = {}
+        if prev_price and prev_price > 0:
+            pct = round(((best_price - prev_price) / prev_price) * 100, 1)
+            if abs(pct) >= 0.5:
+                sign = "+" if pct > 0 else ""
+                change = {
+                    "pct": pct,
+                    "pct_str": f"{sign}{pct}%",
+                    "arrow": "▲" if pct > 0 else "▼",
+                    "direction": "up" if pct > 0 else "down",
+                }
+
+        key_species_summary.append({
+            "species": species,
+            "best_price": best_price,
+            "best_port": best_port,
+            "best_port_code": PORT_CODES.get(best_port, best_port[:3].upper()),
+            "port_count": port_count,
+            "change": change,
+        })
+
+    # Sort: port count desc, then best price desc
+    key_species_summary.sort(key=lambda s: (-s["port_count"], -s["best_price"]))
 
     # --- Ticker: top price per port ---
     port_best: dict[str, dict] = {}
@@ -162,17 +224,8 @@ def _build_report_data(date: str) -> dict:
     ticker_items = sorted(port_best.values(), key=lambda t: t["price"], reverse=True)
 
     # --- Cross-port comparisons ---
-    # Find species appearing at 2+ ports (using normalised names)
-    species_ports: dict[str, dict[str, float]] = defaultdict(dict)
-    for r in rows:
-        _, port, raw_species, grade, low, high, avg = r
-        species = normalise_species(raw_species)
-        if avg and (port not in species_ports[species] or avg > species_ports[species][port]):
-            species_ports[species][port] = avg
-
-    multi_port = {sp: ports for sp, ports in species_ports.items() if len(ports) >= 2}
-    # Sort by number of ports desc, then alphabetically
-    sorted_comparisons = sorted(multi_port.items(), key=lambda x: (-len(x[1]), x[0]))
+    multi_port_map = {sp: ports for sp, ports in species_ports.items() if len(ports) >= 2}
+    sorted_comparisons = sorted(multi_port_map.items(), key=lambda x: (-len(x[1]), x[0]))
 
     comparisons = []
     for species, port_prices in sorted_comparisons[:5]:  # Top 5
@@ -205,6 +258,9 @@ def _build_report_data(date: str) -> dict:
         "total_rows": len(rows),
         "ticker_items": ticker_items,
         "prices_by_species": prices_by_species,
+        "key_species_summary": key_species_summary,
+        "prices_multi_port": prices_multi_port,
+        "prices_single_port": prices_single_port,
         "comparisons": comparisons,
         "movers": movers,
         "highest_price": highest,

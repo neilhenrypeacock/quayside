@@ -79,6 +79,11 @@ For Gmail, use an App Password (not your account password). The pipeline sends t
 
 Pipeline runs weekdays at 10:15 AM via macOS launchd. Plist at `com.quayside.pipeline.plist`.
 
+## Git workflow
+
+- **Always work on a feature branch** — never commit directly to `main`. Create a branch like `feature/short-description` at the start of each session.
+- Merge to `main` only after verification passes (ruff, pytest, visual check).
+
 ## Key docs
 
 - `PORTS.md` — comprehensive audit of all UK & Ireland fish ports, data availability, partnership strategy
