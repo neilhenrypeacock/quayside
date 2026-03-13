@@ -18,6 +18,7 @@ src/quayside/
 ├── db.py               # SQLite connection, schema, upsert, queries
 ├── models.py           # PriceRecord and LandingRecord dataclasses
 ├── export.py           # Per-port CSV export
+├── email.py            # SMTP email delivery (env-var configured)
 ├── report.py           # Daily HTML digest generator (Jinja2)
 ├── species.py          # Species name normalisation (raw → canonical)
 ├── templates/
@@ -61,6 +62,18 @@ Upsert strategy: `INSERT OR REPLACE` — latest scrape wins for the same key.
 4. Add port code to `PORT_CODES` dict in `report.py`
 5. Add species name mappings to `_CANONICAL_MAP` in `species.py`
 6. Test: `python -m quayside` then check `output/digest_*.html`
+
+## Email delivery
+
+Optional — only runs if environment variables are set:
+
+```bash
+export QUAYSIDE_SMTP_USER="you@gmail.com"
+export QUAYSIDE_SMTP_PASS="your-app-password"
+export QUAYSIDE_RECIPIENTS="buyer1@example.com,buyer2@example.com"
+```
+
+For Gmail, use an App Password (not your account password). The pipeline sends the digest automatically at the end of each run if configured.
 
 ## Scheduling
 

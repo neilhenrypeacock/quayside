@@ -126,11 +126,24 @@ def main() -> int:
             export_prices_csv(records[0].date, port)
 
     # Generate HTML digest report
+    report_path = None
     try:
         report_path = generate_report()
         logger.info("Report: %s", report_path)
     except Exception:
         logger.exception("Report generation failed")
+
+    # Email digest (only if configured via env vars)
+    if report_path:
+        try:
+            from quayside.email import send_digest
+
+            date = report_path.stem.replace("digest_", "")
+            send_digest(report_path, date)
+        except ValueError:
+            logger.debug("Email not configured — skipping (set QUAYSIDE_SMTP_* env vars)")
+        except Exception:
+            logger.exception("Email delivery failed")
 
     logger.info("Pipeline complete")
     return 0
