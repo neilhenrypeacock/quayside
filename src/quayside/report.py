@@ -10,6 +10,7 @@ from pathlib import Path
 import jinja2
 
 from quayside.db import get_all_prices_for_date, get_latest_date, get_previous_date
+from quayside.fx import get_rate
 from quayside.species import normalise_species
 
 logger = logging.getLogger(__name__)
@@ -26,8 +27,11 @@ PORT_CODES = {
     "Kinlochbervie": "KLB",
 }
 
-# Benchmark species shown in the market snapshot strip — ordered by commercial importance
-BENCHMARK_SPECIES = ["Haddock", "Cod", "Monkfish", "Hake", "Dover Sole", "Turbot", "Plaice"]
+# Benchmark species shown in the market snapshot — ordered by commercial importance
+BENCHMARK_SPECIES = [
+    "Haddock", "Cod", "Monkfish", "Hake", "Dover Sole",
+    "Turbot", "Plaice", "Lemon Sole", "Brill", "Coley (Saithe)",
+]
 
 
 def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
@@ -113,11 +117,11 @@ def _build_report_data(date: str) -> dict:
             "prices_by_species": [],
             "benchmark_snapshot": [],
             "key_species_summary": [],
-            "prices_multi_port": [],
-            "prices_single_port": [],
-            "comparisons": [],
             "movers": [],
+            "best_value_port": None,
+            "biggest_spread": None,
             "highest_price": None,
+            "fx_rate": None,
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         }
 
@@ -159,13 +163,8 @@ def _build_report_data(date: str) -> dict:
             entries[0]["is_best"] = True
         prices_by_species.append({"species": species, "rows": entries})
 
-    # --- Tier into multi-port (2+) and single-port ---
-    multi_port_species = {sp for sp, ports in species_ports.items() if len(ports) >= 2}
-
-    prices_multi_port = [g for g in prices_by_species if g["species"] in multi_port_species]
-    prices_single_port = [g for g in prices_by_species if g["species"] not in multi_port_species]
-
     # --- Key species summary (one row per multi-port species) ---
+    multi_port_species = {sp for sp, ports in species_ports.items() if len(ports) >= 2}
     # Get previous day's best prices for day-over-day change
     prev_date = get_previous_date(date)
     prev_best: dict[str, float] = {}
@@ -219,8 +218,7 @@ def _build_report_data(date: str) -> dict:
         if species not in species_ports:
             continue
         port_prices = species_ports[species]
-        best_port = max(port_prices, key=port_prices.get)
-        best_price = port_prices[best_port]
+        best_price = max(port_prices.values())
 
         prev_price = prev_best.get(species)
         change = {}
@@ -235,12 +233,25 @@ def _build_report_data(date: str) -> dict:
                     "direction": "up" if pct > 0 else "down",
                 }
 
+        # Per-port breakdown with bar widths (same pattern as cross-port comparisons)
+        ports = sorted(
+            [
+                {
+                    "port": port,
+                    "price_avg": price,
+                    "bar_width_pct": round((price / best_price) * 100) if best_price else 0,
+                }
+                for port, price in port_prices.items()
+            ],
+            key=lambda p: p["price_avg"],
+            reverse=True,
+        )
+
         benchmark_snapshot.append({
             "species": species,
             "best_price": best_price,
-            "best_port": best_port,
-            "best_port_code": PORT_CODES.get(best_port, best_port[:3].upper()),
             "change": change,
+            "ports": ports,
         })
 
     # --- Ticker: top price per port ---
@@ -257,31 +268,65 @@ def _build_report_data(date: str) -> dict:
             }
     ticker_items = sorted(port_best.values(), key=lambda t: t["price"], reverse=True)
 
-    # --- Cross-port comparisons ---
-    multi_port_map = {sp: ports for sp, ports in species_ports.items() if len(ports) >= 2}
-    sorted_comparisons = sorted(multi_port_map.items(), key=lambda x: (-len(x[1]), x[0]))
-
-    comparisons = []
-    for species, port_prices in sorted_comparisons[:5]:  # Top 5
-        max_price = max(port_prices.values())
-        ports = sorted(
-            [
-                {
-                    "port": port,
-                    "price_avg": price,
-                    "bar_width_pct": round((price / max_price) * 100) if max_price else 0,
-                }
-                for port, price in port_prices.items()
-            ],
-            key=lambda p: p["price_avg"],
-            reverse=True,
-        )
-        comparisons.append({"species": species, "ports": ports})
-
     # --- Biggest movers (day-over-day) ---
     movers = _build_movers(date, rows)
 
+    # --- Today's Highlights ---
+    # Best value port: port with lowest average of best-grade prices across species
+    port_all_prices: dict[str, list[float]] = defaultdict(list)
+    for _sp, port_prices in species_ports.items():
+        for port, price in port_prices.items():
+            port_all_prices[port].append(price)
+
+    best_value_port = None
+    if port_all_prices:
+        port_avgs = {
+            port: sum(prices) / len(prices)
+            for port, prices in port_all_prices.items()
+        }
+        bv_port = min(port_avgs, key=port_avgs.get)
+        # Grab 3 example species at this port (cheapest first)
+        bv_examples = []
+        for sp, port_prices in sorted(species_ports.items()):
+            if bv_port in port_prices:
+                bv_examples.append({"species": sp, "price": port_prices[bv_port]})
+        bv_examples.sort(key=lambda e: e["price"])
+        best_value_port = {
+            "port": bv_port,
+            "avg_price": round(port_avgs[bv_port], 2),
+            "examples": bv_examples[:3],
+        }
+
+    # Biggest cross-port spread: species with largest % gap between highest and lowest port
+    biggest_spread = None
+    multi_port_map = {sp: ports for sp, ports in species_ports.items() if len(ports) >= 2}
+    best_spread_pct = 0
+    for sp, port_prices in multi_port_map.items():
+        max_p = max(port_prices.values())
+        min_p = min(port_prices.values())
+        if min_p > 0:
+            spread_pct = round(((max_p - min_p) / min_p) * 100, 1)
+            if spread_pct > best_spread_pct:
+                best_spread_pct = spread_pct
+                max_port = max(port_prices, key=port_prices.get)
+                min_port = min(port_prices, key=port_prices.get)
+                spread_ports = sorted(
+                    [{"port": p, "price": pr} for p, pr in port_prices.items()],
+                    key=lambda x: x["price"],
+                    reverse=True,
+                )
+                biggest_spread = {
+                    "species": sp,
+                    "spread_pct": spread_pct,
+                    "high_port": max_port,
+                    "low_port": min_port,
+                    "ports": spread_ports,
+                }
+
     dt = datetime.strptime(date, "%Y-%m-%d")
+
+    # --- Exchange rate (GBP → EUR) ---
+    fx_data = get_rate(base="GBP", target="EUR", date=date)
 
     return {
         "report_date": dt.strftime("%A %d %B %Y"),
@@ -294,11 +339,11 @@ def _build_report_data(date: str) -> dict:
         "prices_by_species": prices_by_species,
         "benchmark_snapshot": benchmark_snapshot,
         "key_species_summary": key_species_summary,
-        "prices_multi_port": prices_multi_port,
-        "prices_single_port": prices_single_port,
-        "comparisons": comparisons,
         "movers": movers,
+        "best_value_port": best_value_port,
+        "biggest_spread": biggest_spread,
         "highest_price": highest,
+        "fx_rate": fx_data,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 

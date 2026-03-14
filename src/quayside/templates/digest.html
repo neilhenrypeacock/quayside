@@ -245,28 +245,7 @@
     text-align: right;
   }
 
-  /* CROSS PORT COMPARISON */
-  .comparison-wrap {
-    padding: 20px 32px 28px;
-    border-bottom: 1px solid #c8bfaa;
-  }
-  .comparison-species {
-    font-family: Georgia, serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: #0f0e0c;
-    margin-bottom: 16px;
-    line-height: 1.2;
-  }
-  .comparison-species span {
-    display: block;
-    font-family: 'Courier New', monospace;
-    font-size: 9px;
-    font-weight: 400;
-    color: #7a7060;
-    letter-spacing: 0.06em;
-    margin-top: 4px;
-  }
+  /* BAR CHARTS */
   .bar-row {
     display: flex;
     align-items: center;
@@ -353,33 +332,6 @@
     color: #5a5040;
     line-height: 1.7;
     letter-spacing: 0.02em;
-  }
-
-  /* INSIGHT */
-  .insight-box {
-    padding: 24px 32px;
-    background: #e8e0d0;
-    border-bottom: 1px solid #c8bfaa;
-  }
-  .insight-label {
-    font-family: 'Courier New', monospace;
-    font-size: 8px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #1a3a4a;
-    margin-bottom: 8px;
-  }
-  .insight-text {
-    font-size: 13px;
-    line-height: 1.7;
-    color: #2a2418;
-    font-style: italic;
-    font-family: Georgia, serif;
-  }
-  .insight-text strong {
-    font-style: normal;
-    font-weight: 700;
-    color: #0f0e0c;
   }
 
   /* UPGRADE BAND */
@@ -589,44 +541,25 @@
   .footer-copy a { color: #3a3428; }
 
   /* BENCHMARK SNAPSHOT */
-  .snapshot-strip {
-    padding: 20px 32px;
+  .snapshot-block {
+    padding: 16px 32px;
     border-bottom: 1px solid #c8bfaa;
+  }
+  .snapshot-header {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
   }
-  .snapshot-item {
-    flex: 1 1 0;
-    min-width: 80px;
-    text-align: center;
-    padding: 8px 4px;
-    border-right: 1px solid #ddd5c8;
-  }
-  .snapshot-item:last-child { border-right: none; }
   .snapshot-species {
-    font-family: 'Courier New', monospace;
-    font-size: 9px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #7a7060;
-    margin-bottom: 4px;
-  }
-  .snapshot-price {
-    font-family: 'Courier New', monospace;
-    font-size: 16px;
+    font-family: Georgia, serif;
+    font-size: 15px;
     font-weight: 700;
     color: #0f0e0c;
-    line-height: 1.2;
-  }
-  .snapshot-meta {
-    font-family: 'Courier New', monospace;
-    font-size: 9px;
-    color: #7a7060;
-    margin-top: 3px;
   }
   .snapshot-change {
-    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
     font-weight: 700;
   }
 
@@ -645,27 +578,52 @@
     font-weight: 700;
   }
 
-  /* SECONDARY (SINGLE-PORT) SECTION */
-  .secondary-label {
-    color: #9a9080;
-  }
-  .secondary-table thead tr {
+  /* TODAY'S HIGHLIGHTS */
+  .highlights-row {
+    display: flex;
     border-bottom: 1px solid #c8bfaa;
   }
-  .secondary-table th {
-    color: #9a9080;
+  .highlight-cell {
+    flex: 1;
+    padding: 20px 32px;
   }
-  .secondary-table td {
-    color: #6a6050;
-    border-bottom: 1px solid #e8e0d0;
+  .highlight-cell:first-child {
+    border-right: 1px solid #c8bfaa;
   }
-  .secondary-table .species-name {
+  .hl-eyebrow {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #7a7060;
+    margin-bottom: 8px;
+  }
+  .hl-value {
+    font-family: Georgia, serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f0e0c;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .hl-detail {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
     color: #5a5040;
-    font-weight: 400;
+    line-height: 1.8;
+    letter-spacing: 0.02em;
   }
-  .secondary-table .price-val {
-    color: #6a6050;
-    font-weight: 500;
+  .hl-detail strong {
+    font-weight: 700;
+    color: #0f0e0c;
+  }
+  .hl-footer {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #c8401a;
+    font-weight: 700;
+    margin-top: 8px;
+    letter-spacing: 0.02em;
   }
 
   /* EMPTY STATE */
@@ -697,11 +655,14 @@
         <span class="header-edition">Daily Market Digest</span>
       </div>
     </div>
-    {% if ticker_items %}
+    {% if ticker_items or fx_rate %}
     <div class="header-ticker">
       {% for t in ticker_items %}
       <span class="ticker-item"><span class="port">{{ t.port_code }}</span> {{ t.species }} <span class="up">&pound;{{ "%.2f"|format(t.price) }}</span></span>
       {% endfor %}
+      {% if fx_rate %}
+      <span class="ticker-item"><span class="port">FX</span> GBP/EUR {{ fx_rate.rate }}</span>
+      {% endif %}
     </div>
     {% endif %}
   </div>
@@ -711,51 +672,90 @@
   <!-- ALERT BAND -->
   <div class="alert-band">
     <span class="alert-label">&#9873; Today</span>
-    <span class="alert-text"><strong>{{ ports_reporting|length }} ports reporting</strong> &middot; {{ total_species }} species tracked &middot; {{ total_rows }} price points</span>
+    <span class="alert-text"><strong>{{ ports_reporting|length }} ports reporting</strong> &middot; {{ total_species }} species tracked &middot; {{ total_rows }} price points{% if fx_rate %} &middot; GBP/EUR {{ fx_rate.rate }}{% endif %}</span>
   </div>
 
-  <!-- LEAD STORY -->
   <div class="email-body">
-    <div class="section-label">Market overview</div>
-    <div class="lead-story">
-      <div class="lead-kicker">All ports &middot; {{ report_date_iso }}</div>
-      <div class="lead-headline">Daily price report.<br><em>{{ ports_reporting|join(', ') }}.</em></div>
-      <div class="lead-body">
-        {% if highest_price %}
-        Today's top price: <strong>&pound;{{ "%.2f"|format(highest_price.price) }}/kg</strong> for {{ highest_price.species }} ({{ highest_price.grade }}) at {{ highest_price.port }}.
-        {% endif %}
-        {% if comparisons %}
-        Cross-port comparison available for {{ comparisons|length }} species appearing at multiple ports.
-        {% endif %}
-      </div>
-    </div>
 
-    <!-- BENCHMARK SNAPSHOT -->
-    {% if benchmark_snapshot %}
-    <div class="section-label">Market snapshot</div>
-    <div class="snapshot-strip">
-      {% for b in benchmark_snapshot %}
-      <div class="snapshot-item">
-        <div class="snapshot-species">{{ b.species }}</div>
-        <div class="snapshot-price">&pound;{{ "%.2f"|format(b.best_price) }}</div>
-        <div class="snapshot-meta">
-          {{ b.best_port_code }}
-          {% if b.change %}<span class="snapshot-change change-{{ b.change.direction }}">{{ b.change.arrow }}{{ b.change.pct_str }}</span>{% endif %}
+    <!-- 3. TODAY'S HIGHLIGHTS -->
+    {% if best_value_port or biggest_spread %}
+    <div class="section-label">Today's highlights</div>
+    <div class="highlights-row">
+      {% if best_value_port %}
+      <div class="highlight-cell">
+        <div class="hl-eyebrow">Best value port today</div>
+        <div class="hl-value">{{ best_value_port.port }}</div>
+        <div class="hl-detail">
+          {% for ex in best_value_port.examples %}
+          {{ ex.species }} &pound;{{ "%.2f"|format(ex.price) }}{% if not loop.last %}<br>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      {% if biggest_spread %}
+      <div class="highlight-cell">
+        <div class="hl-eyebrow">Biggest cross-port spread</div>
+        <div class="hl-value">{{ biggest_spread.species }}</div>
+        <div class="hl-detail">
+          {% for p in biggest_spread.ports %}
+          {{ p.port }} <strong>&pound;{{ "%.2f"|format(p.price) }}</strong>{% if not loop.last %}<br>{% endif %}
+          {% endfor %}
+        </div>
+        <div class="hl-footer">{{ biggest_spread.spread_pct }}% gap &mdash; {{ biggest_spread.high_port }} vs {{ biggest_spread.low_port }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- 4. BIGGEST MOVERS -->
+    {% if movers %}
+    <div class="section-label">Biggest movers</div>
+    <div class="movers-grid">
+      {% for m in movers %}
+      <div class="mover-card{% if m.direction == 'down' %} down-card{% endif %}">
+        <div class="mover-label">{{ m.arrow }} {{ m.label }}</div>
+        <div class="mover-header">
+          <span class="mover-species">{{ m.species }}</span>
+          <span class="mover-pct {{ m.direction }}">{{ m.pct_str }}</span>
+        </div>
+        <div class="mover-detail">
+          {{ m.port }} &middot; {{ m.grade }}<br>
+          &pound;{{ "%.2f"|format(m.price) }}/kg
         </div>
       </div>
       {% endfor %}
     </div>
     {% endif %}
 
-    <!-- KEY SPECIES SUMMARY -->
+    <!-- 5. KEY SPECIES BAR CHARTS (10 benchmark species) -->
+    {% if benchmark_snapshot %}
+    <div class="section-label">Key species — {{ benchmark_snapshot|length }} benchmarks</div>
+    {% for b in benchmark_snapshot %}
+    <div class="snapshot-block">
+      <div class="snapshot-header">
+        <span class="snapshot-species">{{ b.species }}</span>
+        {% if b.change %}<span class="snapshot-change change-{{ b.change.direction }}">{{ b.change.arrow }} {{ b.change.pct_str }}</span>{% endif %}
+      </div>
+      {% for p in b.ports %}
+      <div class="bar-row">
+        <span class="bar-port">{{ p.port }}</span>
+        <div class="bar-track"><div class="bar-fill{% if loop.first %} best{% endif %}" style="width:{{ p.bar_width_pct }}%"></div></div>
+        <span class="bar-price">&pound;{{ "%.2f"|format(p.price_avg) }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- 6. ALL MULTI-PORT SPECIES SUMMARY TABLE -->
     {% if key_species_summary %}
-    <div class="section-label">Key species — {{ key_species_summary|length }} at multiple ports</div>
+    <div class="section-label">All multi-port species — {{ key_species_summary|length }} tracked</div>
     <div class="price-table-wrap">
       <table class="price-table summary-table">
         <thead>
           <tr>
             <th>Species</th>
-            <th class="right">Best £/kg</th>
+            <th class="right">Best &pound;/kg</th>
             <th>Best port</th>
             <th class="right">Ports</th>
             <th class="right">vs yesterday</th>
@@ -776,121 +776,16 @@
     </div>
     {% endif %}
 
-    <!-- FULL PRICES — MULTI-PORT SPECIES -->
-    {% if prices_multi_port %}
-    <div class="section-label">Full prices — multi-port species</div>
-    <div class="price-table-wrap">
-      <table class="price-table">
-        <thead>
-          <tr>
-            <th>Species</th>
-            <th>Grade</th>
-            <th class="right">Low</th>
-            <th class="right">High</th>
-            <th class="right">Avg/kg</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for group in prices_multi_port %}
-          {% for row in group.rows %}
-          <tr{% if row.is_best %} class="table-best"{% endif %}>
-            <td>
-              <span class="species-name">{{ group.species }}{% if row.is_best %} <span class="best-label">best</span>{% endif %}</span>
-              <span class="port-name">{{ row.port }}</span>
-            </td>
-            <td><span class="grade-badge">{{ row.grade }}</span></td>
-            <td class="price-val">{% if row.price_low %}&pound;{{ "%.2f"|format(row.price_low) }}{% else %}&mdash;{% endif %}</td>
-            <td class="price-val">{% if row.price_high %}&pound;{{ "%.2f"|format(row.price_high) }}{% else %}&mdash;{% endif %}</td>
-            <td class="price-val">&pound;{{ "%.2f"|format(row.price_avg) }}</td>
-          </tr>
-          {% endfor %}
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% endif %}
-
-    <!-- FULL PRICES — SINGLE-PORT SPECIES -->
-    {% if prices_single_port %}
-    <div class="section-label secondary-label">Additional species — {{ prices_single_port|length }} single-port entries</div>
-    <div class="price-table-wrap">
-      <table class="price-table secondary-table">
-        <thead>
-          <tr>
-            <th>Species</th>
-            <th>Grade</th>
-            <th class="right">Low</th>
-            <th class="right">High</th>
-            <th class="right">Avg/kg</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for group in prices_single_port %}
-          {% for row in group.rows %}
-          <tr>
-            <td>
-              <span class="species-name">{{ group.species }}</span>
-              <span class="port-name">{{ row.port }}</span>
-            </td>
-            <td><span class="grade-badge">{{ row.grade }}</span></td>
-            <td class="price-val">{% if row.price_low %}&pound;{{ "%.2f"|format(row.price_low) }}{% else %}&mdash;{% endif %}</td>
-            <td class="price-val">{% if row.price_high %}&pound;{{ "%.2f"|format(row.price_high) }}{% else %}&mdash;{% endif %}</td>
-            <td class="price-val">&pound;{{ "%.2f"|format(row.price_avg) }}</td>
-          </tr>
-          {% endfor %}
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% endif %}
-
-    <!-- CROSS PORT COMPARISON -->
-    {% if comparisons %}
-    {% for comp in comparisons %}
-    <div class="section-label">Cross-port — {{ comp.species }}</div>
-    <div class="comparison-wrap">
-      <div class="comparison-species">{{ comp.species }} <span>Best grade per port &middot; today</span></div>
-      {% for p in comp.ports %}
-      <div class="bar-row">
-        <span class="bar-port">{{ p.port }}</span>
-        <div class="bar-track"><div class="bar-fill{% if loop.first %} best{% endif %}" style="width:{{ p.bar_width_pct }}%"></div></div>
-        <span class="bar-price">&pound;{{ "%.2f"|format(p.price_avg) }}</span>
-      </div>
-      {% endfor %}
-    </div>
-    {% endfor %}
-    {% endif %}
-
-    <!-- MOVERS (future — needs historical data) -->
-    {% if movers %}
-    <div class="section-label">Biggest movers</div>
-    <div class="movers-grid">
-      {% for m in movers %}
-      <div class="mover-card{% if m.direction == 'down' %} down-card{% endif %}">
-        <div class="mover-label">{{ m.arrow }} {{ m.label }}</div>
-        <div class="mover-header">
-          <span class="mover-species">{{ m.species }}</span>
-          <span class="mover-pct {{ m.direction }}">{{ m.pct_str }}</span>
-        </div>
-        <div class="mover-detail">
-          {{ m.port }} &middot; {{ m.grade }}<br>
-          &pound;{{ "%.2f"|format(m.price) }}/kg
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- CSV DOWNLOAD -->
+    <!-- 7. CSV DOWNLOAD -->
     <div class="csv-row">
       <div class="csv-label">
         <div class="csv-icon">CSV</div>
-        Today's full dataset — all ports, all species, all grades
+        Full dataset — all {{ total_rows }} prices, all grades, all ports
       </div>
       <a href="#" class="csv-link">Download CSV</a>
     </div>
 
-    <!-- DASHBOARD LINK -->
+    <!-- 8. DASHBOARD LINK -->
     <div class="dashboard-row">
       <div class="dashboard-text">
         <strong>View on dashboard</strong>
@@ -899,7 +794,7 @@
       <a href="#" class="dashboard-btn">Open dashboard &rarr;</a>
     </div>
 
-    <!-- UPGRADE BAND -->
+    <!-- 9. UPGRADE BAND -->
     <div class="upgrade-band">
       <div class="upgrade-inner">
         <div class="upgrade-left">

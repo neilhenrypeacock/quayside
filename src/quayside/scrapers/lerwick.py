@@ -1,180 +1,176 @@
-"""Scrape Lerwick fish landings from shetlandauction.com."""
+"""Scrape Lerwick/Shetland fish prices and landings from shetlandauction.com.
+
+The SSA portal generates daily price data as downloadable XLSX files:
+    https://ssawebportal.azurewebsites.net/daily-prices-generate.php?thisdate=YYYY-MM-DD
+
+XLSX format (sheet "Daily Prices - YYYY-MM-DD"):
+    Row 1:  "FISH MARKET PRICES SHETLAND"
+    Row 2:  "WEEKLY TOTAL - N BOXES"
+    Row 4:  "Friday 13th March 2026"
+    Row 6:  "9 BOATS LANDED 1877 BOXES"
+    Row 13: Headers: SPECIES | GRADE | VOLUME (kgs) | MAXIMUM PRICE (£/kg) | AVERAGE PRICE (£/kg)
+    Row 17+: Data rows (with blank rows between species groups)
+
+Species use abbreviated names (COD, HADD, MONK, etc.) which are mapped
+to full names for consistency with other ports.
+"""
 
 from __future__ import annotations
 
 import logging
 import re
 from datetime import datetime
+from io import BytesIO
 
 import requests
-from bs4 import BeautifulSoup
 
-from quayside.models import LandingRecord
+from quayside.models import PriceRecord
 
 logger = logging.getLogger(__name__)
 
-URL = "https://www.shetlandauction.com/ssa-today"
 PORT = "Lerwick"
+PRICES_URL = "https://ssawebportal.azurewebsites.net/daily-prices-generate.php"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
 }
 
-# Column indices (0-based, after removing vessel/method/total/shots cols)
-# Data cells per vessel row: indices 0-38
-# 0: vessel, 1: catch method, 2: total, 3: shots to come
-# 4-10: HADDOCK grades 1,2,3,4,5,6,Rnd
-# 11-14: WHITING grades 2,3,4,Rnd
-# 15-18: COD grades 1,2,3,4
-# 19-22: SAITHE grades 2,3,4,5
-# 23-38: single-species columns
-GRADED_SPECIES = {
-    "Haddock": (4, 11),  # cols 4-10 inclusive
-    "Whiting": (11, 15),  # cols 11-14
-    "Cod": (15, 19),  # cols 15-18
-    "Saithe": (19, 23),  # cols 19-22
+# Map SSA abbreviated species names to full names
+_SPECIES_MAP = {
+    "BLL": "Brill",
+    "CATS": "Catfish",
+    "COD": "Cod",
+    "DOGS": "Dogfish",
+    "GUR": "Gurnard",
+    "HADD": "Haddock",
+    "HAKE": "Hake",
+    "HAL": "Halibut",
+    "HR": "Haddock Round",
+    "JD": "John Dory",
+    "LEM": "Lemons",
+    "LING": "Ling",
+    "LYTH": "Lythe/Pollack",
+    "MEG": "Megrim",
+    "MEG BR": "Megrim Bruised",
+    "MIX": "Mixed",
+    "MONK": "Monks",
+    "PLE": "Plaice",
+    "PRNS": "Prawns",
+    "ROES": "Roes",
+    "SAI": "Saithe",
+    "SK": "Skate",
+    "SKM": "Skate Medium",
+    "SKR": "Skate Round",
+    "SKS": "Skate Small",
+    "SQU": "Squid",
+    "TUR": "Turbot",
+    "WHIT": "Whiting",
+    "WR": "Whiting Round",
+    "WTS": "Witches",
 }
-SINGLE_SPECIES = [
-    (23, "Plaice"),
-    (24, "Megrim"),
-    (25, "Monks"),
-    (26, "Ling"),
-    (27, "Skate"),
-    (28, "Lemon Sole"),
-    (29, "Lythe"),
-    (30, "Squid"),
-    (31, "Witches"),
-    (32, "Catfish"),
-    (33, "Hake"),
-    (34, "Turbot"),
-    (35, "Prawn"),
-    (36, "John Dory"),
-    (37, "Gurnard"),
-    (38, "Others"),
-]
 
 
-def scrape_landings(html: str | None = None) -> list[LandingRecord]:
-    if html is None:
-        logger.info("Fetching %s", URL)
-        resp = requests.get(URL, headers=HEADERS, timeout=30)
-        resp.raise_for_status()
-        html = resp.text
+def scrape_prices(
+    target_date: str | None = None,
+    xlsx_bytes: bytes | None = None,
+) -> list[PriceRecord]:
+    """Scrape Lerwick prices from the SSA portal XLSX download."""
+    if target_date is None:
+        target_date = datetime.now().strftime("%Y-%m-%d")
 
-    soup = BeautifulSoup(html, "lxml")
+    if xlsx_bytes is None:
+        url = f"{PRICES_URL}?thisdate={target_date}"
+        logger.info("Fetching Lerwick prices: %s", url)
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=30)
+            resp.raise_for_status()
+            xlsx_bytes = resp.content
+        except requests.RequestException as e:
+            logger.warning("Could not fetch Lerwick prices: %s", e)
+            return []
 
-    date = _extract_date(soup)
-    if not date:
-        logger.warning("Could not extract date from Lerwick page")
+        # Check we got an XLSX (starts with PK zip header), not an error page
+        if not xlsx_bytes.startswith(b"PK"):
+            logger.warning("Lerwick response is not an XLSX file")
+            return []
+
+    try:
+        import openpyxl
+    except ImportError:
+        logger.error("openpyxl required for Lerwick XLSX parsing — pip install openpyxl")
         return []
 
-    table = soup.select_one("table.landings-table")
-    if not table:
-        logger.warning("Could not find landings table on Lerwick page")
-        return []
+    wb = openpyxl.load_workbook(BytesIO(xlsx_bytes), read_only=True, data_only=True)
+    ws = wb.active
+
+    # Extract date from the sheet (row 4 typically: "Friday 13th March 2026")
+    date = _extract_date(ws) or target_date
 
     scraped_at = datetime.utcnow().isoformat()
     records = []
 
-    for row in table.find_all("tr"):
-        # Skip header rows
-        if row.get("class") and any(
-            c in row.get("class", [])
-            for c in [
-                "ssal-landings-display-reportHeadRow1",
-                "ssal-landings-display-reportHeadRow2",
-            ]
-        ):
+    for row in ws.iter_rows(min_row=1, values_only=True):
+        species_raw = row[0] if row[0] else None
+        grade_raw = row[1] if len(row) > 1 else None
+        max_price_raw = row[3] if len(row) > 3 else None
+        avg_price_raw = row[4] if len(row) > 4 else None
+
+        # Skip non-data rows
+        if not species_raw or species_raw in ("SPECIES", ""):
+            continue
+        if str(species_raw).startswith(("FISH", "WEEKLY", "DAILY")):
             continue
 
-        # Skip total rows
-        if "total-row" in row.get("class", []):
+        # Parse prices
+        max_price = _parse_num(max_price_raw)
+        avg_price = _parse_num(avg_price_raw)
+
+        if max_price is None and avg_price is None:
             continue
 
-        cells = row.find_all("td")
-        if not cells:
-            continue
+        species = _SPECIES_MAP.get(str(species_raw).strip(), str(species_raw).strip().title())
+        grade = str(grade_raw).strip() if grade_raw is not None else "ALL"
 
-        # Skip location header rows (single cell spanning whole table)
-        if len(cells) == 1:
-            continue
+        records.append(
+            PriceRecord(
+                date=date,
+                port=PORT,
+                species=species,
+                grade=grade,
+                price_low=None,
+                price_high=max_price,
+                price_avg=avg_price,
+                scraped_at=scraped_at,
+            )
+        )
 
-        # Need at least 39 data cells
-        if len(cells) < 39:
-            continue
-
-        vessel_name, vessel_code = _parse_vessel(cells[0].get_text(strip=True))
-        if not vessel_name:
-            continue
-
-        # Graded species — sum all grade columns
-        for species, (start, end) in GRADED_SPECIES.items():
-            total = sum(_int(cells[i].get_text(strip=True)) for i in range(start, end))
-            if total > 0:
-                records.append(
-                    LandingRecord(
-                        date=date,
-                        port=PORT,
-                        vessel_name=vessel_name,
-                        vessel_code=vessel_code,
-                        species=species,
-                        boxes=total,
-                        boxes_msc=0,
-                        scraped_at=scraped_at,
-                    )
-                )
-
-        # Single-species columns
-        for col_idx, species in SINGLE_SPECIES:
-            boxes = _int(cells[col_idx].get_text(strip=True))
-            if boxes > 0:
-                records.append(
-                    LandingRecord(
-                        date=date,
-                        port=PORT,
-                        vessel_name=vessel_name,
-                        vessel_code=vessel_code,
-                        species=species,
-                        boxes=boxes,
-                        boxes_msc=0,
-                        scraped_at=scraped_at,
-                    )
-                )
-
-    logger.info("Scraped %d landing records for %s on %s", len(records), PORT, date)
+    wb.close()
+    logger.info("Scraped %d price records for %s on %s", len(records), PORT, date)
     return records
 
 
-def _extract_date(soup: BeautifulSoup) -> str | None:
-    """Parse date from h3 text like 'Friday, 13th March 2026'."""
-    h3 = soup.find("h3")
-    if not h3:
-        return None
-    text = h3.get_text(strip=True)
-    # Strip ordinal suffix: 13th → 13, 1st → 1, 2nd → 2, 3rd → 3
-    m = re.search(r"(\d+)(?:st|nd|rd|th)\s+(\w+)\s+(\d{4})", text)
-    if not m:
+def _extract_date(ws) -> str | None:
+    """Extract date from the first few rows of the worksheet."""
+    for row in ws.iter_rows(min_row=1, max_row=10, values_only=True):
+        text = str(row[0]) if row[0] else ""
+        m = re.search(r"(\d+)(?:st|nd|rd|th)\s+(\w+)\s+(\d{4})", text)
+        if m:
+            try:
+                dt = datetime.strptime(
+                    f"{m.group(1)} {m.group(2)} {m.group(3)}", "%d %B %Y"
+                )
+                return dt.strftime("%Y-%m-%d")
+            except ValueError:
+                continue
+    return None
+
+
+def _parse_num(val) -> float | None:
+    """Parse a numeric value, returning None for empty/invalid."""
+    if val is None:
         return None
     try:
-        dt = datetime.strptime(f"{m.group(1)} {m.group(2)} {m.group(3)}", "%d %B %Y")
-        return dt.strftime("%Y-%m-%d")
-    except ValueError:
-        return None
-
-
-def _parse_vessel(text: str) -> tuple[str, str]:
-    """Split 'VESSEL NAME FR123' into ('VESSEL NAME', 'FR123')."""
-    parts = text.strip().split()
-    if not parts:
-        return "", ""
-    # Last token is the registration code if it matches pattern (letters+digits)
-    if len(parts) >= 2 and re.match(r"^[A-Z]{1,4}\d+$", parts[-1]):
-        return " ".join(parts[:-1]), parts[-1]
-    return text.strip(), ""
-
-
-def _int(val: str) -> int:
-    try:
-        return int(val)
+        v = float(val)
+        return round(v, 2) if v > 0 else None
     except (ValueError, TypeError):
-        return 0
+        return None

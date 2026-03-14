@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import logging
 import sys
+import traceback
 
 from quayside.db import init_db, upsert_landings, upsert_prices
 from quayside.export import export_landings_csv, export_prices_csv
 from quayside.report import generate_report
-from quayside.scrapers import brixham, fraserburgh, lerwick, newlyn, scrabster
+from quayside.scrapers import brixham, cfpo, fraserburgh, lerwick, newlyn, scrabster
 from quayside.scrapers.peterhead import scrape_landings as peterhead_landings
 from quayside.scrapers.swfpa import get_swfpa_event_links
 from quayside.scrapers.swfpa import scrape_prices as peterhead_prices
@@ -22,13 +23,18 @@ logger = logging.getLogger(__name__)
 
 
 def _run_scraper(name, fn):
-    """Run a scraper function, return results or [] on failure."""
+    """Run a scraper function, return results or [] on failure.
+
+    Captures the error detail for diagnostic reporting.
+    Returns (results, error_info) tuple.
+    """
     try:
         results = fn()
-        return results or []
-    except Exception:
+        return results or [], None
+    except Exception as e:
+        tb = traceback.format_exc()
         logger.exception("%s failed", name)
-        return []
+        return [], {"error": str(e), "type": type(e).__name__, "traceback": tb}
 
 
 def main() -> int:
@@ -37,11 +43,13 @@ def main() -> int:
 
     all_landings = []
     all_prices = []
+    # Track scraper health: {name: {records: N, error: str|None, source: str}}
+    scraper_status = {}
 
     # --- SWFPA event discovery (once for all SWFPA-sourced ports) ---
     try:
         swfpa_links = get_swfpa_event_links()
-    except Exception:
+    except Exception as e:
         logger.exception("SWFPA event discovery failed")
         swfpa_links = {
             "peterhead_xls": None,
@@ -49,49 +57,109 @@ def main() -> int:
             "newlyn_pdf": None,
             "event_date": None,
         }
+        scraper_status["SWFPA discovery"] = {
+            "records": 0, "error": str(e), "source": "swfpa.com",
+        }
 
     event_date = swfpa_links.get("event_date")
 
     # --- Peterhead ---
-    landings = _run_scraper("Peterhead landings", peterhead_landings)
-    prices = _run_scraper(
+    landings, err = _run_scraper("Peterhead landings", peterhead_landings)
+    scraper_status["Peterhead landings"] = {
+        "records": len(landings), "error": err, "source": "peterheadport.co.uk",
+    }
+    prices, err = _run_scraper(
         "Peterhead prices",
         lambda: peterhead_prices(xls_url=swfpa_links.get("peterhead_xls")),
     )
+    scraper_status["Peterhead prices"] = {
+        "records": len(prices), "error": err, "source": "SWFPA XLS",
+    }
     all_landings += landings
     all_prices += prices
 
-    # --- Lerwick ---
-    lerwick_landings = _run_scraper("Lerwick landings", lerwick.scrape_landings)
-    all_landings += lerwick_landings
+    # --- Lerwick (prices from SSA portal XLSX) ---
+    lerwick_prices, err = _run_scraper(
+        "Lerwick prices",
+        lambda: lerwick.scrape_prices(target_date=event_date),
+    )
+    scraper_status["Lerwick prices"] = {
+        "records": len(lerwick_prices), "error": err,
+        "source": "ssawebportal.azurewebsites.net",
+    }
+    all_prices += lerwick_prices
 
-    # --- Fraserburgh (prices only — landings need Playwright, see ROADMAP) ---
-    fraserburgh_prices = _run_scraper("Fraserburgh prices", fraserburgh.scrape_prices)
+    # --- Fraserburgh (prices only — dormant, SWFPA stopped publishing) ---
+    fraserburgh_prices, err = _run_scraper("Fraserburgh prices", fraserburgh.scrape_prices)
+    scraper_status["Fraserburgh prices"] = {
+        "records": len(fraserburgh_prices), "error": err, "source": "SWFPA HTML",
+    }
     all_prices += fraserburgh_prices
 
     # --- Brixham ---
-    brixham_prices = _run_scraper(
+    brixham_prices, err = _run_scraper(
         "Brixham prices",
         lambda: brixham.scrape_prices(
             pdf_url=swfpa_links.get("brixham_pdf"),
             target_date=event_date,
         ),
     )
+    scraper_status["Brixham prices"] = {
+        "records": len(brixham_prices), "error": err, "source": "SWFPA PDF",
+    }
     all_prices += brixham_prices
 
-    # --- Newlyn ---
-    newlyn_prices = _run_scraper(
+    # --- Newlyn (SWFPA primary, CFPO fallback) ---
+    newlyn_prices, err = _run_scraper(
         "Newlyn prices",
         lambda: newlyn.scrape_prices(
             pdf_url=swfpa_links.get("newlyn_pdf"),
             target_date=event_date,
         ),
     )
+    newlyn_source = "SWFPA PDF"
+    if not newlyn_prices:
+        if err:
+            logger.info("SWFPA Newlyn failed (%s) — trying CFPO fallback", err["error"])
+        else:
+            logger.info("SWFPA had no Newlyn data — trying CFPO fallback")
+        newlyn_prices, err = _run_scraper(
+            "Newlyn prices (CFPO)",
+            lambda: cfpo.scrape_prices(target_date=event_date),
+        )
+        newlyn_source = "CFPO PDF"
+    scraper_status["Newlyn prices"] = {
+        "records": len(newlyn_prices), "error": err, "source": newlyn_source,
+    }
     all_prices += newlyn_prices
 
     # --- Scrabster ---
-    scrabster_prices = _run_scraper("Scrabster prices", scrabster.scrape_prices)
+    scrabster_prices, err = _run_scraper("Scrabster prices", scrabster.scrape_prices)
+    scraper_status["Scrabster prices"] = {
+        "records": len(scrabster_prices), "error": err, "source": "scrabster.co.uk",
+    }
     all_prices += scrabster_prices
+
+    # --- Scraper health summary ---
+    logger.info("--- Scraper health ---")
+    for name, status in scraper_status.items():
+        count = status["records"]
+        err = status["error"]
+        source = status["source"]
+        if err:
+            err_msg = err["error"] if isinstance(err, dict) else str(err)
+            logger.warning("  %-25s  %3d records  FAILED  (%s) — %s", name, count, source, err_msg)
+        elif count == 0:
+            logger.warning("  %-25s  %3d records  EMPTY   (%s)", name, count, source)
+        else:
+            logger.info("  %-25s  %3d records  OK      (%s)", name, count, source)
+
+    failed = [n for n, s in scraper_status.items() if s["error"]]
+    empty = [n for n, s in scraper_status.items() if not s["error"] and s["records"] == 0]
+    if failed:
+        logger.warning("Failed scrapers: %s", ", ".join(failed))
+    if empty:
+        logger.info("Empty scrapers (no data today): %s", ", ".join(empty))
 
     # Store
     if all_landings:
@@ -111,12 +179,13 @@ def main() -> int:
         return 1
 
     # Export CSVs per port
-    for port, records in [("Peterhead", landings), ("Lerwick", lerwick_landings)]:
+    for port, records in [("Peterhead", landings)]:
         if records:
             export_landings_csv(records[0].date, port)
 
     for port, records in [
         ("Peterhead", prices),
+        ("Lerwick", lerwick_prices),
         ("Fraserburgh", fraserburgh_prices),
         ("Brixham", brixham_prices),
         ("Newlyn", newlyn_prices),
