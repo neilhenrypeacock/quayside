@@ -11,21 +11,28 @@ import jinja2
 
 from quayside.db import get_all_prices_for_date, get_latest_date, get_previous_date
 from quayside.fx import get_rate
+from quayside.ports import get_port_code_map
 from quayside.species import normalise_species
 
 logger = logging.getLogger(__name__)
 
 OUTPUT_DIR = Path(__file__).resolve().parents[2] / "output"
 
-PORT_CODES = {
-    "Peterhead": "PTH",
-    "Brixham": "BRX",
-    "Scrabster": "SCR",
-    "Newlyn": "NLN",
-    "Lerwick": "LWK",
-    "Fraserburgh": "FRB",
-    "Kinlochbervie": "KLB",
-}
+
+def _get_port_codes() -> dict[str, str]:
+    """Load port codes dynamically, with hardcoded fallback."""
+    codes = get_port_code_map()
+    if codes:
+        return codes
+    # Fallback if ports table not yet seeded
+    return {
+        "Peterhead": "PTH", "Brixham": "BRX", "Scrabster": "SCR",
+        "Newlyn": "NLN", "Lerwick": "LWK", "Fraserburgh": "FRB",
+        "Kinlochbervie": "KLB",
+    }
+
+
+PORT_CODES = _get_port_codes()
 
 # Benchmark species shown in the market snapshot — ordered by commercial importance
 BENCHMARK_SPECIES = [
@@ -100,7 +107,7 @@ def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
     return changes[:6]
 
 
-def _build_report_data(date: str) -> dict:
+def build_report_data(date: str) -> dict:
     """Query DB and assemble template context for the given date."""
     rows = get_all_prices_for_date(date)  # (date, port, species, grade, low, high, avg)
 
@@ -358,7 +365,7 @@ def generate_report(date: str | None = None) -> Path:
         if date is None:
             raise ValueError("No price data in database")
 
-    data = _build_report_data(date)
+    data = build_report_data(date)
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader("quayside", "templates"),

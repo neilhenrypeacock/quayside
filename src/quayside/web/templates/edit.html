@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Edit — {{ port.name }} — Quayside{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:24px;">
+    <h1 style="font-family:var(--font-serif);font-size:24px;color:var(--tide);">Fix {{ port.name }} prices</h1>
+    <p style="color:#666;font-size:14px;">{{ upload.date }} &middot; Edit any cells that need correcting</p>
+</div>
+
+<div class="card">
+    <form method="POST">
+        <table>
+            <thead>
+                <tr>
+                    <th>Species</th>
+                    <th>Grade</th>
+                    <th>Low (&pound;/kg)</th>
+                    <th>High (&pound;/kg)</th>
+                    <th>Avg (&pound;/kg)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="priceRows">
+                {% for row in prices %}
+                <tr>
+                    <td><input type="text" name="species_{{ loop.index0 }}" value="{{ row[2] }}" style="width:100%;"></td>
+                    <td><input type="text" name="grade_{{ loop.index0 }}" value="{{ row[3] }}" style="width:70px;"></td>
+                    <td><input type="number" name="low_{{ loop.index0 }}" value="{{ row[4] if row[4] else '' }}" step="0.01" min="0" style="width:80px;"></td>
+                    <td><input type="number" name="high_{{ loop.index0 }}" value="{{ row[5] if row[5] else '' }}" step="0.01" min="0" style="width:80px;"></td>
+                    <td><input type="number" name="avg_{{ loop.index0 }}" value="{{ row[6] if row[6] else '' }}" step="0.01" min="0" style="width:80px;"></td>
+                    <td><button type="button" onclick="this.closest('tr').remove()" style="background:none;border:none;color:var(--catch);cursor:pointer;font-size:16px;">&times;</button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="margin-top:16px;display:flex;gap:12px;">
+            <button type="button" class="btn btn-secondary" onclick="addRow()">+ Add missing row</button>
+            <button type="submit" class="btn btn-primary">Save &amp; publish</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let rowCount = {{ prices|length }};
+function addRow() {
+    const tbody = document.getElementById('priceRows');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" name="species_${rowCount}" placeholder="Species" style="width:100%;"></td>
+        <td><input type="text" name="grade_${rowCount}" placeholder="Grade" style="width:70px;"></td>
+        <td><input type="number" name="low_${rowCount}" step="0.01" min="0" style="width:80px;"></td>
+        <td><input type="number" name="high_${rowCount}" step="0.01" min="0" style="width:80px;"></td>
+        <td><input type="number" name="avg_${rowCount}" step="0.01" min="0" style="width:80px;"></td>
+        <td><button type="button" onclick="this.closest('tr').remove()" style="background:none;border:none;color:var(--catch);cursor:pointer;font-size:16px;">&times;</button></td>
+    `;
+    tbody.appendChild(tr);
+    rowCount++;
+}
+</script>
+{% endblock %}

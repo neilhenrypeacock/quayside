@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block title %}Quayside — UK Fish Auction Prices{% endblock %}
+
+{% block head %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
+    .landing-hero {
+        text-align: center;
+        padding: 60px 20px 40px;
+    }
+    .landing-hero h1 {
+        font-family: 'Playfair Display', var(--font-serif);
+        font-size: 40px;
+        color: var(--tide);
+        line-height: 1.2;
+        margin-bottom: 16px;
+    }
+    .landing-hero .subtitle {
+        font-size: 18px;
+        color: #555;
+        max-width: 560px;
+        margin: 0 auto 32px;
+    }
+    .cta-group {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .btn-large {
+        padding: 14px 32px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+    .trust-bar {
+        text-align: center;
+        padding: 20px;
+        font-size: 13px;
+        color: #888;
+        letter-spacing: 0.3px;
+    }
+    .trust-bar strong { color: #555; }
+    .section { padding: 40px 0; }
+    .section-title {
+        font-family: 'Playfair Display', var(--font-serif);
+        font-size: 28px;
+        color: var(--tide);
+        margin-bottom: 12px;
+    }
+    .section-subtitle {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 32px;
+    }
+    .problem-text {
+        font-size: 18px;
+        color: #444;
+        max-width: 640px;
+        line-height: 1.7;
+    }
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .step-card {
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+    }
+    .step-number {
+        display: inline-block;
+        width: 32px; height: 32px;
+        background: var(--tide);
+        color: #fff;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 32px;
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+    .step-card h3 {
+        font-size: 16px;
+        color: var(--tide);
+        margin-bottom: 8px;
+    }
+    .step-card p { font-size: 14px; color: #555; }
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 24px;
+    }
+    .price-card {
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+    }
+    .price-card.featured {
+        border-color: var(--tide);
+        box-shadow: 0 4px 12px rgba(26,58,74,0.12);
+    }
+    .price-card .tier-name {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #888;
+        margin-bottom: 8px;
+    }
+    .price-card .tier-price {
+        font-family: 'Playfair Display', var(--font-serif);
+        font-size: 32px;
+        color: var(--tide);
+        margin-bottom: 4px;
+    }
+    .price-card .tier-period { font-size: 13px; color: #999; margin-bottom: 16px; }
+    .price-card ul {
+        list-style: none;
+        text-align: left;
+        font-size: 13px;
+        color: #555;
+    }
+    .price-card li { padding: 4px 0; }
+    .price-card li::before { content: "\2713\00a0"; color: var(--green); font-weight: 700; }
+    .digest-preview {
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        margin-top: 24px;
+    }
+    .final-cta {
+        text-align: center;
+        padding: 48px 20px;
+        background: var(--tide);
+        margin: 40px -24px -24px;
+        border-radius: 0 0 0 0;
+    }
+    .final-cta h2 {
+        font-family: 'Playfair Display', var(--font-serif);
+        font-size: 28px;
+        color: #fff;
+        margin-bottom: 12px;
+    }
+    .final-cta p { color: rgba(255,255,255,0.8); margin-bottom: 24px; }
+    .final-cta .btn-primary { background: var(--catch); }
+    .final-cta .btn-primary:hover { background: #a83515; }
+    .port-link { color: rgba(255,255,255,0.7); font-size: 13px; }
+    .port-link a { color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="landing-hero">
+    <h1>Every UK auction price.<br>One email. Every morning.</h1>
+    <p class="subtitle">
+        Quayside collects daily fish prices from auction markets across the UK and delivers them
+        in one clear comparison &mdash; so you can buy, sell, and plan with the full picture.
+    </p>
+    <div class="cta-group">
+        <a href="mailto:hello@quayside.fish?subject=Sign%20me%20up%20for%20the%20digest" class="btn btn-primary btn-large">Get the free daily digest</a>
+        <a href="{{ url_for('digest_page') }}" class="btn btn-secondary btn-large">See today's digest</a>
+    </div>
+</div>
+
+<!-- Trust bar -->
+<div class="trust-bar">
+    <strong>Currently covering:</strong>
+    Peterhead &middot; Brixham &middot; Newlyn &middot; Scrabster &middot; Lerwick
+    &nbsp;&mdash;&nbsp; <em>10 more ports joining</em>
+</div>
+
+<hr style="border:none;border-top:1px solid var(--border);margin:0;">
+
+<!-- Problem -->
+<div class="section">
+    <h2 class="section-title">Incomplete information costs you money</h2>
+    <p class="problem-text">
+        UK fish prices are scattered across port websites, PDFs, emailed spreadsheets, and phone calls.
+        By the time you've pieced together what's happening across the market, the best lots are gone.
+        <br><br>
+        Quayside fixes that. We scrape every public source, ingest port uploads, and normalise it all into
+        one daily comparison &mdash; species by species, port by port, with trends and alerts.
+    </p>
+</div>
+
+<!-- How it works -->
+<div class="section">
+    <h2 class="section-title">How it works</h2>
+    <p class="section-subtitle">Three steps. No apps to install. No dashboards to learn.</p>
+    <div class="steps-grid">
+        <div class="step-card">
+            <span class="step-number">1</span>
+            <h3>We collect</h3>
+            <p>Automated scrapers and port uploads pull daily prices from auction markets across the UK. Every species, every grade.</p>
+        </div>
+        <div class="step-card">
+            <span class="step-number">2</span>
+            <h3>We compare</h3>
+            <p>Species names are normalised across ports. Best prices, biggest movers, and cross-port spreads are calculated automatically.</p>
+        </div>
+        <div class="step-card">
+            <span class="step-number">3</span>
+            <h3>You get one email</h3>
+            <p>A clear, scannable digest arrives before 10am. Price tables, trend charts, and alerts &mdash; everything you need to start the day.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Sample digest -->
+<div class="digest-preview">
+    <p style="font-size:14px;color:#888;margin-bottom:12px;">See what you'll get every morning</p>
+    <a href="{{ url_for('digest_page') }}" class="btn btn-primary">View today's digest</a>
+</div>
+
+<!-- Pricing -->
+<div class="section">
+    <h2 class="section-title">Pricing</h2>
+    <p class="section-subtitle">Start free. Upgrade when you need more.</p>
+    <div class="pricing-grid">
+        <div class="price-card">
+            <div class="tier-name">Digest</div>
+            <div class="tier-price">&pound;0</div>
+            <div class="tier-period">free forever</div>
+            <ul>
+                <li>Daily email digest</li>
+                <li>Cross-port comparison</li>
+                <li>Key species benchmarks</li>
+                <li>Biggest movers alerts</li>
+            </ul>
+        </div>
+        <div class="price-card">
+            <div class="tier-name">Skipper</div>
+            <div class="tier-price">&pound;25</div>
+            <div class="tier-period">per month</div>
+            <ul>
+                <li>Everything in Digest</li>
+                <li>WhatsApp price alerts</li>
+                <li>30-day price history</li>
+                <li>Species watchlist</li>
+            </ul>
+        </div>
+        <div class="price-card featured">
+            <div class="tier-name">Trade</div>
+            <div class="tier-price">&pound;50</div>
+            <div class="tier-period">per month</div>
+            <ul>
+                <li>Everything in Skipper</li>
+                <li>Full web dashboard</li>
+                <li>90-day history + trends</li>
+                <li>CSV data export</li>
+                <li>Custom alerts &amp; filters</li>
+            </ul>
+        </div>
+        <div class="price-card">
+            <div class="tier-name">Enterprise</div>
+            <div class="tier-price">Custom</div>
+            <div class="tier-period">contact us</div>
+            <ul>
+                <li>Everything in Trade</li>
+                <li>API access</li>
+                <li>SLA &amp; priority support</li>
+                <li>White-label options</li>
+                <li>Custom integrations</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Final CTA -->
+<div class="final-cta">
+    <h2>Start with the free digest</h2>
+    <p>Join buyers, sellers, and processors who get the full UK market picture every morning.</p>
+    <a href="mailto:hello@quayside.fish?subject=Sign%20me%20up%20for%20the%20digest" class="btn btn-primary btn-large">Get the daily digest</a>
+    <p class="port-link" style="margin-top:20px;">
+        Run a port or fish market? <a href="{{ url_for('for_ports') }}">Join our network &rarr;</a>
+    </p>
+</div>
+{% endblock %}

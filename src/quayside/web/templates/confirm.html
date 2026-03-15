@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Confirm — {{ port.name }} — Quayside{% endblock %}
+
+{% block content %}
+<div style="text-align:center;margin-bottom:24px;">
+    <h1 style="font-family:var(--font-serif);font-size:24px;color:var(--tide);">{{ port.name }} prices</h1>
+    <p style="color:#666;font-size:14px;">{{ upload.date }} &middot; {{ prices|length }} species extracted</p>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Species</th>
+                <th>Grade</th>
+                <th class="price">Low</th>
+                <th class="price">High</th>
+                <th class="price">Avg</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in prices %}
+            <tr>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td class="price">{% if row[4] %}&pound;{{ "%.2f"|format(row[4]) }}{% else %}&mdash;{% endif %}</td>
+                <td class="price">{% if row[5] %}&pound;{{ "%.2f"|format(row[5]) }}{% else %}&mdash;{% endif %}</td>
+                <td class="price" style="font-weight:600;">{% if row[6] %}&pound;{{ "%.2f"|format(row[6]) }}{% else %}&mdash;{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="text-align:center;padding:20px 0;">
+    <form method="POST" action="{{ url_for('approve_upload', token=token) }}" style="display:inline;">
+        <button type="submit" class="btn btn-primary" style="font-size:16px;padding:14px 40px;">
+            &#10003; Looks good
+        </button>
+    </form>
+    <a href="{{ url_for('edit_upload', token=token) }}" class="btn btn-secondary" style="font-size:16px;padding:14px 40px;margin-left:12px;">
+        &#9998; Fix something
+    </a>
+</div>
+
+<p style="text-align:center;font-size:12px;color:#999;margin-top:8px;">
+    If we don't hear back within 2 hours, we'll publish this data as-is.
+</p>
+{% endblock %}

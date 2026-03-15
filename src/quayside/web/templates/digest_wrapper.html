@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Daily Digest — {{ date }} — Quayside{% endblock %}
+
+{% block head %}
+<style>
+    .digest-frame {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-top: 16px;
+        overflow: hidden;
+    }
+    .digest-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+    .digest-header h1 {
+        font-family: var(--font-serif);
+        font-size: 22px;
+        color: var(--tide);
+    }
+    .digest-header p {
+        font-size: 13px;
+        color: #888;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="digest-header">
+    <div>
+        <h1>Daily Digest</h1>
+        <p>{{ date }} &middot; This is the same content sent by email each morning</p>
+    </div>
+</div>
+<div class="digest-frame">
+    {{ digest_html|safe }}
+</div>
+{% endblock %}

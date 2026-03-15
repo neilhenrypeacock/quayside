@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Upload — {{ port.name }} — Quayside{% endblock %}
+
+{% block content %}
+<h1 style="font-family:var(--font-serif);font-size:24px;color:var(--tide);margin-bottom:8px;">Upload prices</h1>
+<p style="color:#666;font-size:14px;margin-bottom:24px;">{{ port.name }} &middot; {{ port.region }}</p>
+
+<!-- Step 1: Get the template -->
+<div class="card">
+    <h2>1. Get your template</h2>
+    <p style="font-size:14px;color:#666;margin-bottom:16px;">
+        Download a pre-formatted Excel spreadsheet with species dropdowns.
+        Fill in your prices each morning — takes 30 seconds.
+    </p>
+    <a href="{{ url_for('download_template', slug=port.slug) }}" class="btn btn-primary">
+        Download Excel template
+    </a>
+</div>
+
+<!-- Step 2: Send it back -->
+<div class="card">
+    <h2>2. Send it back</h2>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+            <p style="font-size:14px;font-weight:600;color:var(--tide);margin-bottom:4px;">Easiest: email it</p>
+            <p style="font-size:14px;color:#666;">
+                Email your filled-in template to<br>
+                <strong style="color:var(--tide);">prices@quayside.fish</strong><br>
+                <span style="font-size:12px;color:#999;">Or just CC us on your existing morning email.</span>
+            </p>
+        </div>
+        <div style="flex:1;min-width:200px;">
+            <p style="font-size:14px;font-weight:600;color:var(--tide);margin-bottom:4px;">Or: upload here</p>
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="date" value="">
+                <div style="border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;margin-bottom:12px;">
+                    <input type="file" name="file" accept=".xls,.xlsx,.csv,.pdf,.png,.jpg,.jpeg,.heic,.webp"
+                           style="font-size:13px;">
+                    <p style="font-size:12px;color:#999;margin-top:6px;">XLS, XLSX, CSV, PDF, or photo</p>
+                </div>
+                <button type="submit" class="btn btn-secondary">Upload &amp; extract</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Manual entry (collapsed, fallback) -->
+<details style="margin-bottom:20px;">
+    <summary style="cursor:pointer;font-size:14px;color:#888;padding:8px 0;">
+        No file? Enter prices manually instead
+    </summary>
+    <div class="card" style="margin-top:8px;">
+        <form method="POST">
+            <input type="hidden" name="date" value="">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Species</th>
+                        <th>Grade</th>
+                        <th>Low (&pound;/kg)</th>
+                        <th>High (&pound;/kg)</th>
+                        <th>Avg (&pound;/kg)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="priceRows">
+                    {% for i in range(5) %}
+                    <tr>
+                        <td><input type="text" name="species_{{ i }}" placeholder="e.g. Haddock" style="width:100%;"></td>
+                        <td><input type="text" name="grade_{{ i }}" placeholder="e.g. A1" style="width:70px;"></td>
+                        <td><input type="number" name="low_{{ i }}" step="0.01" min="0" style="width:80px;"></td>
+                        <td><input type="number" name="high_{{ i }}" step="0.01" min="0" style="width:80px;"></td>
+                        <td><input type="number" name="avg_{{ i }}" step="0.01" min="0" style="width:80px;"></td>
+                        <td></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div style="margin-top:12px;display:flex;gap:12px;">
+                <button type="button" class="btn btn-secondary" onclick="addRow()">+ Add row</button>
+                <button type="submit" class="btn btn-primary">Publish prices</button>
+            </div>
+        </form>
+    </div>
+</details>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let rowCount = 5;
+function addRow() {
+    const tbody = document.getElementById('priceRows');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" name="species_${rowCount}" placeholder="e.g. Haddock" style="width:100%;"></td>
+        <td><input type="text" name="grade_${rowCount}" placeholder="e.g. A1" style="width:70px;"></td>
+        <td><input type="number" name="low_${rowCount}" step="0.01" min="0" style="width:80px;"></td>
+        <td><input type="number" name="high_${rowCount}" step="0.01" min="0" style="width:80px;"></td>
+        <td><input type="number" name="avg_${rowCount}" step="0.01" min="0" style="width:80px;"></td>
+        <td></td>
+    `;
+    tbody.appendChild(tr);
+    rowCount++;
+}
+</script>
+{% endblock %}

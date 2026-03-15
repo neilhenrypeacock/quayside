@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}For Ports — Quayside{% endblock %}
+
+{% block head %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
+    .port-hero {
+        text-align: center;
+        padding: 60px 20px 40px;
+    }
+    .port-hero h1 {
+        font-family: 'Playfair Display', var(--font-serif);
+        font-size: 36px;
+        color: var(--tide);
+        line-height: 1.2;
+        margin-bottom: 16px;
+    }
+    .port-hero .subtitle {
+        font-size: 18px;
+        color: #555;
+        max-width: 580px;
+        margin: 0 auto 32px;
+        line-height: 1.6;
+    }
+    .value-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 24px;
+        margin: 32px 0;
+    }
+    .value-card {
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 28px;
+    }
+    .value-card .icon {
+        font-size: 28px;
+        margin-bottom: 12px;
+    }
+    .value-card h3 {
+        font-family: 'Playfair Display', var(--font-serif);
+        font-size: 18px;
+        color: var(--tide);
+        margin-bottom: 8px;
+    }
+    .value-card p { font-size: 14px; color: #555; line-height: 1.6; }
+    .section { padding: 40px 0; }
+    .section-title {
+        font-family: 'Playfair Display', var(--font-serif);
+        font-size: 28px;
+        color: var(--tide);
+        margin-bottom: 12px;
+    }
+    .demo-box {
+        background: var(--tide);
+        border-radius: 8px;
+        padding: 32px;
+        text-align: center;
+        margin: 32px 0;
+    }
+    .demo-box h3 {
+        color: #fff;
+        font-family: 'Playfair Display', var(--font-serif);
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+    .demo-box p { color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 20px; }
+    .demo-box .btn { background: var(--catch); color: #fff; padding: 12px 28px; font-size: 15px; }
+    .demo-box .btn:hover { background: #a83515; }
+    .steps-list {
+        counter-reset: steps;
+        list-style: none;
+        max-width: 640px;
+    }
+    .steps-list li {
+        counter-increment: steps;
+        padding: 20px 0;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        padding-left: 56px;
+    }
+    .steps-list li::before {
+        content: counter(steps);
+        position: absolute;
+        left: 0;
+        top: 20px;
+        width: 36px; height: 36px;
+        background: var(--tide);
+        color: #fff;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 36px;
+        font-weight: 700;
+        font-size: 15px;
+    }
+    .steps-list h3 {
+        font-size: 16px;
+        color: var(--tide);
+        margin-bottom: 6px;
+    }
+    .steps-list p { font-size: 14px; color: #555; line-height: 1.6; }
+    .steps-list .action {
+        display: inline-block;
+        margin-top: 8px;
+        font-size: 13px;
+    }
+    .faq-list { max-width: 640px; }
+    .faq-item {
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border);
+    }
+    .faq-item dt {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--tide);
+        margin-bottom: 6px;
+    }
+    .faq-item dd { font-size: 14px; color: #555; line-height: 1.6; }
+    .final-cta {
+        text-align: center;
+        padding: 48px 20px;
+        background: var(--tide);
+        margin: 40px -24px -24px;
+    }
+    .final-cta h2 {
+        font-family: 'Playfair Display', var(--font-serif);
+        font-size: 28px;
+        color: #fff;
+        margin-bottom: 12px;
+    }
+    .final-cta p { color: rgba(255,255,255,0.8); margin-bottom: 8px; font-size: 15px; }
+    .final-cta .email-highlight {
+        font-family: var(--font-mono);
+        background: rgba(255,255,255,0.15);
+        padding: 8px 16px;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 16px;
+        display: inline-block;
+        margin: 16px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="port-hero">
+    <h1>Share your prices.<br>See the whole UK market.</h1>
+    <p class="subtitle">
+        Forward your daily price sheet. Get a free dashboard showing how your port compares
+        to every other UK fish market. No software, no forms, no cost.
+    </p>
+    <a href="#how-to-join" class="btn btn-primary" style="padding:14px 32px;font-size:16px;">Get started in 30 seconds</a>
+</div>
+
+<!-- What you get -->
+<div class="section">
+    <h2 class="section-title">What you get</h2>
+    <div class="value-grid">
+        <div class="value-card">
+            <div class="icon">&#x1f4ca;</div>
+            <h3>Market position</h3>
+            <p>See where your prices sit versus the UK range for every species. Know instantly if you're above or below the national average.</p>
+        </div>
+        <div class="value-card">
+            <div class="icon">&#x1f4c8;</div>
+            <h3>30-day trends</h3>
+            <p>Track how your prices move over time. Spot seasonal patterns and compare your trajectory against the wider market.</p>
+        </div>
+        <div class="value-card">
+            <div class="icon">&#x1f3c6;</div>
+            <h3>Best price flags</h3>
+            <p>When your port has the best UK price for a species, it's flagged on your dashboard. A selling point for your market.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Live demo -->
+<div class="demo-box">
+    <h3>See a live dashboard</h3>
+    <p>Here's what Peterhead's dashboard looks like right now &mdash; with real price data, trends, and market position indicators.</p>
+    <a href="{{ url_for('port_dashboard', slug='peterhead') }}" class="btn">View Peterhead's dashboard</a>
+</div>
+
+<!-- How to join -->
+<div class="section" id="how-to-join">
+    <h2 class="section-title">How to join</h2>
+    <ol class="steps-list">
+        <li>
+            <h3>Forward your daily price sheet</h3>
+            <p>CC <strong>prices@quayside.fish</strong> when you send your morning prices. Whatever format you already use &mdash; Excel, PDF, CSV, even a photo of your whiteboard.</p>
+            <span class="action" style="color:var(--tide);font-weight:600;">That's it. No signup, no registration.</span>
+        </li>
+        <li>
+            <h3>We extract and confirm</h3>
+            <p>Our system extracts the structured data within 5 minutes and emails you a confirmation. Check it's correct, or click to fix anything.</p>
+        </li>
+        <li>
+            <h3>Your dashboard goes live</h3>
+            <p>View your port's dashboard with market comparisons, trends, and best-price flags. Updated every day you send data.</p>
+            <a href="{{ url_for('port_dashboard', slug='peterhead') }}" class="action btn btn-secondary" style="margin-top:12px;">See example dashboard</a>
+        </li>
+    </ol>
+</div>
+
+<!-- Alternative: upload directly -->
+<div class="card" style="margin:24px 0;">
+    <h2 style="font-family:'Playfair Display',var(--font-serif);font-size:18px;color:var(--tide);margin-bottom:8px;">Prefer to upload directly?</h2>
+    <p style="font-size:14px;color:#555;margin-bottom:16px;">
+        Download our Excel template with species dropdowns, fill in your prices, and upload it here. Or use our simple web form.
+    </p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="{{ url_for('port_upload', slug='peterhead') }}" class="btn btn-secondary">Try the upload page</a>
+    </div>
+</div>
+
+<!-- FAQ -->
+<div class="section">
+    <h2 class="section-title">Common questions</h2>
+    <dl class="faq-list">
+        <div class="faq-item">
+            <dt>What format do you need?</dt>
+            <dd>Any. Excel spreadsheets, PDFs, CSVs, or even a photo of your price board. We handle the extraction.</dd>
+        </div>
+        <div class="faq-item">
+            <dt>What do other ports see?</dt>
+            <dd>Aggregated market ranges only &mdash; minimum, average, and maximum across all ports. No one sees your raw data, grades, or individual prices. When only two ports report a species, neither port is named.</dd>
+        </div>
+        <div class="faq-item">
+            <dt>What does it cost?</dt>
+            <dd>Nothing. Completely free. Quayside makes money from subscribers (buyers, sellers, processors) who pay for the aggregated data. Ports never pay.</dd>
+        </div>
+        <div class="faq-item">
+            <dt>Who else is on the platform?</dt>
+            <dd>Peterhead, Brixham, Newlyn, Scrabster, and Lerwick are live now. Fraserburgh, Kinlochbervie, Grimsby, and 7 more are joining.</dd>
+        </div>
+        <div class="faq-item">
+            <dt>What if the extraction gets something wrong?</dt>
+            <dd>Every upload gets a confirmation email. One click to approve, or click to edit. We log corrections and improve our extraction automatically.</dd>
+        </div>
+    </dl>
+</div>
+
+<!-- Final CTA -->
+<div class="final-cta">
+    <h2>Ready to join?</h2>
+    <p>Just start forwarding your daily price sheet.</p>
+    <div class="email-highlight">prices@quayside.fish</div>
+    <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:12px;">
+        Or email <a href="mailto:hello@quayside.fish" style="color:#fff;">hello@quayside.fish</a> with any questions.
+    </p>
+</div>
+{% endblock %}

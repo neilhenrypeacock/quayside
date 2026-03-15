@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}{{ port.name }} — Quayside{% endblock %}
+
+{% block nav %}
+<a href="{{ url_for('port_upload', slug=port.slug) }}">Upload</a>
+{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+    <div>
+        <h1 style="font-family:var(--font-serif);font-size:24px;color:var(--tide);">{{ port.name }}</h1>
+        <p style="color:#666;font-size:14px;">{{ port.region }} &middot; {{ date }}</p>
+    </div>
+    <div>
+        {% if today_data %}
+        <span class="status-dot status-confirmed"></span>
+        <span style="font-size:13px;color:var(--green);">{{ total_species }} species today</span>
+        {% else %}
+        <span class="status-dot status-none"></span>
+        <span style="font-size:13px;color:#999;">No data today</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Actions -->
+<div style="display:flex;gap:12px;margin-bottom:24px;">
+    <a href="{{ url_for('port_upload', slug=port.slug) }}" class="btn btn-primary">Upload today's prices</a>
+    <a href="{{ url_for('download_template', slug=port.slug) }}" class="btn btn-secondary">Download template</a>
+</div>
+
+{% if not today_data %}
+<div class="card" style="text-align:center;padding:40px;">
+    <p style="font-size:16px;color:#666;margin-bottom:16px;">No prices for today yet.</p>
+    <p style="font-size:14px;color:#999;">
+        Forward your price sheet to <strong>prices@quayside.fish</strong><br>
+        or <a href="{{ url_for('port_upload', slug=port.slug) }}" style="color:var(--catch);">upload directly</a>.
+    </p>
+</div>
+{% else %}
+
+<!-- Today's Prices -->
+<div class="card">
+    <h2>Today's Prices</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Species</th>
+                <th>Grade</th>
+                <th class="price">Low</th>
+                <th class="price">High</th>
+                <th class="price">Avg</th>
+                <th>Market</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in today_data %}
+            <tr>
+                <td>
+                    {{ item.species }}
+                    {% if item.position and item.position.is_best %}
+                    <span class="badge badge-best">Best UK</span>
+                    {% elif item.position and item.position.is_below %}
+                    <span class="badge badge-below">Below avg</span>
+                    {% endif %}
+                </td>
+                <td>{{ item.grade }}</td>
+                <td class="price">{% if item.price_low %}&pound;{{ "%.2f"|format(item.price_low) }}{% else %}&mdash;{% endif %}</td>
+                <td class="price">{% if item.price_high %}&pound;{{ "%.2f"|format(item.price_high) }}{% else %}&mdash;{% endif %}</td>
+                <td class="price" style="font-weight:600;">{% if item.price_avg %}&pound;{{ "%.2f"|format(item.price_avg) }}{% else %}&mdash;{% endif %}</td>
+                <td style="min-width:120px;">
+                    {% if item.position %}
+                    <div class="market-bar">
+                        <div class="market-bar-fill" style="width:100%;background:var(--paper);"></div>
+                        <div class="market-bar-marker" style="left:{{ item.position.pct_of_range }}%;"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;">
+                        <span>&pound;{{ "%.2f"|format(item.position.market_min) }}</span>
+                        <span>{{ item.position.port_count }} ports</span>
+                        <span>&pound;{{ "%.2f"|format(item.position.market_max) }}</span>
+                    </div>
+                    {% else %}
+                    <span style="font-size:12px;color:#ccc;">Only port</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- 30-Day Trend -->
+<div class="card">
+    <h2>30-Day Trends</h2>
+    <canvas id="trendChart" height="200"></canvas>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if today_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+const trendData = {{ trend_data|safe }};
+const colors = ['#1a3a4a', '#c8401a', '#2d7a4f', '#b8860b', '#6a4c93'];
+
+if (trendData.labels.length > 0) {
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: trendData.labels.map(d => {
+                const dt = new Date(d);
+                return dt.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+            }),
+            datasets: trendData.datasets.map((ds, i) => ({
+                label: ds.label,
+                data: ds.data,
+                borderColor: colors[i % colors.length],
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                pointRadius: 2,
+                tension: 0.3,
+                spanGaps: true,
+            }))
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 12 } } }
+            },
+            scales: {
+                y: {
+                    title: { display: true, text: 'GBP/kg' },
+                    beginAtZero: false,
+                },
+                x: { ticks: { maxTicksAuto: 10 } }
+            }
+        }
+    });
+} else {
+    document.getElementById('trendChart').parentElement.innerHTML += '<p style="text-align:center;color:#999;font-size:14px;">Not enough data for trends yet.</p>';
+}
+</script>
+{% endif %}
+{% endblock %}

@@ -1,4 +1,4 @@
-"""Main entry point: scrape all ports, store, export."""
+"""Main entry point: scrape all ports, store, export, process uploads."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import traceback
 
 from quayside.db import init_db, upsert_landings, upsert_prices
 from quayside.export import export_landings_csv, export_prices_csv
+from quayside.ports import seed_ports
 from quayside.report import generate_report
 from quayside.scrapers import brixham, cfpo, fraserburgh, lerwick, newlyn, scrabster
 from quayside.scrapers.peterhead import scrape_landings as peterhead_landings
@@ -40,6 +41,7 @@ def _run_scraper(name, fn):
 def main() -> int:
     logger.info("Quayside pipeline starting")
     init_db()
+    seed_ports()
 
     all_landings = []
     all_prices = []
@@ -201,6 +203,41 @@ def main() -> int:
         logger.info("Report: %s", report_path)
     except Exception:
         logger.exception("Report generation failed")
+
+    # --- Process email uploads (if configured) ---
+    try:
+        from quayside.ingest import poll_mailbox
+
+        uploads = poll_mailbox()
+        if uploads:
+            logger.info("Processed %d email uploads", len(uploads))
+            # Send confirmation emails
+            from quayside.confirm import send_confirmation_email
+            for upload_info in uploads:
+                try:
+                    send_confirmation_email(
+                        upload_info["upload_id"],
+                        upload_info["records"],
+                    )
+                except Exception:
+                    logger.exception(
+                        "Failed to send confirmation for upload %d",
+                        upload_info["upload_id"],
+                    )
+    except ValueError:
+        logger.debug("Email ingestion not configured — skipping")
+    except Exception:
+        logger.exception("Email ingestion failed")
+
+    # --- Auto-publish stale uploads (pending > 2 hours) ---
+    try:
+        from quayside.confirm import auto_publish_stale_uploads
+
+        auto_count = auto_publish_stale_uploads()
+        if auto_count:
+            logger.info("Auto-published %d stale uploads", auto_count)
+    except Exception:
+        logger.exception("Auto-publish check failed")
 
     # Email digest (only if configured via env vars)
     if report_path:

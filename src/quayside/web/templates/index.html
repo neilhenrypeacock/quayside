@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Quayside — Staging Hub{% endblock %}
+
+{% block head %}
+<style>
+    .hub-header {
+        text-align: center;
+        padding: 32px 0 24px;
+    }
+    .hub-header h1 {
+        font-family: var(--font-serif);
+        font-size: 24px;
+        color: var(--tide);
+        margin-bottom: 8px;
+    }
+    .hub-header p { font-size: 14px; color: #888; }
+    .hub-label {
+        display: inline-block;
+        background: var(--amber);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 3px 10px;
+        border-radius: 4px;
+        margin-bottom: 12px;
+    }
+    .screen-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+    .screen-card {
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+        text-decoration: none;
+        color: inherit;
+        transition: box-shadow 0.15s;
+    }
+    .screen-card:hover {
+        box-shadow: 0 4px 12px rgba(26,58,74,0.1);
+    }
+    .screen-card h3 {
+        font-size: 16px;
+        color: var(--tide);
+        margin-bottom: 6px;
+    }
+    .screen-card p { font-size: 13px; color: #666; }
+    .screen-card .url {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: #999;
+        margin-top: 8px;
+    }
+    .port-list { margin-top: 8px; }
+    .port-list h2 {
+        font-family: var(--font-serif);
+        font-size: 18px;
+        color: var(--tide);
+        margin-bottom: 12px;
+    }
+    .port-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+    .port-row a {
+        color: var(--tide);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .port-row a:hover { text-decoration: underline; }
+    .port-links {
+        display: flex;
+        gap: 12px;
+        font-size: 13px;
+    }
+    .port-links a { color: var(--catch); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hub-header">
+    <span class="hub-label">Staging</span>
+    <h1>Quayside Screens</h1>
+    <p>All pages for review. In production, / will redirect to the landing page.</p>
+</div>
+
+<div class="screen-grid">
+    <a href="{{ url_for('landing') }}" class="screen-card">
+        <h3>Landing Page</h3>
+        <p>Subscriber-focused marketing. Pricing tiers, how it works, signup CTA.</p>
+        <div class="url">/landing</div>
+    </a>
+    <a href="{{ url_for('digest_page') }}" class="screen-card">
+        <h3>Daily Digest</h3>
+        <p>Web version of the email digest. Full price tables, movers, benchmarks.</p>
+        <div class="url">/digest</div>
+    </a>
+    <a href="{{ url_for('for_ports') }}" class="screen-card">
+        <h3>For Ports</h3>
+        <p>Port marketing + onboarding. Value prop, demo, getting started steps.</p>
+        <div class="url">/for-ports</div>
+    </a>
+</div>
+
+<div class="card port-list">
+    <h2>Port Dashboards</h2>
+    {% for port in ports %}
+    <div class="port-row">
+        <div>
+            <a href="{{ url_for('port_dashboard', slug=port.slug) }}">{{ port.name }}</a>
+            <span style="color:#999;font-size:12px;margin-left:8px;">{{ port.region }}</span>
+        </div>
+        <div class="port-links">
+            <a href="{{ url_for('port_dashboard', slug=port.slug) }}">Dashboard</a>
+            <a href="{{ url_for('port_upload', slug=port.slug) }}">Upload</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
