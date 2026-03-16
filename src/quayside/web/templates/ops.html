@@ -399,6 +399,64 @@
         border-radius: 2px;
     }
 
+    /* Today status strip */
+    .today-strip {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+    .today-strip-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-right: 4px;
+        white-space: nowrap;
+    }
+    .today-port-pill {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 3px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        border: 1px solid transparent;
+    }
+    .today-port-pill.ok {
+        background: rgba(109,184,138,0.12);
+        border-color: rgba(109,184,138,0.25);
+        color: var(--ink);
+    }
+    .today-port-pill.miss {
+        background: rgba(224,112,96,0.1);
+        border-color: rgba(224,112,96,0.35);
+        color: var(--down);
+        font-weight: 700;
+    }
+    .today-port-pill.weekend {
+        background: var(--salt);
+        color: var(--muted);
+    }
+    .today-pill-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .today-port-pill.ok .today-pill-dot { background: var(--up); }
+    .today-port-pill.miss .today-pill-dot { background: var(--down); }
+    .today-port-pill.weekend .today-pill-dot { background: var(--rule); }
+    .today-pill-count {
+        font-size: 9px;
+        color: var(--muted);
+        margin-left: 2px;
+    }
+    .today-port-pill.miss .today-pill-count { color: var(--down); }
+
     @media (max-width: 800px) {
         .stats-strip { grid-template-columns: repeat(2, 1fr); }
         .coverage-table { font-size: 9px; }
@@ -439,6 +497,25 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Today's Scrape Status -->
+{% if today_is_weekday %}
+<div class="today-strip">
+    <span class="today-strip-label">Today</span>
+    {% for port_name in active_port_names %}
+    {% set today_data = port_coverage.get(port_name, {}).get(today_str) %}
+    <span class="today-port-pill {% if today_data %}ok{% else %}miss{% endif %}">
+        <span class="today-pill-dot"></span>
+        {{ port_name }}
+        {% if today_data %}
+        <span class="today-pill-count">{{ today_data.species }} spp</span>
+        {% else %}
+        <span class="today-pill-count">no data</span>
+        {% endif %}
+    </span>
+    {% endfor %}
+</div>
+{% endif %}
 
 <!-- Stats strip -->
 <div class="stats-strip">
@@ -515,7 +592,11 @@
                 <th>Port</th>
                 <th>Method</th>
                 <th>Species</th>
+                <th>First data</th>
                 <th>Last data</th>
+                <th>Success</th>
+                <th>Fails</th>
+                <th>Port value</th>
             </tr>
         </thead>
         <tbody>
@@ -526,12 +607,12 @@
             {% if country != ns.current_country %}
             {% set ns.current_country = country %}
             <tr class="country-header">
-                <td colspan="4">{{ country }}</td>
+                <td colspan="8">{{ country }}</td>
             </tr>
             {% endif %}
             {% if sub_region %}
             <tr class="region-header">
-                <td colspan="4">{{ sub_region }}</td>
+                <td colspan="8">{{ sub_region }}</td>
             </tr>
             {% endif %}
             {% for port in region_ports %}
@@ -543,8 +624,25 @@
                 <td><span class="method-badge {{ port.data_method }}">{{ port.data_method }}</span></td>
                 <td style="font-family:var(--font-mono);font-size:12px;">{{ species_per_port.get(port.name, '—') }}</td>
                 <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">
+                    {{ first_data_per_port.get(port.name, '—') }}
+                </td>
+                <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">
                     {% if port_coverage.get(port.name) %}
                         {{ port_coverage[port.name].keys()|list|sort|last }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td style="font-family:var(--font-mono);font-size:12px;color:var(--up);">
+                    {{ success_days_per_port.get(port.name, '—') }}
+                </td>
+                <td style="font-family:var(--font-mono);font-size:12px;{% if fails_per_port.get(port.name, 0) > 0 %}color:var(--down);{% else %}color:var(--muted);{% endif %}">
+                    {{ fails_per_port.get(port.name, '—') }}
+                </td>
+                <td style="font-family:var(--font-mono);font-size:12px;">
+                    {% set pv = port_value.get(port.name) %}
+                    {% if pv %}
+                        £{{ '{:,.0f}'.format(pv) }}
                     {% else %}
                         —
                     {% endif %}

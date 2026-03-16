@@ -84,6 +84,12 @@ Pipeline runs weekdays at 10:15 AM via macOS launchd. Plist at `com.quayside.pip
 - **Always work on a feature branch** — never commit directly to `main`. Create a branch like `feature/short-description` at the start of each session.
 - Merge to `main` only after verification passes (ruff, pytest, visual check).
 
+## Deployment
+
+The live site is at **https://quaysidedata.duckdns.org/**. It is deployed automatically via GitHub Actions on every push to `main`.
+
+**To deploy changes to the live site**: commit changes and push to `main` — GitHub Actions auto-deploys on push to `main`. There is no manual deploy step.
+
 ## Key docs
 
 - `PORTS.md` — comprehensive audit of all UK & Ireland fish ports, data availability, partnership strategy
