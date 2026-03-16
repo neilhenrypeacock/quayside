@@ -15,4 +15,4 @@ ENV QUAYSIDE_DB_PATH=/data/quayside.db
 
 EXPOSE 8080
 
-CMD ["python", "-m", "gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--preload", "quayside.web.app:create_app()"]
+CMD ["python", "-m", "gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--preload", "quayside.web.app:create_app()"]

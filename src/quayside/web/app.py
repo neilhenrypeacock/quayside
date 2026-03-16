@@ -35,6 +35,7 @@ from quayside.db import (
     get_market_averages_for_range,
     get_port,
     get_port_by_token,
+    get_port_auction_dates,
     get_port_prices_history,
     get_prices_by_date,
     get_prices_for_date_range,
@@ -147,7 +148,15 @@ def create_app() -> Flask:
             if not valid_port or valid_port["slug"] != slug:
                 return "Invalid or expired link", 403
 
-        date = get_latest_date() or datetime.now().strftime("%Y-%m-%d")
+        latest = get_latest_date() or datetime.now().strftime("%Y-%m-%d")
+        # Allow ?date= param to view historical auctions
+        date = request.args.get("date") or latest
+
+        # Available auction dates for this port (for the date tab bar)
+        available_dates = get_port_auction_dates(port["name"], limit=20)
+
+        # Allow ?compare= param to override the comparison date; default = same weekday last week
+        compare_date_param = request.args.get("compare")
 
         # Get this port's prices for today
         port_prices = get_prices_by_date(date, port["name"])
@@ -155,8 +164,16 @@ def create_app() -> Flask:
         # Get market averages for comparison
         market = get_market_averages_for_date(date)
 
-        # Get same-day-last-week prices for delta comparison
-        last_week_prices = get_same_day_last_week(port["name"], date)
+        # Get comparison prices — either from ?compare= param or same-day last week
+        if compare_date_param and compare_date_param != date:
+            last_week_prices = {
+                (r[2], r[3]): {"price_avg": r[6], "price_low": r[4], "price_high": r[5]}
+                for r in get_prices_by_date(compare_date_param, port["name"])
+            }
+            compare_date = compare_date_param
+        else:
+            last_week_prices = get_same_day_last_week(port["name"], date)
+            compare_date = None  # will be resolved to last same weekday label below
 
         # Normalise and build dashboard data
         today_data = []
@@ -280,9 +297,24 @@ def create_app() -> Flask:
         # ── Day name for "vs last [day]" column header ──
         from datetime import datetime as dt
         try:
-            day_name = dt.strptime(date, "%Y-%m-%d").strftime("%A")[:3]
+            _dt = dt.strptime(date, "%Y-%m-%d")
+            day_name = _dt.strftime("%A")[:3]
+            latest_date_display = _dt.strftime("%-d %b %Y")  # e.g. "16 Mar 2026"
         except ValueError:
             day_name = "Week"
+            latest_date_display = date
+
+        # ── Comparison date label for the prices table header ──
+        if compare_date_param and compare_date_param != date:
+            try:
+                _cdt = dt.strptime(compare_date_param, "%Y-%m-%d")
+                compare_label = _cdt.strftime("%-d %b")  # e.g. "9 Mar"
+            except ValueError:
+                compare_label = compare_date_param
+            compare_date_display = compare_date_param
+        else:
+            compare_label = f"last {day_name}"
+            compare_date_display = None
 
         # ── Performance overview: week-over-week & month-over-month ──
         perf = _build_performance_overview(port["name"], date, history, market)
@@ -306,6 +338,10 @@ def create_app() -> Flask:
             seasonal_data=seasonal_data,
             has_seasonal=has_seasonal,
             day_name=day_name,
+            latest_date_display=latest_date_display,
+            available_dates=available_dates,
+            compare_label=compare_label,
+            compare_date_display=compare_date_display,
             perf=perf,
         ))
 
@@ -951,6 +987,9 @@ def create_app() -> Flask:
             mimetype="text/csv",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
+
+    from quayside.scheduler import start_scheduler
+    start_scheduler(app)
 
     return app
 

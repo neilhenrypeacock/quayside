@@ -18,6 +18,7 @@ dependencies = [
     "openpyxl>=3.1",
     "anthropic>=0.39",
     "gunicorn>=22.0",
+    "apscheduler>=3.10",
 ]
 
 [project.optional-dependencies]
