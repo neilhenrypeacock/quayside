@@ -629,14 +629,17 @@ def create_app() -> Flask:
 
         # Port value: sum(boxes * price_avg) joining landings and prices on date/port/species
         port_value = {}
-        for row in conn.execute(
-            """SELECT l.port, SUM(l.boxes * p.price_avg) as total_value
-               FROM landings l
-               JOIN prices p ON l.date = p.date AND l.port = p.port AND l.species = p.species
-               GROUP BY l.port"""
-        ).fetchall():
-            if row["total_value"] is not None:
-                port_value[row["port"]] = row["total_value"]
+        try:
+            for row in conn.execute(
+                """SELECT l.port, SUM(l.boxes * p.price_avg) as total_value
+                   FROM landings l
+                   JOIN prices p ON l.date = p.date AND l.port = p.port AND l.species = p.species
+                   GROUP BY l.port"""
+            ).fetchall():
+                if row["total_value"] is not None:
+                    port_value[row["port"]] = row["total_value"]
+        except Exception:
+            pass
 
         # Total records
         totals = conn.execute(
