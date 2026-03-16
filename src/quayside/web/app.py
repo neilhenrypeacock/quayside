@@ -91,17 +91,17 @@ def create_app() -> Flask:
         return {"_ticker_items": []}
 
     @app.route("/")
-    def index():
-        """Staging hub — links to all screens."""
-        ports = get_all_ports(status="active")
-        return render_template("index.html", ports=ports)
-
-    @app.route("/landing")
     def landing():
         """Subscriber-focused marketing page."""
         date = get_latest_date()
         ld = build_landing_data(date) if date else None
         return render_template("landing.html", ld=ld)
+
+    @app.route("/overview")
+    def index():
+        """Staging hub — links to all screens."""
+        ports = get_all_ports(status="active")
+        return render_template("index.html", ports=ports)
 
     @app.route("/for-ports")
     def for_ports():
