@@ -30,6 +30,7 @@ from quayside.db import (
     create_upload,
     get_all_ports,
     get_latest_date,
+    get_latest_rich_date,
     get_market_averages_for_date,
     get_market_averages_for_range,
     get_port,
@@ -108,7 +109,7 @@ def create_app() -> Flask:
     def digest_page(date: str | None = None):
         """Web version of the daily email digest."""
         if date is None:
-            date = get_latest_date()
+            date = get_latest_rich_date()
         if not date:
             return render_template("landing.html")  # No data yet
 

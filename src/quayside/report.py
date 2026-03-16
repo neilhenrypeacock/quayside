@@ -9,7 +9,7 @@ from pathlib import Path
 
 import jinja2
 
-from quayside.db import get_all_prices_for_date, get_latest_date, get_previous_date
+from quayside.db import get_all_prices_for_date, get_latest_date, get_latest_rich_date, get_previous_date
 from quayside.fx import get_rate
 from quayside.ports import get_port_code_map
 from quayside.species import normalise_species
@@ -464,7 +464,7 @@ def generate_report(date: str | None = None) -> Path:
     Returns the path to the generated HTML file.
     """
     if date is None:
-        date = get_latest_date()
+        date = get_latest_rich_date()
         if date is None:
             raise ValueError("No price data in database")
 

@@ -193,6 +193,27 @@ def get_latest_date() -> str | None:
     return row[0] if row else None
 
 
+def get_latest_rich_date(min_ports: int = 2) -> str | None:
+    """Most recent date with data from at least `min_ports` ports.
+
+    Prevents sparse weekend/partial data from becoming the default digest date.
+    Falls back to get_latest_date() if no multi-port date exists.
+    """
+    conn = get_connection()
+    row = conn.execute(
+        """SELECT date FROM prices
+           GROUP BY date
+           HAVING COUNT(DISTINCT port) >= ?
+           ORDER BY date DESC
+           LIMIT 1""",
+        (min_ports,),
+    ).fetchone()
+    conn.close()
+    if row:
+        return row[0]
+    return get_latest_date()
+
+
 def get_previous_date(date: str) -> str | None:
     """Most recent date before the given date (for day-over-day comparison)."""
     conn = get_connection()
