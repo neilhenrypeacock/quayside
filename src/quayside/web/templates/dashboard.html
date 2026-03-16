@@ -97,8 +97,8 @@
     .hero-stat {
         flex: 1;
         background: var(--foam);
-        padding: 20px 16px;
-        text-align: center;
+        padding: 20px 18px;
+        text-align: left;
         border-right: 1px solid var(--rule);
     }
     .hero-stat:last-child { border-right: none; }
@@ -115,15 +115,15 @@
         letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--muted);
-        margin-top: 6px;
+        margin-top: 10px;
     }
     .hero-stat .hero-description {
         font-family: var(--font-mono);
         font-size: 9px;
         color: var(--muted);
-        margin-top: 4px;
+        margin-top: 5px;
         letter-spacing: 0.02em;
-        line-height: 1.4;
+        line-height: 1.5;
         opacity: 0.75;
     }
     .hero-stat.hero-primary .hero-description {
@@ -956,25 +956,35 @@
     <span class="section-bar-title">Today's Auction — {{ latest_date_display }}</span>
     <span class="section-bar-sub">All prices per kg · {{ port.name }}</span>
 </div>
+<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">
+    Auction prices from {{ port.name }}, updated each trading day. All figures are per kg.
+    Market comparisons use the UK average across all ports contributing to Quayside — a positive
+    percentage means this port is achieving above the national average for that species.
+</p>
 <div class="hero-strip">
     <div class="hero-stat">
         <div class="hero-value">&pound;{{ "%.2f"|format(hero_avg_price) if hero_avg_price else '—' }}</div>
-        <div class="hero-label">Avg price / kg</div>
-        <div class="hero-description">Average across all species sold at today's auction</div>
+        <div class="hero-label">Today's avg / kg</div>
+        <div class="hero-description">Average price per kg across all species sold at today's auction</div>
     </div>
     <div class="hero-stat">
-        <div class="hero-value">{{ total_species }}</div>
-        <div class="hero-label">Species sold today</div>
-        <div class="hero-description">Number of different species that sold at today's auction</div>
-    </div>
-    <div class="hero-stat hero-primary">
         {% if hero_vs_last_week is not none %}
         <div class="hero-value" style="color:{{ '#6db88a' if hero_vs_last_week >= 0 else '#e07060' }};">{{ "+" if hero_vs_last_week >= 0 }}{{ "%.1f"|format(hero_vs_last_week) }}%</div>
         {% else %}
         <div class="hero-value">&mdash;</div>
         {% endif %}
         <div class="hero-label">vs last {{ day_name }}</div>
-        <div class="hero-description">Change in today's average £/kg compared to last {{ day_name }}'s auction</div>
+        <div class="hero-description">Change vs the same weekday last week</div>
+    </div>
+    <div class="hero-stat">
+        <div class="hero-value">{% if perf and perf.this_week_avg %}&pound;{{ "%.2f"|format(perf.this_week_avg) }}{% else %}&mdash;{% endif %}</div>
+        <div class="hero-label">Avg day this week</div>
+        <div class="hero-description">Average daily price per kg across all auction days so far this week</div>
+    </div>
+    <div class="hero-stat">
+        <div class="hero-value">{% if perf and perf.this_month_avg %}&pound;{{ "%.2f"|format(perf.this_month_avg) }}{% else %}&mdash;{% endif %}</div>
+        <div class="hero-label">Avg day this month</div>
+        <div class="hero-description">Average daily price per kg across all auction days so far this month</div>
     </div>
     <div class="hero-stat">
         {% if hero_vs_market is not none %}
@@ -982,13 +992,8 @@
         {% else %}
         <div class="hero-value">&mdash;</div>
         {% endif %}
-        <div class="hero-label">vs UK market average</div>
-        <div class="hero-description">This port's today avg price above (+) or below (−) the UK-wide average across all ports</div>
-    </div>
-    <div class="hero-stat">
-        <div class="hero-value">{{ above_count }}/{{ total_species }}</div>
-        <div class="hero-label">Species above UK average</div>
-        <div class="hero-description">Species where this port's price beat the UK market average price today</div>
+        <div class="hero-label">vs UK market avg</div>
+        <div class="hero-description">Today's avg above (+) or below (−) the UK-wide average across all ports</div>
     </div>
 </div>
 
@@ -1243,6 +1248,7 @@
 <!-- ═══ SECTION: Ask Quayside ═══ -->
 <div class="chat-card">
     <div class="chat-label">Ask Quayside</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Ask a plain-English question about your price history, market position, or trends — powered by your port's data.</p>
     <div class="chat-pills">
         <button class="chat-pill" data-q="What was my best price for Cod this month?">Best Cod price this month?</button>
         <button class="chat-pill" data-q="How do I compare to the market for Monkfish?">How do I compare on Monkfish?</button>
@@ -1285,6 +1291,12 @@
             </select>
         </div>
     </div>
+    <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:12px;font-family:var(--font-mono);">
+        <strong style="font-weight:600;">Grade</strong> — quality classification assigned by the port (A1–A5, 1–10, or none depending on port).
+        <strong style="font-weight:600;">vs {{ compare_label }}</strong> — price change since the equivalent auction day.
+        <strong style="font-weight:600;">vs UK Market</strong> — this port's average price above (+) or below (−) the UK-wide average across all reporting ports today.
+        Click a species row to expand grade-by-grade breakdown.
+    </p>
 
     <table>
         <thead>
@@ -1796,10 +1808,16 @@ function applyCompare(compareVal) {
     window.location.href = url.toString();
 }
 
-// Scroll active date tab into view
+// Scroll active date tab into view within the tab bar (horizontal only — don't move the page)
 document.addEventListener('DOMContentLoaded', function() {
-    const activeTab = document.querySelector('.date-tab.active');
-    if (activeTab) activeTab.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    const container = document.getElementById('dateTabs');
+    const activeTab = container && container.querySelector('.date-tab.active');
+    if (activeTab && container) {
+        const tabLeft = activeTab.offsetLeft;
+        const tabWidth = activeTab.offsetWidth;
+        const containerWidth = container.offsetWidth;
+        container.scrollLeft = tabLeft - (containerWidth / 2) + (tabWidth / 2);
+    }
 });
 </script>
 {% endblock %}

@@ -599,6 +599,45 @@ def create_app() -> Flask:
         ).fetchall():
             species_per_port[row["port"]] = row["species_count"]
 
+        # First data date per port
+        first_data_per_port = {}
+        for row in conn.execute(
+            "SELECT port, MIN(date) as first_date FROM prices GROUP BY port"
+        ).fetchall():
+            first_data_per_port[row["port"]] = row["first_date"]
+
+        # Success days per port (distinct dates with data)
+        success_days_per_port = {}
+        for row in conn.execute(
+            "SELECT port, COUNT(DISTINCT date) as success_days FROM prices GROUP BY port"
+        ).fetchall():
+            success_days_per_port[row["port"]] = row["success_days"]
+
+        # Fails per port: weekdays since first data minus success days
+        from datetime import date as _date
+        today_date = today.date()
+        fails_per_port = {}
+        for port_name, first_date_str in first_data_per_port.items():
+            start = _date.fromisoformat(first_date_str)
+            weekday_count = 0
+            d_iter = start
+            while d_iter <= today_date:
+                if d_iter.weekday() < 5:
+                    weekday_count += 1
+                d_iter += timedelta(days=1)
+            fails_per_port[port_name] = max(0, weekday_count - success_days_per_port.get(port_name, 0))
+
+        # Port value: sum(boxes * price_avg) joining landings and prices on date/port/species
+        port_value = {}
+        for row in conn.execute(
+            """SELECT l.port, SUM(l.boxes * p.price_avg) as total_value
+               FROM landings l
+               JOIN prices p ON l.date = p.date AND l.port = p.port AND l.species = p.species
+               GROUP BY l.port"""
+        ).fetchall():
+            if row["total_value"] is not None:
+                port_value[row["port"]] = row["total_value"]
+
         # Total records
         totals = conn.execute(
             "SELECT COUNT(*) as total, COUNT(DISTINCT date) as dates FROM prices"
@@ -735,6 +774,9 @@ def create_app() -> Flask:
 
         conn.close()
 
+        today_str = today.strftime("%Y-%m-%d")
+        today_is_weekday = today.weekday() < 5
+
         return render_template(
             "ops.html",
             ports=all_ports,
@@ -755,6 +797,12 @@ def create_app() -> Flask:
             gaps=gaps[:20],
             upload_summary=upload_summary,
             correction_count=correction_count,
+            first_data_per_port=first_data_per_port,
+            success_days_per_port=success_days_per_port,
+            fails_per_port=fails_per_port,
+            port_value=port_value,
+            today_str=today_str,
+            today_is_weekday=today_is_weekday,
         )
 
     @app.route("/port/<slug>/export")
@@ -1676,4 +1724,4 @@ def _form_float(val: str | None) -> float | None:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     app = create_app()
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=int(os.environ.get("PORT", 5000)))

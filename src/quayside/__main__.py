@@ -1,5 +1,8 @@
 import sys
 
-from quayside.run import main
+from quayside.run import main, update_run
 
-sys.exit(main())
+if "--update" in sys.argv:
+    sys.exit(update_run())
+else:
+    sys.exit(main())

@@ -1,4 +1,17 @@
-"""Main entry point: scrape all ports, store, export, process uploads."""
+"""Main entry point: scrape all ports, store, export, process uploads.
+
+Modes
+-----
+Full run (default):
+    python -m quayside
+    Scrapes everything from scratch. Ignores cached ETags.
+
+Update run:
+    python -m quayside --update
+    Re-checks every source using ETag / Last-Modified / content-hash.
+    Only re-scrapes ports whose source file has actually changed.
+    Safe to run hourly throughout the trading day.
+"""
 
 from __future__ import annotations
 
@@ -8,6 +21,7 @@ import traceback
 
 from quayside.db import init_db, upsert_prices
 from quayside.export import export_prices_csv
+from quayside.http_cache import cached_fetch
 from quayside.ports import seed_ports
 from quayside.report import generate_report
 from quayside.scrapers import brixham, cfpo, fraserburgh, lerwick, newlyn, scrabster
@@ -235,6 +249,165 @@ def main() -> int:
             logger.exception("Email delivery failed")
 
     logger.info("Pipeline complete")
+    return 0
+
+
+_SCRAPER_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+}
+
+
+def update_run() -> int:
+    """ETag-aware intraday update.
+
+    Re-checks every scraped source. Only downloads and re-parses files that
+    have actually changed since the last run. Upserts any new records and
+    regenerates the digest if anything changed.
+
+    Returns 0 (success), 1 (errors), 2 (nothing changed — skipped cleanly).
+    """
+    logger.info("Quayside update-check starting")
+    init_db()
+
+    # SWFPA event discovery is cheap (2 HTML pages) — always re-run it to get
+    # the current file URLs, which may change if SWFPA re-uploads a file.
+    try:
+        swfpa_links = get_swfpa_event_links()
+    except Exception as e:
+        logger.warning("SWFPA event discovery failed: %s — aborting update", e)
+        return 1
+
+    event_date = swfpa_links.get("event_date")
+
+    all_new_prices = []
+    changed_ports = []
+
+    # ── SWFPA sources (Peterhead XLS, Brixham PDF, Newlyn PDF) ──
+
+    xls_url = swfpa_links.get("peterhead_xls")
+    if xls_url:
+        try:
+            xls_bytes, is_new = cached_fetch(xls_url, _SCRAPER_HEADERS)
+            if is_new:
+                logger.info("Peterhead XLS changed — re-scraping")
+                prices, err = _run_scraper(
+                    "Peterhead prices",
+                    lambda: peterhead_prices(xls_bytes=xls_bytes),
+                )
+                if prices:
+                    all_new_prices += prices
+                    changed_ports.append("Peterhead")
+            else:
+                logger.info("Peterhead XLS unchanged — skipping")
+        except Exception as e:
+            logger.warning("Peterhead update check failed: %s", e)
+
+    brixham_pdf_url = swfpa_links.get("brixham_pdf")
+    if brixham_pdf_url:
+        try:
+            pdf_bytes, is_new = cached_fetch(brixham_pdf_url, _SCRAPER_HEADERS)
+            if is_new:
+                logger.info("Brixham PDF changed — re-scraping")
+                prices, err = _run_scraper(
+                    "Brixham prices",
+                    lambda: brixham.scrape_prices(
+                        pdf_bytes=pdf_bytes, target_date=event_date
+                    ),
+                )
+                if prices:
+                    all_new_prices += prices
+                    changed_ports.append("Brixham")
+            else:
+                logger.info("Brixham PDF unchanged — skipping")
+        except Exception as e:
+            logger.warning("Brixham update check failed: %s", e)
+
+    newlyn_pdf_url = swfpa_links.get("newlyn_pdf")
+    if newlyn_pdf_url:
+        try:
+            pdf_bytes, is_new = cached_fetch(newlyn_pdf_url, _SCRAPER_HEADERS)
+            if is_new:
+                logger.info("Newlyn PDF changed — re-scraping")
+                prices, err = _run_scraper(
+                    "Newlyn prices",
+                    lambda: newlyn.scrape_prices(
+                        pdf_bytes=pdf_bytes, target_date=event_date
+                    ),
+                )
+                if prices:
+                    all_new_prices += prices
+                    changed_ports.append("Newlyn")
+            else:
+                logger.info("Newlyn PDF unchanged — skipping")
+        except Exception as e:
+            logger.warning("Newlyn update check failed: %s", e)
+
+    # ── Lerwick (XLSX generated per-date — stable URL for today) ──
+    if event_date:
+        lerwick_url = (
+            f"https://ssawebportal.azurewebsites.net/daily-prices-generate.php"
+            f"?thisdate={event_date}"
+        )
+        try:
+            xlsx_bytes, is_new = cached_fetch(lerwick_url, _SCRAPER_HEADERS)
+            if is_new:
+                logger.info("Lerwick XLSX changed — re-scraping")
+                prices, err = _run_scraper(
+                    "Lerwick prices",
+                    lambda: lerwick.scrape_prices(
+                        target_date=event_date, xlsx_bytes=xlsx_bytes
+                    ),
+                )
+                if prices:
+                    all_new_prices += prices
+                    changed_ports.append("Lerwick")
+            else:
+                logger.info("Lerwick XLSX unchanged — skipping")
+        except Exception as e:
+            logger.warning("Lerwick update check failed: %s", e)
+
+    # ── Scrabster (HTML page) ──
+    from quayside.scrapers.scrabster import PRICES_URL as SCRABSTER_URL
+
+    try:
+        html_bytes, is_new = cached_fetch(SCRABSTER_URL, _SCRAPER_HEADERS)
+        if is_new:
+            logger.info("Scrabster page changed — re-scraping")
+            prices, err = _run_scraper(
+                "Scrabster prices",
+                lambda: scrabster.scrape_prices(html=html_bytes.decode("utf-8", errors="replace")),
+            )
+            if prices:
+                all_new_prices += prices
+                changed_ports.append("Scrabster")
+        else:
+            logger.info("Scrabster page unchanged — skipping")
+    except Exception as e:
+        logger.warning("Scrabster update check failed: %s", e)
+
+    if not all_new_prices:
+        logger.info("Update check complete — no source changes detected")
+        return 2
+
+    logger.info("Changed ports: %s — upserting %d records", changed_ports, len(all_new_prices))
+    upsert_prices(all_new_prices)
+
+    # Export CSVs for changed ports
+    by_port: dict[str, list] = {}
+    for r in all_new_prices:
+        by_port.setdefault(r.port, []).append(r)
+    for port, records in by_port.items():
+        export_prices_csv(records[0].date, port)
+
+    # Regenerate digest
+    try:
+        report_path = generate_report()
+        logger.info("Digest updated: %s", report_path)
+    except Exception:
+        logger.exception("Report generation failed")
+
+    logger.info("Update run complete")
     return 0
 
 
