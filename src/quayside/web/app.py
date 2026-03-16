@@ -522,8 +522,8 @@ def create_app() -> Flask:
         ]
         _region_rank = {r: i for i, r in enumerate(_REGION_ORDER)}
 
-        # Split into live vs pipeline
-        live_ports = [p for p in all_ports if p["status"] == "active"]
+        # Split into live vs pipeline (exclude Demo Port from ops display)
+        live_ports = [p for p in all_ports if p["status"] == "active" and p["name"] != "Demo Port"]
         pipeline_ports = [p for p in all_ports if p["status"] in ("outreach", "future")]
         # Pipeline: outreach first, then future — Scotland before England within each
         _status_rank = {"outreach": 0, "future": 1}
@@ -604,8 +604,8 @@ def create_app() -> Flask:
             "SELECT COUNT(*) as total, COUNT(DISTINCT date) as dates FROM prices"
         ).fetchone()
 
-        # Active ports
-        active_port_names = [p["name"] for p in all_ports if p["status"] == "active"]
+        # Active scraper ports (excludes Demo Port — its seeded data would mask real scrape gaps)
+        active_port_names = [p["name"] for p in all_ports if p["status"] == "active" and p["name"] != "Demo Port"]
 
         # --- Scrape Alerts: detect empty/missing scrapes for current + last week ---
         # Expected auction days per port (based on known schedules)
