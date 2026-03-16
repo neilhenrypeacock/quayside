@@ -374,6 +374,119 @@ def create_app() -> Flask:
 
         return response
 
+    @app.route("/port/<slug>/prices")
+    def port_prices_partial(slug: str):
+        """Returns just the prices section HTML for AJAX date tab switching."""
+        port = get_port(slug)
+        if not port:
+            return "Port not found", 404
+
+        latest = get_latest_date() or datetime.now().strftime("%Y-%m-%d")
+        date = request.args.get("date") or latest
+        compare_date_param = request.args.get("compare")
+
+        available_dates = get_port_auction_dates(port["name"], limit=20)
+        port_prices = get_prices_by_date(date, port["name"])
+        market = get_market_averages_for_date(date)
+
+        if compare_date_param and compare_date_param != date:
+            last_week_prices = {
+                (r[2], r[3]): {"price_avg": r[6], "price_low": r[4], "price_high": r[5]}
+                for r in get_prices_by_date(compare_date_param, port["name"])
+            }
+        else:
+            last_week_prices = get_same_day_last_week(port["name"], date)
+            compare_date_param = None
+
+        today_data = []
+        for row in port_prices:
+            _, _, species, grade, low, high, avg = row
+            canonical = normalise_species(species)
+            market_info = market.get(canonical, {})
+
+            position = None
+            if avg and market_info.get("port_count", 0) >= 2:
+                market_avg = market_info["avg"]
+                market_min = market_info["min"]
+                market_max = market_info["max"]
+                is_best = avg >= market_max
+                is_below = avg < market_avg * 0.95
+                vs_pct = round(((avg - market_avg) / market_avg) * 100, 1)
+                position = {
+                    "market_avg": round(market_avg, 2),
+                    "market_min": round(market_min, 2),
+                    "market_max": round(market_max, 2),
+                    "port_count": market_info["port_count"],
+                    "is_best": is_best,
+                    "is_below": is_below,
+                    "vs_pct": vs_pct,
+                    "pct_of_range": _pct_in_range(avg, market_min, market_max),
+                }
+
+            lw = last_week_prices.get((species, grade))
+            vs_last_week = None
+            if lw and lw["price_avg"] and avg:
+                vs_last_week = round(((avg - lw["price_avg"]) / lw["price_avg"]) * 100, 1)
+
+            today_data.append({
+                "species": canonical,
+                "raw_species": species,
+                "grade": grade,
+                "price_low": low,
+                "price_high": high,
+                "price_avg": avg,
+                "position": position,
+                "vs_last_week": vs_last_week,
+            })
+
+        from collections import OrderedDict
+        species_grades = OrderedDict()
+        for item in today_data:
+            sp = item["species"]
+            if sp not in species_grades:
+                species_grades[sp] = []
+            species_grades[sp].append(item)
+
+        seasonal_raw = get_seasonal_comparison(port["name"], date)
+        seasonal_data = {
+            normalise_species(sp): price for sp, price in seasonal_raw.items()
+        }
+        has_seasonal = bool(seasonal_data)
+
+        from datetime import datetime as dt
+        try:
+            _dt = dt.strptime(date, "%Y-%m-%d")
+            day_name = _dt.strftime("%A")[:3]
+            latest_date_display = _dt.strftime("%-d %b %Y")
+        except ValueError:
+            day_name = "Week"
+            latest_date_display = date
+
+        if compare_date_param and compare_date_param != date:
+            try:
+                _cdt = dt.strptime(compare_date_param, "%Y-%m-%d")
+                compare_label = _cdt.strftime("%-d %b")
+            except ValueError:
+                compare_label = compare_date_param
+            compare_date_display = compare_date_param
+        else:
+            compare_label = f"last {day_name}"
+            compare_date_display = None
+
+        return render_template(
+            "prices_partial.html",
+            port=port,
+            date=date,
+            latest_date_display=latest_date_display,
+            available_dates=available_dates,
+            day_name=day_name,
+            compare_label=compare_label,
+            compare_date_display=compare_date_display,
+            species_grades=species_grades,
+            has_seasonal=has_seasonal,
+            seasonal_data=seasonal_data,
+        )
+
     @app.route("/port/<slug>/upload", methods=["GET", "POST"])
     def port_upload(slug: str):
         """Web form upload — fallback for ports that email photos/docs."""

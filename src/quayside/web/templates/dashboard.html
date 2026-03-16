@@ -1285,142 +1285,8 @@
     <div class="chat-response" id="chatResponse">Ask a question about your prices, trends, or market position.</div>
 </div>
 
-<!-- ═══ SECTION: Today's Prices (with grade expansion, vs last week, seasonal) ═══ -->
-<div class="card card-prices" id="prices-section">
-
-    {% if available_dates and available_dates | length > 1 %}
-    <div class="date-tabs" id="dateTabs">
-        {% for d in available_dates %}
-        {% set is_active = (d == date) %}
-        <a class="date-tab {{ 'active' if is_active }}"
-           href="{{ url_for('port_dashboard', slug=port.slug, date=d) }}">
-            {% if loop.index == 1 %}Latest ({{ d }}){% else %}{{ d }}{% endif %}
-        </a>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="prices-table-header">
-        <h2>Prices — {{ latest_date_display }}</h2>
-        <div class="compare-select-wrap">
-            <span class="compare-label-text">Compare vs:</span>
-            <select class="compare-select" id="compareSelect" onchange="applyCompare(this.value)">
-                <option value="" {{ 'selected' if not compare_date_display }}>Last {{ day_name }} (default)</option>
-                {% for d in available_dates %}
-                {% if d != date %}
-                <option value="{{ d }}" {{ 'selected' if d == compare_date_display }}>{{ d }}</option>
-                {% endif %}
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-    <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:12px;font-family:var(--font-mono);">
-        <strong style="font-weight:600;">Grade</strong> — quality classification assigned by the port (A1–A5, 1–10, or none depending on port).
-        <strong style="font-weight:600;">vs {{ compare_label }}</strong> — price change since the equivalent auction day.
-        <strong style="font-weight:600;">vs UK Market</strong> — this port's average price above (+) or below (−) the UK-wide average across all reporting ports today.
-        Click a species row to expand grade-by-grade breakdown.
-    </p>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Species</th>
-                <th>Grade</th>
-                <th class="text-right hide-mobile">Low</th>
-                <th class="text-right hide-mobile">High</th>
-                <th class="text-right">Avg £/kg</th>
-                <th class="text-right">vs {{ compare_label }}</th>
-                <th class="text-right">vs UK Market</th>
-                {% if has_seasonal %}
-                <th class="text-right hide-mobile">Last year</th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for species, items in species_grades.items() %}
-            {# Species header row — use first item for summary #}
-            {% set first = items[0] %}
-            {% set has_grades = items | length > 1 %}
-            <tr{% if has_grades %} class="species-parent" data-species="{{ species }}" style="cursor:pointer;"{% endif %}>
-                <td>
-                    <span class="species-name">{{ species }}</span>
-                    {% if has_grades %}<span style="font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-left:4px;">{{ items|length }} grades</span>{% endif %}
-                </td>
-                <td>{% if not has_grades and first.grade %}<span class="grade-badge">{{ first.grade }}</span>{% endif %}</td>
-                <td class="price hide-mobile">{% if first.price_low %}&pound;{{ "%.2f"|format(first.price_low) }}{% else %}&mdash;{% endif %}</td>
-                <td class="price hide-mobile">{% if first.price_high %}&pound;{{ "%.2f"|format(first.price_high) }}{% else %}&mdash;{% endif %}</td>
-                <td class="price" style="font-weight:600;">&pound;{{ "%.2f"|format(first.price_avg) if first.price_avg else '—' }}</td>
-                <td class="text-right">
-                    {% if first.vs_last_week is not none %}
-                    <span class="vs-week {{ 'vs-week-up' if first.vs_last_week >= 0 else 'vs-week-down' }}">{{ "+" if first.vs_last_week >= 0 }}{{ "%.1f"|format(first.vs_last_week) }}%</span>
-                    {% else %}
-                    <span class="vs-week vs-week-flat">&mdash;</span>
-                    {% endif %}
-                </td>
-                <td class="text-right">
-                    {% if first.position %}
-                        {% if first.position.is_best %}
-                        <span class="vs-badge vs-badge-best">Best UK</span>
-                        {% elif first.position.vs_pct >= 0 %}
-                        <span class="vs-badge vs-badge-above">+{{ "%.1f"|format(first.position.vs_pct) }}%</span>
-                        {% else %}
-                        <span class="vs-badge vs-badge-below">{{ "%.1f"|format(first.position.vs_pct) }}%</span>
-                        {% endif %}
-                        <div class="market-range">Mkt avg &pound;{{ "%.2f"|format(first.position.market_avg) }} &middot; {{ first.position.port_count }} ports</div>
-                    {% else %}
-                    <span style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">Only port</span>
-                    {% endif %}
-                </td>
-                {% if has_seasonal %}
-                <td class="text-right hide-mobile">
-                    {% if seasonal_data.get(species) %}
-                    <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">&pound;{{ "%.2f"|format(seasonal_data[species]) }}</span>
-                    {% else %}
-                    <span class="seasonal-placeholder">&mdash; building history</span>
-                    {% endif %}
-                </td>
-                {% endif %}
-            </tr>
-            {# Grade breakdown rows (hidden by default if multiple grades) #}
-            {% if has_grades %}
-            {% for item in items %}
-            <tr class="grade-row grade-detail-{{ species|replace(' ', '-') }}" style="display:none;">
-                <td></td>
-                <td><span class="grade-badge">{{ item.grade }}</span></td>
-                <td class="price hide-mobile">{% if item.price_low %}&pound;{{ "%.2f"|format(item.price_low) }}{% else %}&mdash;{% endif %}</td>
-                <td class="price hide-mobile">{% if item.price_high %}&pound;{{ "%.2f"|format(item.price_high) }}{% else %}&mdash;{% endif %}</td>
-                <td class="price">&pound;{{ "%.2f"|format(item.price_avg) if item.price_avg else '—' }}</td>
-                <td class="text-right">
-                    {% if item.vs_last_week is not none %}
-                    <span class="vs-week {{ 'vs-week-up' if item.vs_last_week >= 0 else 'vs-week-down' }}">{{ "+" if item.vs_last_week >= 0 }}{{ "%.1f"|format(item.vs_last_week) }}%</span>
-                    {% else %}
-                    <span class="vs-week vs-week-flat">&mdash;</span>
-                    {% endif %}
-                </td>
-                <td class="text-right">
-                    {% if item.position %}
-                        {% if item.position.vs_pct >= 0 %}
-                        <span class="vs-badge vs-badge-above">+{{ "%.1f"|format(item.position.vs_pct) }}%</span>
-                        {% else %}
-                        <span class="vs-badge vs-badge-below">{{ "%.1f"|format(item.position.vs_pct) }}%</span>
-                        {% endif %}
-                    {% endif %}
-                </td>
-                {% if has_seasonal %}
-                <td class="hide-mobile"></td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-            {% endif %}
-            {% endfor %}
-        </tbody>
-    </table>
-
-    {% if not has_seasonal %}
-    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--salt);">
-        <span class="seasonal-placeholder">"This time last year" comparisons will appear once 12 months of data has been collected.</span>
-    </div>
-    {% endif %}
+<div id="prices-wrapper">
+{% include 'prices_partial.html' %}
 </div>
 
 <!-- ═══ SECTION: Customize Your Dashboard ═══ -->
@@ -1480,7 +1346,7 @@ function dismissWelcome() {
 })();
 
 // Grade expansion toggle
-(function() {
+function initGradeExpansion() {
     document.querySelectorAll('.species-parent').forEach(function(row) {
         row.addEventListener('click', function() {
             var species = this.getAttribute('data-species').replace(/ /g, '-');
@@ -1491,7 +1357,8 @@ function dismissWelcome() {
             });
         });
     });
-})();
+}
+initGradeExpansion();
 
 // Customize dashboard options
 (function() {
@@ -1831,7 +1698,7 @@ function applyCompare(compareVal) {
 }
 
 // Scroll active date tab into view within the tab bar (horizontal only — don't move the page)
-document.addEventListener('DOMContentLoaded', function() {
+function scrollActiveDateTab() {
     const container = document.getElementById('dateTabs');
     const activeTab = container && container.querySelector('.date-tab.active');
     if (activeTab && container) {
@@ -1840,6 +1707,60 @@ document.addEventListener('DOMContentLoaded', function() {
         const containerWidth = container.offsetWidth;
         container.scrollLeft = tabLeft - (containerWidth / 2) + (tabWidth / 2);
     }
-});
+}
+
+// AJAX date tab switching — swap only the prices section, no full page reload
+(function() {
+    const portSlug = {{ port.slug | tojson }};
+
+    function loadPricesForDate(date, pushState, fullHref) {
+        const compare = new URL(window.location.href).searchParams.get('compare') || '';
+        let fetchUrl = '/port/' + portSlug + '/prices?date=' + (date || '');
+        if (compare) fetchUrl += '&compare=' + compare;
+
+        const wrapper = document.getElementById('prices-wrapper');
+        if (wrapper) wrapper.style.opacity = '0.5';
+
+        fetch(fetchUrl)
+            .then(function(r) { return r.text(); })
+            .then(function(html) {
+                const wrapper = document.getElementById('prices-wrapper');
+                if (wrapper) {
+                    wrapper.innerHTML = html;
+                    wrapper.style.opacity = '';
+                }
+                initGradeExpansion();
+                scrollActiveDateTab();
+                if (pushState) {
+                    history.pushState({date: date}, '', fullHref);
+                }
+            })
+            .catch(function() {
+                // On error fall back to normal navigation
+                if (fullHref) window.location.href = fullHref;
+            });
+    }
+
+    document.addEventListener('click', function(e) {
+        const tab = e.target.closest('.date-tab');
+        if (!tab) return;
+        // Only intercept clicks inside #prices-wrapper
+        const wrapper = document.getElementById('prices-wrapper');
+        if (!wrapper || !wrapper.contains(tab)) return;
+
+        e.preventDefault();
+        const date = tab.getAttribute('data-date') || '';
+        const href = tab.getAttribute('href');
+        loadPricesForDate(date, true, href);
+    });
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', function(e) {
+        const date = (e.state && e.state.date) || new URL(window.location.href).searchParams.get('date') || '';
+        loadPricesForDate(date, false, null);
+    });
+
+    document.addEventListener('DOMContentLoaded', scrollActiveDateTab);
+})();
 </script>
 {% endblock %}
