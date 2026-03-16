@@ -1543,12 +1543,15 @@ def _build_performance_overview(
         if not dates:
             return None
         placeholders = ",".join("?" for _ in dates)
-        row = conn.execute(
-            f"""SELECT SUM(boxes) FROM landings
-                WHERE port = ? AND date IN ({placeholders})""",
-            [port_name] + dates,
-        ).fetchone()
-        return row[0] if row and row[0] else None
+        try:
+            row = conn.execute(
+                f"""SELECT SUM(boxes) FROM landings
+                    WHERE port = ? AND date IN ({placeholders})""",
+                [port_name] + dates,
+            ).fetchone()
+            return row[0] if row and row[0] else None
+        except sqlite3.OperationalError:
+            return None
 
     total_boxes = _boxes_for_dates(this_week_dates)
     last_week_boxes = _boxes_for_dates(last_week_dates)
