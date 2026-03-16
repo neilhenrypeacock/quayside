@@ -1,0 +1,21 @@
+[Unit]
+Description=Quayside Flask app (gunicorn)
+After=network.target
+
+[Service]
+User=quayside
+Group=quayside
+WorkingDirectory=/home/quayside/app
+EnvironmentFile=/home/quayside/app/.env
+ExecStart=/home/quayside/app/venv/bin/gunicorn \
+    --workers 2 \
+    --bind unix:/run/quayside/quayside.sock \
+    --access-logfile /var/log/quayside/access.log \
+    --error-logfile /var/log/quayside/error.log \
+    "quayside.web.app:create_app()"
+ExecReload=/bin/kill -s HUP $MAINPID
+RuntimeDirectory=quayside
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
