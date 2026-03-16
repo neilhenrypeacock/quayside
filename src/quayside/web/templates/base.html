@@ -4,173 +4,58 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Quayside{% endblock %}</title>
-    <style>
-        :root {
-            --ink: #0f0e0c;
-            --tide: #1a3a4a;
-            --catch: #c8401a;
-            --paper: #f5f0e8;
-            --cream: #faf8f4;
-            --border: #e0ddd5;
-            --green: #2d7a4f;
-            --amber: #b8860b;
-            --font-serif: 'Georgia', serif;
-            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            --font-mono: 'Menlo', 'Monaco', monospace;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: var(--font-sans);
-            background: var(--paper);
-            color: var(--ink);
-            line-height: 1.5;
-        }
-        .nav {
-            background: var(--tide);
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .nav-brand {
-            color: #fff;
-            font-family: var(--font-serif);
-            font-size: 20px;
-            font-weight: 700;
-            text-decoration: none;
-        }
-        .nav-links a {
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            font-size: 14px;
-            margin-left: 20px;
-        }
-        .nav-links a:hover { color: #fff; }
-        .container {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 24px;
-        }
-        .card {
-            background: var(--cream);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .card h2 {
-            font-family: var(--font-serif);
-            font-size: 18px;
-            color: var(--tide);
-            margin-bottom: 12px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        th {
-            text-align: left;
-            padding: 8px 12px;
-            background: var(--paper);
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #666;
-        }
-        td {
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--border);
-        }
-        .price { text-align: right; font-family: var(--font-mono); }
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .badge-best { background: #d4edda; color: var(--green); }
-        .badge-below { background: #fff3cd; color: var(--amber); }
-        .btn {
-            display: inline-block;
-            padding: 10px 24px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-primary { background: var(--green); color: #fff; }
-        .btn-primary:hover { background: #246a42; }
-        .btn-secondary { background: var(--paper); color: var(--tide); border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #e8e3db; }
-        .btn-danger { background: var(--catch); color: #fff; }
-        .status-dot {
-            display: inline-block;
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            margin-right: 6px;
-        }
-        .status-confirmed { background: var(--green); }
-        .status-pending { background: var(--amber); }
-        .status-none { background: #ccc; }
-        .flash {
-            padding: 12px 20px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            background: #d4edda;
-            color: var(--green);
-            font-size: 14px;
-        }
-        .market-bar {
-            height: 8px;
-            background: var(--paper);
-            border-radius: 4px;
-            position: relative;
-            margin: 4px 0;
-        }
-        .market-bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            background: var(--tide);
-        }
-        .market-bar-marker {
-            position: absolute;
-            top: -4px;
-            width: 3px;
-            height: 16px;
-            background: var(--catch);
-            border-radius: 2px;
-        }
-        input[type="text"], input[type="number"], input[type="date"], select {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 14px;
-            font-family: var(--font-sans);
-            background: #fff;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--tide);
-            box-shadow: 0 0 0 2px rgba(26,58,74,0.1);
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
     {% block head %}{% endblock %}
 </head>
 <body>
     <nav class="nav">
-        <a href="/" class="nav-brand">Quayside</a>
+        <a href="/" class="nav-brand">Quay<span>side</span></a>
+        <button class="nav-burger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
         <div class="nav-links">
             <a href="{{ url_for('landing') }}">Home</a>
-            <a href="{{ url_for('digest_page') }}">Digest</a>
+            <div class="nav-dropdown">
+                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Reports <span class="nav-caret">&#9662;</span></button>
+                <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
+                    <a href="{{ url_for('digest_page') }}">Daily</a>
+                    <a href="{{ url_for('weekly_digest') }}">Weekly</a>
+                    <a href="{{ url_for('monthly_digest') }}">Monthly</a>
+                </div></div>
+            </div>
             <a href="{{ url_for('for_ports') }}">For Ports</a>
+            <a href="{{ url_for('port_dashboard', slug='peterhead') }}">Dashboard</a>
+            <div class="nav-dropdown">
+                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Admin <span class="nav-caret">&#9662;</span></button>
+                <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
+                    <a href="{{ url_for('index') }}">Overview</a>
+                    <a href="{{ url_for('ops_dashboard') }}">Operations</a>
+                </div></div>
+            </div>
             {% block nav %}{% endblock %}
         </div>
     </nav>
+    <script>
+    document.addEventListener('click', function(e) {
+        document.querySelectorAll('.nav-dropdown.active').forEach(function(dd) {
+            if (!dd.contains(e.target)) dd.classList.remove('active');
+        });
+    });
+    </script>
+
+    {% if _ticker_items %}
+    <div class="ticker-wrap">
+      <div class="ticker">
+        {% for item in _ticker_items %}
+        <span><span class="ticker-label">{{ item.port_code }}</span> {{ item.species }} <span class="{{ item.direction }}">&pound;{{ "%.2f"|format(item.price) }}/kg {% if item.direction == "up" %}&#9650;{% elif item.direction == "down" %}&#9660;{% endif %}</span></span>
+        {% endfor %}
+        {% for item in _ticker_items %}
+        <span><span class="ticker-label">{{ item.port_code }}</span> {{ item.species }} <span class="{{ item.direction }}">&pound;{{ "%.2f"|format(item.price) }}/kg {% if item.direction == "up" %}&#9650;{% elif item.direction == "down" %}&#9660;{% endif %}</span></span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
 
     <div class="container">
         {% with messages = get_flashed_messages() %}

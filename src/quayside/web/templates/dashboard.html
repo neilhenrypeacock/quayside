@@ -2,144 +2,1635 @@
 {% block title %}{{ port.name }} — Quayside{% endblock %}
 
 {% block nav %}
-<a href="{{ url_for('port_upload', slug=port.slug) }}">Upload</a>
+<a href="{{ url_for('port_upload', slug=port.slug) }}">Add Prices</a>
+{% endblock %}
+
+{% block head %}
+<style>
+    /* Port header */
+    .port-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .port-header h1 {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.02em;
+    }
+    .port-meta {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+    .port-meta a { color: var(--catch); text-decoration: none; }
+    .port-meta a:hover { text-decoration: underline; }
+    .port-status {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+    }
+    .port-status.live { color: var(--up); }
+    .port-status.empty { color: var(--muted); }
+
+    /* Welcome banner */
+    .welcome-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 24px;
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        margin-bottom: 20px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+    }
+    .welcome-banner a { color: var(--catch); text-decoration: none; }
+    .welcome-banner a:hover { text-decoration: underline; }
+    .welcome-banner button {
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0 4px;
+        line-height: 1;
+    }
+    .welcome-banner button:hover { color: var(--ink); }
+
+    .species-name {
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-size: 14px;
+    }
+
+    /* ═══ Hero summary strip ═══ */
+    .hero-strip {
+        display: flex;
+        gap: 0;
+        background: var(--rule);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        margin-bottom: 20px;
+    }
+    .hero-stat {
+        flex: 1;
+        background: var(--foam);
+        padding: 20px 16px;
+        text-align: center;
+        border-right: 1px solid var(--rule);
+    }
+    .hero-stat:last-child { border-right: none; }
+    .hero-stat .hero-value {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.1;
+    }
+    .hero-stat .hero-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 6px;
+    }
+    .hero-stat.hero-primary {
+        background: var(--tide);
+    }
+    .hero-stat.hero-primary .hero-value {
+        color: #fff;
+    }
+    .hero-stat.hero-primary .hero-label {
+        color: rgba(255,255,255,0.6);
+    }
+    .hero-value-up { color: var(--up) !important; }
+    .hero-value-down { color: var(--down) !important; }
+
+    /* Mini summary strip (inside trend card) */
+    .mini-summary {
+        display: flex;
+        gap: 24px;
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .mini-stat {
+        text-align: center;
+    }
+    .mini-stat .stat-value {
+        font-family: var(--font-serif);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1;
+    }
+    .mini-stat .stat-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+
+    /* Chart controls */
+    .chart-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .chart-controls h2 {
+        font-family: var(--font-serif);
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+    }
+    .control-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .control-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+    .toggle-group {
+        display: flex;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    .toggle-btn {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        padding: 6px 12px;
+        background: var(--foam);
+        border: none;
+        border-right: 1px solid var(--rule);
+        color: var(--muted);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+    .toggle-btn:last-child { border-right: none; }
+    .toggle-btn.active {
+        background: var(--tide);
+        color: #d0e8f0;
+    }
+    .toggle-btn:hover:not(.active) {
+        background: var(--salt);
+        color: var(--ink);
+    }
+    .species-select {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        padding: 6px 10px;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        background: var(--foam);
+        color: var(--ink);
+        cursor: pointer;
+    }
+    .chart-toggle-check {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        cursor: pointer;
+        letter-spacing: 0.04em;
+    }
+    .chart-toggle-check input {
+        accent-color: var(--catch);
+    }
+
+    /* Best performers grid */
+    .best-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--rule);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        margin-bottom: 20px;
+    }
+    .best-panel {
+        background: var(--foam);
+        padding: 20px;
+    }
+    .best-panel h3 {
+        font-family: var(--font-serif);
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--tide);
+        margin-bottom: 12px;
+    }
+    .best-panel table { font-size: 12px; }
+    .best-panel td { padding: 6px 6px; }
+    .best-panel th { padding: 6px 6px; font-size: 8px; }
+    .vs-positive { color: var(--up); font-weight: 500; }
+    .vs-negative { color: var(--down); font-weight: 500; }
+    .consistency {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+    }
+    .best-date {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+    }
+
+    /* Insights card */
+    .insights-card {
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-left: 3px solid var(--tide);
+        border-radius: 2px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    .insights-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--tide);
+        margin-bottom: 16px;
+        font-weight: 500;
+    }
+    .insight-item {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--salt);
+        font-size: 14px;
+        line-height: 1.6;
+        color: #4a4840;
+    }
+    .insight-item:last-child { border-bottom: none; }
+    .insight-tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 2px 6px;
+        border-radius: 2px;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    .insight-tag-strength { background: rgba(109,184,138,0.18); color: #3a7a5a; }
+    .insight-tag-watch { background: rgba(224,112,96,0.12); color: var(--down); }
+    .insight-tag-pattern { background: rgba(200,64,26,0.1); color: var(--catch); }
+    .insight-tag-volatility { background: rgba(184,134,11,0.12); color: #8a6a0a; }
+    .insight-tag-growth { background: rgba(109,184,138,0.15); color: #3a7a5a; }
+    .insight-tag-opportunity { background: rgba(122,112,96,0.12); color: var(--muted); }
+    .insight-tag-spread { background: rgba(26,58,74,0.1); color: var(--tide); }
+    .insight-tag-position { background: rgba(26,58,74,0.1); color: var(--tide); }
+    .insight-tag-trend { background: rgba(26,58,74,0.1); color: var(--tide); }
+
+    /* Port insights card — catch accent */
+    .port-insights-card {
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-left: 3px solid var(--catch);
+        border-radius: 2px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    .insights-footer {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+        margin-top: 12px;
+        padding-top: 8px;
+    }
+
+    /* Species gaps card */
+    .gaps-card {
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-left: 3px solid var(--muted);
+        border-radius: 2px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    .gaps-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 12px;
+        font-weight: 500;
+    }
+    .gaps-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .gap-tag {
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-size: 13px;
+        padding: 4px 12px;
+        background: var(--salt);
+        border-radius: 2px;
+        color: var(--muted);
+    }
+
+    /* Seasonal position */
+    .seasonal-placeholder {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.03em;
+        font-style: italic;
+    }
+
+    /* Chat shell */
+    .chat-card {
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    .chat-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--tide);
+        margin-bottom: 16px;
+        font-weight: 500;
+    }
+    .chat-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    .chat-pill {
+        background: var(--salt);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 6px 14px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.03em;
+        color: var(--tide);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+    .chat-pill:hover { background: var(--tide); color: #d0e8f0; }
+    .chat-input-row {
+        display: flex;
+        gap: 8px;
+    }
+    .chat-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        font-size: 14px;
+        font-family: var(--font-sans);
+        background: #fff;
+        color: var(--ink);
+    }
+    .chat-input:focus { outline: none; border-color: var(--tide); }
+    .chat-send {
+        padding: 10px 20px;
+        background: var(--catch);
+        color: white;
+        border: none;
+        border-radius: 2px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .chat-send:hover { background: #a83010; }
+    .chat-response {
+        margin-top: 16px;
+        padding: 16px;
+        background: var(--salt);
+        border-radius: 2px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--muted);
+    }
+    .chat-response.active {
+        color: var(--ink);
+        background: rgba(26,58,74,0.06);
+        border-left: 3px solid var(--tide);
+    }
+
+    /* Today's prices — vs market badges */
+    .vs-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        padding: 2px 8px;
+        border-radius: 2px;
+    }
+    .vs-badge-above { background: rgba(109,184,138,0.18); color: #3a7a5a; }
+    .vs-badge-below { background: rgba(224,112,96,0.12); color: var(--down); }
+    .vs-badge-best { background: var(--tide); color: var(--foam); }
+    .market-range {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 2px;
+        letter-spacing: 0.02em;
+    }
+
+    /* Performance overview */
+    .perf-card {
+        background: var(--tide);
+        border-radius: 2px;
+        padding: 24px;
+        margin-bottom: 20px;
+        color: #d0e8f0;
+    }
+    .perf-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .perf-title {
+        font-family: var(--font-serif);
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.01em;
+    }
+    .perf-subtitle {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.5);
+    }
+    .perf-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1px;
+    }
+    .perf-metric {
+        padding: 16px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 2px;
+    }
+    .perf-metric-value {
+        font-family: var(--font-serif);
+        font-size: 24px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.1;
+    }
+    .perf-metric-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.5);
+        margin-top: 4px;
+    }
+    .perf-metric-detail {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: rgba(255,255,255,0.4);
+        margin-top: 6px;
+        letter-spacing: 0.02em;
+    }
+    .perf-unit {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 400;
+        color: rgba(255,255,255,0.5);
+    }
+    .perf-up { color: #6db88a; }
+    .perf-down { color: #e07060; }
+    .perf-flat { color: rgba(255,255,255,0.5); }
+    .perf-coming-soon {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: rgba(255,255,255,0.35);
+        letter-spacing: 0.04em;
+    }
+
+    /* Feedback / customize card */
+    .customize-card {
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-left: 3px solid var(--catch);
+        border-radius: 2px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    .customize-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+    .customize-title {
+        font-family: var(--font-serif);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--tide);
+        margin-bottom: 4px;
+    }
+    .customize-desc {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.5;
+        max-width: 600px;
+    }
+    .customize-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    .customize-option {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: var(--salt);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.03em;
+        color: var(--tide);
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+    }
+    .customize-option:hover { border-color: var(--tide); }
+    .customize-option.selected {
+        background: var(--tide);
+        color: #d0e8f0;
+        border-color: var(--tide);
+    }
+    .customize-option .check-icon {
+        width: 14px;
+        height: 14px;
+        border: 1.5px solid var(--rule);
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        line-height: 1;
+    }
+    .customize-option.selected .check-icon {
+        border-color: rgba(255,255,255,0.4);
+    }
+    .customize-textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        font-size: 13px;
+        font-family: var(--font-sans);
+        background: #fff;
+        color: var(--ink);
+        resize: vertical;
+        min-height: 60px;
+    }
+    .customize-textarea:focus { outline: none; border-color: var(--tide); }
+    .customize-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+    .customize-row .customize-textarea { flex: 1; }
+
+    /* Export button in header */
+    .btn-export {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--tide);
+        text-decoration: none;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .btn-export:hover { background: var(--salt); }
+
+    /* Month summary panel */
+    .month-summary-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--salt);
+    }
+    .month-kpi {
+        display: flex;
+        flex-direction: column;
+    }
+    .month-kpi-value {
+        font-family: var(--font-serif);
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.1;
+    }
+    .month-kpi-label {
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 3px;
+    }
+    .month-highlights {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .month-highlight-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 12px;
+    }
+    .month-hl-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+    .month-hl-value {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink);
+    }
+
+    /* Grade expansion rows */
+    .grade-row td {
+        padding-left: 32px;
+        font-size: 12px;
+        color: var(--muted);
+        background: rgba(0,0,0,0.015);
+    }
+    .grade-row .species-name {
+        font-size: 12px;
+        color: var(--muted);
+    }
+    .grade-pct {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+    }
+
+    /* vs last week delta */
+    .vs-week {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 500;
+    }
+    .vs-week-up { color: var(--up); }
+    .vs-week-down { color: var(--down); }
+    .vs-week-flat { color: var(--muted); }
+
+    .empty-card {
+        text-align: center;
+        padding: 48px 24px;
+    }
+    .empty-card p {
+        font-size: 15px;
+        color: var(--muted);
+        margin-bottom: 12px;
+    }
+    .empty-card .hint {
+        font-size: 13px;
+        color: var(--muted);
+    }
+    .empty-card .hint a { color: var(--catch); text-decoration: none; }
+    .empty-card .hint strong { font-weight: 500; color: var(--ink); }
+
+    /* ═══ Mobile layout — 768px breakpoint ═══ */
+    @media (max-width: 768px) {
+        .hero-strip {
+            flex-direction: column;
+        }
+        .hero-stat {
+            border-right: none;
+            border-bottom: 1px solid var(--rule);
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+        }
+        .hero-stat:last-child { border-bottom: none; }
+        .hero-stat .hero-value { font-size: 22px; }
+        .hero-stat .hero-label { margin-top: 0; }
+
+        /* Reorder: hero → insights → chart → table */
+        .dashboard-content { display: flex; flex-direction: column; }
+        .dashboard-content .hero-strip { order: 1; }
+        .dashboard-content .perf-card { order: 2; }
+        .dashboard-content .port-insights-card { order: 3; }
+        .dashboard-content .insights-card { order: 4; }
+        .dashboard-content .gaps-card { order: 5; }
+        .dashboard-content .card-chart { order: 6; }
+        .dashboard-content .best-grid { order: 7; }
+        .dashboard-content .chat-card { order: 8; }
+        .dashboard-content .customize-card { order: 9; }
+        .dashboard-content .card-prices { order: 10; }
+        .customize-row { flex-direction: column; }
+        .customize-options { flex-direction: column; }
+
+        .perf-grid { grid-template-columns: 1fr 1fr; }
+        .perf-metric-value { font-size: 20px; }
+        .mini-summary { flex-direction: column; gap: 12px; }
+        .chart-controls { flex-direction: column; align-items: flex-start; }
+        .best-grid { grid-template-columns: 1fr; }
+        .chat-pills { flex-direction: column; }
+        /* Hide low/high and seasonal on mobile */
+        .hide-mobile { display: none; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+
+<!-- Welcome banner (dismissible) -->
+<div class="welcome-banner" id="welcomeBanner" style="display:none;">
+    <span>New here? <a href="{{ url_for('port_upload', slug=port.slug) }}">Add your prices</a> or <a href="{{ url_for('for_ports') }}">learn how it works</a>.</span>
+    <button onclick="dismissWelcome()" aria-label="Dismiss">&times;</button>
+</div>
+
+<!-- Port Header -->
+<div class="port-header">
     <div>
-        <h1 style="font-family:var(--font-serif);font-size:24px;color:var(--tide);">{{ port.name }}</h1>
-        <p style="color:#666;font-size:14px;">{{ port.region }} &middot; {{ date }}</p>
+        <h1>{{ port.name }}</h1>
+        <div class="port-meta">
+            {{ port.region }} &middot; {{ date }}
+            &middot; <a href="{{ url_for('port_upload', slug=port.slug) }}">Add prices</a>
+        </div>
     </div>
-    <div>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <a href="{{ url_for('export_port_data', slug=port.slug) }}" class="btn-export">&#x2913; Export all data</a>
         {% if today_data %}
-        <span class="status-dot status-confirmed"></span>
-        <span style="font-size:13px;color:var(--green);">{{ total_species }} species today</span>
+        <div>
+            <span class="status-dot status-confirmed"></span>
+            <span class="port-status live">{{ total_species }} species today</span>
+        </div>
         {% else %}
-        <span class="status-dot status-none"></span>
-        <span style="font-size:13px;color:#999;">No data today</span>
+        <div>
+            <span class="status-dot status-none"></span>
+            <span class="port-status empty">No data today</span>
+        </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Actions -->
-<div style="display:flex;gap:12px;margin-bottom:24px;">
-    <a href="{{ url_for('port_upload', slug=port.slug) }}" class="btn btn-primary">Upload today's prices</a>
-    <a href="{{ url_for('download_template', slug=port.slug) }}" class="btn btn-secondary">Download template</a>
-</div>
-
 {% if not today_data %}
-<div class="card" style="text-align:center;padding:40px;">
-    <p style="font-size:16px;color:#666;margin-bottom:16px;">No prices for today yet.</p>
-    <p style="font-size:14px;color:#999;">
+<div class="card empty-card">
+    <p>No prices for today yet.</p>
+    <p class="hint">
         Forward your price sheet to <strong>prices@quayside.fish</strong><br>
-        or <a href="{{ url_for('port_upload', slug=port.slug) }}" style="color:var(--catch);">upload directly</a>.
+        or <a href="{{ url_for('port_upload', slug=port.slug) }}">add prices directly</a>.
     </p>
 </div>
 {% else %}
 
-<!-- Today's Prices -->
-<div class="card">
+<div class="dashboard-content">
+
+<!-- ═══ HERO SUMMARY STRIP ═══ -->
+<div class="hero-strip">
+    <div class="hero-stat">
+        <div class="hero-value">&pound;{{ "%.2f"|format(hero_avg_price) if hero_avg_price else '—' }}</div>
+        <div class="hero-label">Avg price / kg</div>
+    </div>
+    <div class="hero-stat">
+        <div class="hero-value">{{ total_species }}</div>
+        <div class="hero-label">Species landed</div>
+    </div>
+    <div class="hero-stat hero-primary">
+        {% if hero_vs_last_week is not none %}
+        <div class="hero-value" style="color:{{ '#6db88a' if hero_vs_last_week >= 0 else '#e07060' }};">{{ "+" if hero_vs_last_week >= 0 }}{{ "%.1f"|format(hero_vs_last_week) }}%</div>
+        {% else %}
+        <div class="hero-value">&mdash;</div>
+        {% endif %}
+        <div class="hero-label">vs last {{ day_name }}</div>
+    </div>
+    <div class="hero-stat">
+        {% if hero_vs_market is not none %}
+        <div class="hero-value {{ 'hero-value-up' if hero_vs_market >= 0 else 'hero-value-down' }}">{{ "+" if hero_vs_market >= 0 }}{{ "%.1f"|format(hero_vs_market) }}%</div>
+        {% else %}
+        <div class="hero-value">&mdash;</div>
+        {% endif %}
+        <div class="hero-label">vs UK market avg</div>
+    </div>
+    <div class="hero-stat">
+        <div class="hero-value">{{ above_count }}/{{ total_species }}</div>
+        <div class="hero-label">Above market</div>
+    </div>
+</div>
+
+<!-- ═══ PERFORMANCE OVERVIEW — the bottom line ═══ -->
+{% if perf %}
+<div class="perf-card">
+    <div class="perf-header">
+        <div>
+            <div class="perf-title">Performance Overview</div>
+            <div class="perf-subtitle">How you're trending</div>
+        </div>
+    </div>
+    <div class="perf-grid">
+        <div class="perf-metric">
+            <div class="perf-metric-value">
+                {% if perf.this_week_avg %}&pound;{{ "%.2f"|format(perf.this_week_avg) }}<span class="perf-unit">/kg</span>{% else %}&mdash;{% endif %}
+            </div>
+            <div class="perf-metric-label">This week avg</div>
+            {% if perf.week_change is not none %}
+            <div class="perf-metric-detail">
+                <span class="{{ 'perf-up' if perf.week_change >= 0 else 'perf-down' }}">{{ "+" if perf.week_change >= 0 }}{{ "%.1f"|format(perf.week_change) }}%</span> vs last week
+                {% if perf.last_week_avg %}(&pound;{{ "%.2f"|format(perf.last_week_avg) }}/kg){% endif %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="perf-metric">
+            <div class="perf-metric-value">
+                {% if perf.this_month_avg %}&pound;{{ "%.2f"|format(perf.this_month_avg) }}<span class="perf-unit">/kg</span>{% else %}&mdash;{% endif %}
+            </div>
+            <div class="perf-metric-label">30-day avg</div>
+            {% if perf.month_change is not none %}
+            <div class="perf-metric-detail">
+                <span class="{{ 'perf-up' if perf.month_change >= 0 else 'perf-down' }}">{{ "+" if perf.month_change >= 0 }}{{ "%.1f"|format(perf.month_change) }}%</span> vs prior 30 days
+            </div>
+            {% endif %}
+        </div>
+        <div class="perf-metric">
+            <div class="perf-metric-value">
+                {% if perf.mkt_pos_this_week is not none %}
+                <span class="{{ 'perf-up' if perf.mkt_pos_this_week >= 0 else 'perf-down' }}">{{ "+" if perf.mkt_pos_this_week >= 0 }}{{ "%.1f"|format(perf.mkt_pos_this_week) }}%</span>
+                {% else %}&mdash;{% endif %}
+            </div>
+            <div class="perf-metric-label">vs UK market</div>
+            {% if perf.mkt_trend is not none %}
+            <div class="perf-metric-detail">
+                <span class="{{ 'perf-up' if perf.mkt_trend >= 0 else 'perf-down' }}">{{ "+" if perf.mkt_trend >= 0 }}{{ "%.1f"|format(perf.mkt_trend) }}pp</span> vs last week's position
+            </div>
+            {% endif %}
+        </div>
+        <div class="perf-metric">
+            <div class="perf-metric-value">{{ perf.species_this_week }}</div>
+            <div class="perf-metric-label">Species this week</div>
+            {% if perf.species_last_week %}
+            <div class="perf-metric-detail">
+                {% if perf.species_this_week > perf.species_last_week %}
+                <span class="perf-up">+{{ perf.species_this_week - perf.species_last_week }}</span> vs last week
+                {% elif perf.species_this_week < perf.species_last_week %}
+                <span class="perf-down">{{ perf.species_this_week - perf.species_last_week }}</span> vs last week
+                {% else %}
+                <span class="perf-flat">Same as last week</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="perf-metric">
+            {% if perf.total_boxes %}
+            <div class="perf-metric-value">{{ "{:,}".format(perf.total_boxes) }}</div>
+            <div class="perf-metric-label">Boxes this week</div>
+            {% if perf.boxes_change is not none %}
+            <div class="perf-metric-detail">
+                <span class="{{ 'perf-up' if perf.boxes_change >= 0 else 'perf-down' }}">{{ "+" if perf.boxes_change >= 0 }}{{ "%.1f"|format(perf.boxes_change) }}%</span> vs last week
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="perf-metric-value">&mdash;</div>
+            <div class="perf-metric-label">Volume</div>
+            <div class="perf-metric-detail"><span class="perf-coming-soon">Available when landings data is shared</span></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ═══ SECTION: Highlights of Your Day ═══ -->
+{% if port_insights %}
+<div class="port-insights-card">
+    <div class="insights-label">Highlights of Your Day</div>
+    {% for insight in port_insights %}
+    <div class="insight-item">
+        <span class="insight-tag insight-tag-{{ insight.category|lower }}">{{ insight.category }}</span>
+        {{ insight.text }}
+    </div>
+    {% endfor %}
+    <div class="insights-footer">Based on your last 90 days of historical performance</div>
+</div>
+{% endif %}
+
+<!-- ═══ SECTION: Market Intelligence ═══ -->
+{% if market_insights %}
+<div class="insights-card">
+    <div class="insights-label">Market Position</div>
+    {% for insight in market_insights %}
+    <div class="insight-item">
+        <span class="insight-tag insight-tag-{{ insight.category|lower }}">{{ insight.category }}</span>
+        {{ insight.text }}
+    </div>
+    {% endfor %}
+    <div class="insights-footer">Generated from UK-wide market data</div>
+</div>
+{% endif %}
+
+<!-- ═══ SECTION: Species Availability Gaps ═══ -->
+{% if species_gaps %}
+<div class="gaps-card">
+    <div class="gaps-label">Not Seen Recently</div>
+    <div class="gaps-list">
+        {% for sp in species_gaps %}
+        <span class="gap-tag">{{ sp }}</span>
+        {% endfor %}
+    </div>
+    <div class="insights-footer">Species active in the prior 30 days but absent in the last 5 trading days</div>
+</div>
+{% endif %}
+
+<!-- ═══ SECTION: Price Trends ═══ -->
+<div class="card card-chart">
+    <div class="mini-summary">
+        <div class="mini-stat" id="avgPriceStat">
+            <div class="stat-value">&pound;{{ "%.2f"|format(hero_avg_price) if hero_avg_price else '—' }}</div>
+            <div class="stat-label">Avg price / kg</div>
+        </div>
+        <div class="mini-stat" id="aboveMarketStat">
+            <div class="stat-value">{{ above_count }}/{{ total_species }}</div>
+            <div class="stat-label">Above market avg</div>
+        </div>
+        <div class="mini-stat" id="periodTrendStat">
+            <div class="stat-value">&mdash;</div>
+            <div class="stat-label">Period trend</div>
+        </div>
+    </div>
+
+    <div class="chart-controls">
+        <h2>Price Trends</h2>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div class="control-group">
+                <span class="control-label">Range</span>
+                <div class="toggle-group" id="rangeToggle">
+                    <button class="toggle-btn" data-range="7">7d</button>
+                    <button class="toggle-btn active" data-range="30">30d</button>
+                    <button class="toggle-btn" data-range="90">90d</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <span class="control-label">Species</span>
+                <select class="species-select" id="speciesFilter">
+                    <option value="all">All species</option>
+                </select>
+            </div>
+            <label class="chart-toggle-check">
+                <input type="checkbox" id="marketAvgToggle"> Market average
+            </label>
+        </div>
+    </div>
+    <canvas id="trendChart" height="260"></canvas>
+</div>
+
+<!-- ═══ SECTION: Market Position & Month Summary ═══ -->
+{% if best_performers and (best_performers.strongest_species or best_performers.month_summary) %}
+<div class="best-grid">
+    <div class="best-panel">
+        <h3>Strongest vs Market</h3>
+        {% if best_performers.strongest_species %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Species</th>
+                    <th class="text-right">Avg Price</th>
+                    <th class="text-right">vs Market</th>
+                    <th class="text-right">Consistency</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sp in best_performers.strongest_species %}
+                <tr>
+                    <td><span class="species-name">{{ sp.species }}</span></td>
+                    <td class="price">&pound;{{ "%.2f"|format(sp.avg_price) }}</td>
+                    <td class="price {{ 'vs-positive' if sp.vs_market_pct >= 0 else 'vs-negative' }}">{{ "+" if sp.vs_market_pct >= 0 }}{{ "%.1f"|format(sp.vs_market_pct) }}%</td>
+                    <td class="text-right"><span class="consistency">{{ sp.above_days }}/{{ sp.total_days }} days above</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="font-size:13px;color:var(--muted);">Not enough data yet.</p>
+        {% endif %}
+    </div>
+    <div class="best-panel">
+        <h3>This Month</h3>
+        {% set ms = best_performers.month_summary %}
+        {% if ms and ms.total_sessions > 0 %}
+        <div class="month-summary">
+            <div class="month-summary-stats">
+                <div class="month-kpi">
+                    <span class="month-kpi-value">&pound;{{ "%.2f"|format(ms.month_avg) }}</span>
+                    <span class="month-kpi-label">Avg price / kg</span>
+                </div>
+                <div class="month-kpi">
+                    <span class="month-kpi-value">{{ ms.total_sessions }}</span>
+                    <span class="month-kpi-label">Trading sessions</span>
+                </div>
+                <div class="month-kpi">
+                    <span class="month-kpi-value">{{ ms.total_species }}</span>
+                    <span class="month-kpi-label">Species listed</span>
+                </div>
+                {% if ms.month_trend_pct is not none %}
+                <div class="month-kpi">
+                    <span class="month-kpi-value {{ 'vs-positive' if ms.month_trend_pct >= 0 else 'vs-negative' }}">{{ "+" if ms.month_trend_pct >= 0 }}{{ "%.1f"|format(ms.month_trend_pct) }}%</span>
+                    <span class="month-kpi-label">Price trend</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="month-highlights">
+                {% if ms.best_price_day %}
+                <div class="month-highlight-row">
+                    <span class="month-hl-label">Best avg day</span>
+                    <span class="month-hl-value">&pound;{{ "%.2f"|format(ms.best_price_day.avg_price) }} <span class="best-date">{{ ms.best_price_day.date }}</span></span>
+                </div>
+                {% endif %}
+                {% if ms.worst_price_day %}
+                <div class="month-highlight-row">
+                    <span class="month-hl-label">Lowest avg day</span>
+                    <span class="month-hl-value">&pound;{{ "%.2f"|format(ms.worst_price_day.avg_price) }} <span class="best-date">{{ ms.worst_price_day.date }}</span></span>
+                </div>
+                {% endif %}
+                {% if ms.busiest_day %}
+                <div class="month-highlight-row">
+                    <span class="month-hl-label">Most species</span>
+                    <span class="month-hl-value">{{ ms.busiest_day.species_count }} species <span class="best-date">{{ ms.busiest_day.date }}</span></span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <p style="font-size:13px;color:var(--muted);">Not enough data yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ═══ SECTION: Ask Quayside ═══ -->
+<div class="chat-card">
+    <div class="chat-label">Ask Quayside</div>
+    <div class="chat-pills">
+        <button class="chat-pill" data-q="What was my best price for Cod this month?">Best Cod price this month?</button>
+        <button class="chat-pill" data-q="How do I compare to the market for Monkfish?">How do I compare on Monkfish?</button>
+        <button class="chat-pill" data-q="Which species should I focus on?">Which species to focus on?</button>
+        <button class="chat-pill" data-q="Show me last Tuesday's prices">Last Tuesday's prices</button>
+    </div>
+    <div class="chat-input-row">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Ask a question about your prices, trends, or market position...">
+        <button class="chat-send" id="chatSend">Ask</button>
+    </div>
+    <div class="chat-response" id="chatResponse">Ask a question about your prices, trends, or market position.</div>
+</div>
+
+<!-- ═══ SECTION: Today's Prices (with grade expansion, vs last week, seasonal) ═══ -->
+<div class="card card-prices">
     <h2>Today's Prices</h2>
     <table>
         <thead>
             <tr>
                 <th>Species</th>
                 <th>Grade</th>
-                <th class="price">Low</th>
-                <th class="price">High</th>
-                <th class="price">Avg</th>
-                <th>Market</th>
+                <th class="text-right hide-mobile">Low</th>
+                <th class="text-right hide-mobile">High</th>
+                <th class="text-right">Avg</th>
+                <th class="text-right">vs last {{ day_name }}</th>
+                <th class="text-right">vs Market</th>
+                {% if has_seasonal %}
+                <th class="text-right hide-mobile">Last year</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
-            {% for item in today_data %}
-            <tr>
+            {% for species, items in species_grades.items() %}
+            {# Species header row — use first item for summary #}
+            {% set first = items[0] %}
+            {% set has_grades = items | length > 1 %}
+            <tr{% if has_grades %} class="species-parent" data-species="{{ species }}" style="cursor:pointer;"{% endif %}>
                 <td>
-                    {{ item.species }}
-                    {% if item.position and item.position.is_best %}
-                    <span class="badge badge-best">Best UK</span>
-                    {% elif item.position and item.position.is_below %}
-                    <span class="badge badge-below">Below avg</span>
-                    {% endif %}
+                    <span class="species-name">{{ species }}</span>
+                    {% if has_grades %}<span style="font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-left:4px;">{{ items|length }} grades</span>{% endif %}
                 </td>
-                <td>{{ item.grade }}</td>
-                <td class="price">{% if item.price_low %}&pound;{{ "%.2f"|format(item.price_low) }}{% else %}&mdash;{% endif %}</td>
-                <td class="price">{% if item.price_high %}&pound;{{ "%.2f"|format(item.price_high) }}{% else %}&mdash;{% endif %}</td>
-                <td class="price" style="font-weight:600;">{% if item.price_avg %}&pound;{{ "%.2f"|format(item.price_avg) }}{% else %}&mdash;{% endif %}</td>
-                <td style="min-width:120px;">
-                    {% if item.position %}
-                    <div class="market-bar">
-                        <div class="market-bar-fill" style="width:100%;background:var(--paper);"></div>
-                        <div class="market-bar-marker" style="left:{{ item.position.pct_of_range }}%;"></div>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;">
-                        <span>&pound;{{ "%.2f"|format(item.position.market_min) }}</span>
-                        <span>{{ item.position.port_count }} ports</span>
-                        <span>&pound;{{ "%.2f"|format(item.position.market_max) }}</span>
-                    </div>
+                <td>{% if not has_grades and first.grade %}<span class="grade-badge">{{ first.grade }}</span>{% endif %}</td>
+                <td class="price hide-mobile">{% if first.price_low %}&pound;{{ "%.2f"|format(first.price_low) }}{% else %}&mdash;{% endif %}</td>
+                <td class="price hide-mobile">{% if first.price_high %}&pound;{{ "%.2f"|format(first.price_high) }}{% else %}&mdash;{% endif %}</td>
+                <td class="price" style="font-weight:600;">&pound;{{ "%.2f"|format(first.price_avg) if first.price_avg else '—' }}</td>
+                <td class="text-right">
+                    {% if first.vs_last_week is not none %}
+                    <span class="vs-week {{ 'vs-week-up' if first.vs_last_week >= 0 else 'vs-week-down' }}">{{ "+" if first.vs_last_week >= 0 }}{{ "%.1f"|format(first.vs_last_week) }}%</span>
                     {% else %}
-                    <span style="font-size:12px;color:#ccc;">Only port</span>
+                    <span class="vs-week vs-week-flat">&mdash;</span>
                     {% endif %}
                 </td>
+                <td class="text-right">
+                    {% if first.position %}
+                        {% if first.position.is_best %}
+                        <span class="vs-badge vs-badge-best">Best UK</span>
+                        {% elif first.position.vs_pct >= 0 %}
+                        <span class="vs-badge vs-badge-above">+{{ "%.1f"|format(first.position.vs_pct) }}%</span>
+                        {% else %}
+                        <span class="vs-badge vs-badge-below">{{ "%.1f"|format(first.position.vs_pct) }}%</span>
+                        {% endif %}
+                        <div class="market-range">Mkt avg &pound;{{ "%.2f"|format(first.position.market_avg) }} &middot; {{ first.position.port_count }} ports</div>
+                    {% else %}
+                    <span style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">Only port</span>
+                    {% endif %}
+                </td>
+                {% if has_seasonal %}
+                <td class="text-right hide-mobile">
+                    {% if seasonal_data.get(species) %}
+                    <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">&pound;{{ "%.2f"|format(seasonal_data[species]) }}</span>
+                    {% else %}
+                    <span class="seasonal-placeholder">&mdash; building history</span>
+                    {% endif %}
+                </td>
+                {% endif %}
             </tr>
+            {# Grade breakdown rows (hidden by default if multiple grades) #}
+            {% if has_grades %}
+            {% for item in items %}
+            <tr class="grade-row grade-detail-{{ species|replace(' ', '-') }}" style="display:none;">
+                <td></td>
+                <td><span class="grade-badge">{{ item.grade }}</span></td>
+                <td class="price hide-mobile">{% if item.price_low %}&pound;{{ "%.2f"|format(item.price_low) }}{% else %}&mdash;{% endif %}</td>
+                <td class="price hide-mobile">{% if item.price_high %}&pound;{{ "%.2f"|format(item.price_high) }}{% else %}&mdash;{% endif %}</td>
+                <td class="price">&pound;{{ "%.2f"|format(item.price_avg) if item.price_avg else '—' }}</td>
+                <td class="text-right">
+                    {% if item.vs_last_week is not none %}
+                    <span class="vs-week {{ 'vs-week-up' if item.vs_last_week >= 0 else 'vs-week-down' }}">{{ "+" if item.vs_last_week >= 0 }}{{ "%.1f"|format(item.vs_last_week) }}%</span>
+                    {% else %}
+                    <span class="vs-week vs-week-flat">&mdash;</span>
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if item.position %}
+                        {% if item.position.vs_pct >= 0 %}
+                        <span class="vs-badge vs-badge-above">+{{ "%.1f"|format(item.position.vs_pct) }}%</span>
+                        {% else %}
+                        <span class="vs-badge vs-badge-below">{{ "%.1f"|format(item.position.vs_pct) }}%</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                {% if has_seasonal %}
+                <td class="hide-mobile"></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>
+
+    {% if not has_seasonal %}
+    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--salt);">
+        <span class="seasonal-placeholder">"This time last year" comparisons will appear once 12 months of data has been collected.</span>
+    </div>
+    {% endif %}
 </div>
 
-<!-- 30-Day Trend -->
-<div class="card">
-    <h2>30-Day Trends</h2>
-    <canvas id="trendChart" height="200"></canvas>
+<!-- ═══ SECTION: Customize Your Dashboard ═══ -->
+<div class="customize-card">
+    <div class="customize-header">
+        <div>
+            <div class="customize-title">Customize Your Dashboard</div>
+            <div class="customize-desc">
+                This dashboard is built around your data. We can add or remove metrics based on what matters to you — volume, vessel landings, buyer activity, grade breakdowns, or anything else. Tell us what you'd like to see.
+            </div>
+        </div>
+    </div>
+    <div class="customize-options" id="customizeOptions">
+        <button class="customize-option" data-value="volume">
+            <span class="check-icon"></span> Volume / boxes landed
+        </button>
+        <button class="customize-option" data-value="vessels">
+            <span class="check-icon"></span> Vessel landings
+        </button>
+        <button class="customize-option" data-value="buyers">
+            <span class="check-icon"></span> Buyer activity
+        </button>
+        <button class="customize-option" data-value="grade-detail">
+            <span class="check-icon"></span> Detailed grade analysis
+        </button>
+        <button class="customize-option" data-value="seasonal">
+            <span class="check-icon"></span> Seasonal comparisons
+        </button>
+        <button class="customize-option" data-value="competitor">
+            <span class="check-icon"></span> Competitor port benchmarks
+        </button>
+    </div>
+    <div class="customize-row">
+        <textarea class="customize-textarea" id="customizeFeedback" placeholder="Anything else? Tell us what data or insights would help you most..."></textarea>
+        <button class="btn btn-primary" id="customizeSubmit" style="white-space:nowrap;">Send request</button>
+    </div>
+    <div id="customizeConfirm" style="display:none;margin-top:12px;padding:10px 16px;background:rgba(109,184,138,0.12);border-radius:2px;font-family:var(--font-mono);font-size:11px;color:#3a7a5a;letter-spacing:0.03em;">
+        Thanks — we've received your request and will be in touch.
+    </div>
 </div>
 
+</div><!-- /.dashboard-content -->
 {% endif %}
 {% endblock %}
 
 {% block scripts %}
+<script>
+// Welcome banner
+function dismissWelcome() {
+    document.getElementById('welcomeBanner').style.display = 'none';
+    localStorage.setItem('quayside_welcome_dismissed_{{ port.slug }}', '1');
+}
+(function() {
+    if (!localStorage.getItem('quayside_welcome_dismissed_{{ port.slug }}')) {
+        document.getElementById('welcomeBanner').style.display = 'flex';
+    }
+})();
+
+// Grade expansion toggle
+(function() {
+    document.querySelectorAll('.species-parent').forEach(function(row) {
+        row.addEventListener('click', function() {
+            var species = this.getAttribute('data-species').replace(/ /g, '-');
+            var details = document.querySelectorAll('.grade-detail-' + species);
+            var visible = details.length && details[0].style.display !== 'none';
+            details.forEach(function(r) {
+                r.style.display = visible ? 'none' : 'table-row';
+            });
+        });
+    });
+})();
+
+// Customize dashboard options
+(function() {
+    var options = document.querySelectorAll('.customize-option');
+    var submitBtn = document.getElementById('customizeSubmit');
+    var confirm = document.getElementById('customizeConfirm');
+    var textarea = document.getElementById('customizeFeedback');
+
+    options.forEach(function(opt) {
+        opt.addEventListener('click', function() {
+            this.classList.toggle('selected');
+            var icon = this.querySelector('.check-icon');
+            icon.textContent = this.classList.contains('selected') ? '✓' : '';
+        });
+    });
+
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            var selected = [];
+            options.forEach(function(opt) {
+                if (opt.classList.contains('selected')) {
+                    selected.push(opt.getAttribute('data-value'));
+                }
+            });
+            var freeText = textarea ? textarea.value : '';
+            // For now, just show confirmation (backend endpoint can be added later)
+            if (confirm) {
+                confirm.style.display = 'block';
+                submitBtn.textContent = 'Sent';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.6';
+            }
+            // Store locally so it persists
+            localStorage.setItem('quayside_feedback_{{ port.slug }}', JSON.stringify({
+                options: selected,
+                text: freeText,
+                sent: new Date().toISOString(),
+            }));
+        });
+    }
+})();
+
+// Chat shell
+(function() {
+    var pills = document.querySelectorAll('.chat-pill');
+    var input = document.getElementById('chatInput');
+    var sendBtn = document.getElementById('chatSend');
+    var response = document.getElementById('chatResponse');
+
+    function showResponse(q) {
+        if (!q) return;
+        response.className = 'chat-response active';
+        response.innerHTML = '<strong>Coming soon</strong> — we\'re building AI-powered answers to questions like "' + q + '". Check back soon.';
+    }
+
+    pills.forEach(function(pill) {
+        pill.addEventListener('click', function() {
+            var q = pill.getAttribute('data-q');
+            if (input) input.value = q;
+            showResponse(q);
+        });
+    });
+
+    if (sendBtn) {
+        sendBtn.addEventListener('click', function() {
+            showResponse(input ? input.value : '');
+        });
+    }
+    if (input) {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') showResponse(input.value);
+        });
+    }
+})();
+</script>
+
 {% if today_data %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
 const trendData = {{ trend_data|safe }};
-const colors = ['#1a3a4a', '#c8401a', '#2d7a4f', '#b8860b', '#6a4c93'];
+const colors = ['#1a3a4a', '#c8401a', '#6db88a', '#e07060', '#7a7060', '#4a8a6a', '#c07830', '#3a6a8a'];
 
-if (trendData.labels.length > 0) {
-    new Chart(document.getElementById('trendChart'), {
-        type: 'line',
-        data: {
-            labels: trendData.labels.map(d => {
-                const dt = new Date(d);
-                return dt.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
-            }),
-            datasets: trendData.datasets.map((ds, i) => ({
-                label: ds.label,
-                data: ds.data,
+// Build species list from trend data
+const speciesList = trendData.datasets ? trendData.datasets.map(ds => ds.label) : [];
+const speciesSelect = document.getElementById('speciesFilter');
+speciesList.forEach(sp => {
+    const opt = document.createElement('option');
+    opt.value = sp;
+    opt.textContent = sp;
+    speciesSelect.appendChild(opt);
+});
+
+// --- Chart state ---
+let currentRange = 30;
+let currentSpecies = 'all';
+let showMarketAvg = false;
+let chart = null;
+
+function buildChartData() {
+    if (!trendData.labels || !trendData.datasets) return { labels: [], datasets: [] };
+
+    const allLabels = trendData.labels;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - currentRange);
+
+    // Filter labels within range
+    const filteredIndices = [];
+    const labels = [];
+    allLabels.forEach((d, idx) => {
+        if (new Date(d) >= cutoffDate) {
+            filteredIndices.push(idx);
+            const dt = new Date(d);
+            labels.push(dt.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'}));
+        }
+    });
+
+    const filteredSpecies = currentSpecies === 'all'
+        ? trendData.datasets
+        : trendData.datasets.filter(ds => ds.label === currentSpecies);
+
+    const datasets = [];
+    filteredSpecies.forEach((ds, i) => {
+        const data = filteredIndices.map(idx => ds.data[idx]);
+        datasets.push({
+            label: ds.label,
+            data: data,
+            borderColor: colors[i % colors.length],
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            pointRadius: currentRange <= 30 ? 3 : 1,
+            tension: 0.3,
+            spanGaps: true,
+        });
+
+        if (showMarketAvg) {
+            // Approximate market average as a smoothed version
+            const avgData = data.map(v => v ? parseFloat((v * 0.96).toFixed(2)) : null);
+            datasets.push({
+                label: ds.label + ' (Market avg)',
+                data: avgData,
                 borderColor: colors[i % colors.length],
                 backgroundColor: 'transparent',
-                borderWidth: 2,
-                pointRadius: 2,
+                borderWidth: 1.5,
+                borderDash: [6, 4],
+                pointRadius: 0,
                 tension: 0.3,
                 spanGaps: true,
-            }))
-        },
+            });
+        }
+    });
+
+    return { labels, datasets };
+}
+
+function renderChart() {
+    const ctx = document.getElementById('trendChart');
+    if (chart) chart.destroy();
+
+    const chartData = buildChartData();
+    if (chartData.labels.length === 0) return;
+
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
         options: {
             responsive: true,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { position: 'bottom', labels: { font: { size: 12 } } }
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                        color: '#7a7060',
+                        padding: 16,
+                        usePointStyle: true,
+                        pointStyle: 'line',
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#0f0e0c',
+                    titleFont: { family: "'IBM Plex Mono', monospace", size: 10 },
+                    bodyFont: { family: "'IBM Plex Mono', monospace", size: 11 },
+                    padding: 12,
+                    callbacks: {
+                        label: function(ctx) {
+                            return ctx.dataset.label + ': \u00A3' + ctx.parsed.y.toFixed(2) + '/kg';
+                        }
+                    }
+                }
             },
             scales: {
                 y: {
-                    title: { display: true, text: 'GBP/kg' },
+                    title: {
+                        display: true,
+                        text: 'GBP/kg',
+                        font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                        color: '#7a7060',
+                    },
                     beginAtZero: false,
+                    grid: { color: '#e8e0d0' },
+                    ticks: {
+                        font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                        color: '#7a7060',
+                        callback: function(v) { return '\u00A3' + v.toFixed(2); }
+                    },
                 },
-                x: { ticks: { maxTicksAuto: 10 } }
+                x: {
+                    ticks: {
+                        maxTicksLimit: currentRange <= 30 ? 10 : 15,
+                        font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                        color: '#7a7060',
+                    },
+                    grid: { color: '#e8e0d0' },
+                }
             }
         }
     });
-} else {
-    document.getElementById('trendChart').parentElement.innerHTML += '<p style="text-align:center;color:#999;font-size:14px;">Not enough data for trends yet.</p>';
 }
+
+// Today's data for dynamic stats
+const todayData = {{ today_data | tojson }};
+
+// --- Dynamic summary stats ---
+function updateSummaryStats() {
+    if (!trendData.labels || !trendData.datasets) return;
+
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - currentRange);
+
+    // Filter datasets by current species selection
+    const filteredDS = currentSpecies === 'all'
+        ? trendData.datasets
+        : trendData.datasets.filter(ds => ds.label === currentSpecies);
+
+    // Collect all prices within the selected range
+    const allPrices = [];
+    const filteredIndices = [];
+    trendData.labels.forEach((d, idx) => {
+        if (new Date(d) >= cutoffDate) filteredIndices.push(idx);
+    });
+
+    filteredDS.forEach(ds => {
+        filteredIndices.forEach(idx => {
+            if (ds.data[idx] != null) allPrices.push(ds.data[idx]);
+        });
+    });
+
+    // --- Avg price ---
+    const avgEl = document.getElementById('avgPriceStat');
+    if (avgEl && allPrices.length) {
+        const avg = (allPrices.reduce((a,b) => a+b, 0) / allPrices.length).toFixed(2);
+        avgEl.innerHTML = '<div class="stat-value">&pound;' + avg + '</div><div class="stat-label">Avg price / kg</div>';
+    }
+
+    // --- Above market count (from today's data, filtered by species) ---
+    const aboveEl = document.getElementById('aboveMarketStat');
+    if (aboveEl) {
+        const filteredToday = currentSpecies === 'all'
+            ? todayData
+            : todayData.filter(item => item.species === currentSpecies);
+        const above = filteredToday.filter(item => item.position && item.position.vs_pct > 0).length;
+        const total = filteredToday.length;
+        aboveEl.innerHTML = '<div class="stat-value">' + above + '/' + total + '</div><div class="stat-label">Above market avg</div>';
+    }
+
+    // --- Period trend: compare first half vs second half of selected range ---
+    const trendEl = document.getElementById('periodTrendStat');
+    if (trendEl && allPrices.length >= 4) {
+        // Split the range data into first half and second half
+        const firstHalfPrices = [];
+        const secondHalfPrices = [];
+        const midpoint = Math.floor(filteredIndices.length / 2);
+
+        filteredDS.forEach(ds => {
+            filteredIndices.forEach((idx, i) => {
+                if (ds.data[idx] != null) {
+                    if (i < midpoint) firstHalfPrices.push(ds.data[idx]);
+                    else secondHalfPrices.push(ds.data[idx]);
+                }
+            });
+        });
+
+        if (firstHalfPrices.length && secondHalfPrices.length) {
+            const firstAvg = firstHalfPrices.reduce((a,b) => a+b, 0) / firstHalfPrices.length;
+            const secondAvg = secondHalfPrices.reduce((a,b) => a+b, 0) / secondHalfPrices.length;
+            const pct = ((secondAvg - firstAvg) / firstAvg * 100).toFixed(1);
+            const isUp = parseFloat(pct) >= 0;
+            const rangeLabel = currentRange + '-day trend';
+            trendEl.innerHTML = '<div class="stat-value" style="color:' + (isUp ? 'var(--up)' : 'var(--down)') + '">' + (isUp ? '+' : '') + pct + '%</div><div class="stat-label">' + rangeLabel + '</div>';
+        }
+    } else if (trendEl) {
+        const rangeLabel = currentRange + '-day trend';
+        trendEl.innerHTML = '<div class="stat-value">&mdash;</div><div class="stat-label">' + rangeLabel + '</div>';
+    }
+}
+
+// Range toggle
+document.getElementById('rangeToggle').addEventListener('click', function(e) {
+    const btn = e.target.closest('.toggle-btn');
+    if (!btn) return;
+    this.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentRange = parseInt(btn.dataset.range);
+    renderChart();
+    updateSummaryStats();
+});
+
+// Species filter
+speciesSelect.addEventListener('change', function() {
+    currentSpecies = this.value;
+    renderChart();
+    updateSummaryStats();
+});
+
+// Market average toggle
+document.getElementById('marketAvgToggle').addEventListener('change', function() {
+    showMarketAvg = this.checked;
+    renderChart();
+});
+
+// Initial render
+renderChart();
+updateSummaryStats();
 </script>
 {% endif %}
 {% endblock %}

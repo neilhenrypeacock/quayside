@@ -194,6 +194,28 @@
   }
   .btn-ghost:hover { color: var(--ink); border-color: var(--ink); }
 
+  .email-input {
+    padding: 14px 20px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    border: 1px solid var(--rule);
+    background: white;
+    color: var(--ink);
+    border-radius: 2px;
+    width: 260px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .email-input:focus { border-color: var(--tide); }
+  .email-input::placeholder { color: #a09888; }
+  .form-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-top: 12px;
+  }
+
   /* HERO RIGHT — MOCK DASHBOARD */
   .hero-right {
     background: var(--tide);
@@ -836,6 +858,9 @@
     .nav-links { display: none; }
     .hero { grid-template-columns: 1fr; min-height: auto; }
     .hero-left { padding: 48px 24px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .email-input { width: 100%; }
+    .hero-actions { flex-direction: column; }
+    .hero-actions .btn-primary { width: 100%; text-align: center; }
     .hero-right { padding: 32px 24px; min-height: 400px; }
     .problem-grid, .chat-section { grid-template-columns: 1fr; gap: 40px; }
     .pricing-grid { grid-template-columns: 1fr 1fr; }
@@ -853,21 +878,27 @@
 <!-- TICKER -->
 <div class="ticker-wrap">
   <div class="ticker">
-    <span><span class="ticker-label">PETERHEAD</span> Haddock GI <span class="up">£2.84/kg ▲</span></span>
-    <span><span class="ticker-label">LERWICK</span> Cod LI <span class="down">£3.12/kg ▼</span></span>
-    <span><span class="ticker-label">ABERDEEN</span> Saithe GI <span class="up">£1.67/kg ▲</span></span>
-    <span><span class="ticker-label">FRASERBURGH</span> Whiting GII <span class="up">£1.23/kg ▲</span></span>
-    <span><span class="ticker-label">BRIXHAM</span> Dover Sole GI <span class="up">£9.40/kg ▲</span></span>
-    <span><span class="ticker-label">GRIMSBY</span> Plaice GI <span class="down">£2.88/kg ▼</span></span>
-    <span><span class="ticker-label">SCALLOWAY</span> Monkfish GI <span class="up">£5.60/kg ▲</span></span>
+    <span><span class="ticker-label">PETERHEAD</span> Haddock A1 <span class="up">£2.84/kg ▲</span></span>
+    <span><span class="ticker-label">LERWICK</span> Cod <span class="down">£3.12/kg ▼</span></span>
+    <span><span class="ticker-label">BRIXHAM</span> Dover Sole 1 <span class="up">£14.50/kg ▲</span></span>
+    <span><span class="ticker-label">NEWLYN</span> Monkfish <span class="up">£6.80/kg ▲</span></span>
+    <span><span class="ticker-label">SCRABSTER</span> Hake <span class="down">£4.20/kg ▼</span></span>
+    <span><span class="ticker-label">FX</span> GBP/EUR <span class="up">1.156</span></span>
+    <span><span class="ticker-label">PETERHEAD</span> Cod A1 <span class="up">£3.45/kg ▲</span></span>
+    <span><span class="ticker-label">LERWICK</span> Monkfish <span class="up">£5.60/kg ▲</span></span>
+    <span><span class="ticker-label">BRIXHAM</span> Turbot 1 <span class="down">£11.20/kg ▼</span></span>
+    <span><span class="ticker-label">NEWLYN</span> Hake <span class="up">£4.85/kg ▲</span></span>
     <!-- duplicate for seamless loop -->
-    <span><span class="ticker-label">PETERHEAD</span> Haddock GI <span class="up">£2.84/kg ▲</span></span>
-    <span><span class="ticker-label">LERWICK</span> Cod LI <span class="down">£3.12/kg ▼</span></span>
-    <span><span class="ticker-label">ABERDEEN</span> Saithe GI <span class="up">£1.67/kg ▲</span></span>
-    <span><span class="ticker-label">FRASERBURGH</span> Whiting GII <span class="up">£1.23/kg ▲</span></span>
-    <span><span class="ticker-label">BRIXHAM</span> Dover Sole GI <span class="up">£9.40/kg ▲</span></span>
-    <span><span class="ticker-label">GRIMSBY</span> Plaice GI <span class="down">£2.88/kg ▼</span></span>
-    <span><span class="ticker-label">SCALLOWAY</span> Monkfish GI <span class="up">£5.60/kg ▲</span></span>
+    <span><span class="ticker-label">PETERHEAD</span> Haddock A1 <span class="up">£2.84/kg ▲</span></span>
+    <span><span class="ticker-label">LERWICK</span> Cod <span class="down">£3.12/kg ▼</span></span>
+    <span><span class="ticker-label">BRIXHAM</span> Dover Sole 1 <span class="up">£14.50/kg ▲</span></span>
+    <span><span class="ticker-label">NEWLYN</span> Monkfish <span class="up">£6.80/kg ▲</span></span>
+    <span><span class="ticker-label">SCRABSTER</span> Hake <span class="down">£4.20/kg ▼</span></span>
+    <span><span class="ticker-label">FX</span> GBP/EUR <span class="up">1.156</span></span>
+    <span><span class="ticker-label">PETERHEAD</span> Cod A1 <span class="up">£3.45/kg ▲</span></span>
+    <span><span class="ticker-label">LERWICK</span> Monkfish <span class="up">£5.60/kg ▲</span></span>
+    <span><span class="ticker-label">BRIXHAM</span> Turbot 1 <span class="down">£11.20/kg ▼</span></span>
+    <span><span class="ticker-label">NEWLYN</span> Hake <span class="up">£4.85/kg ▲</span></span>
   </div>
 </div>
 
@@ -878,7 +909,7 @@
     <li><a href="#how">How it works</a></li>
     <li><a href="#pricing">Pricing</a></li>
     <li><a href="#ports">Ports</a></li>
-    <li><a href="#pricing" class="nav-cta">Start free trial</a></li>
+    <li><a href="#signup-form" class="nav-cta">Get the free digest</a></li>
   </ul>
 </nav>
 
@@ -886,14 +917,17 @@
 <section class="hero">
   <div class="hero-left">
     <div class="hero-eyebrow">Live UK fish market data</div>
-    <h1>Every port.<br><em>One place.</em><br>Every morning.</h1>
+    <h1>Every port.<br><em>One price.</em><br>Every morning.</h1>
     <p class="hero-sub">
-      UK fish merchants currently check six or more port websites to compare prices. Quayside aggregates Peterhead, Shetland, Aberdeen, Fraserburgh, Brixham and Grimsby into a single daily digest — on your phone before the market opens.
+      Five UK fish auction ports. Five different websites, formats, and species names. Quayside pulls them together into one daily digest — prices compared, species normalised, trends tracked. In your inbox before 7am.
     </p>
-    <div class="hero-actions">
-      <a href="#pricing" class="btn-primary">Start 30-day free trial</a>
-      <a href="#how" class="btn-ghost">See how it works</a>
-    </div>
+    <form class="hero-form" action="#" method="POST" id="signup-form">
+      <div class="hero-actions">
+        <input type="email" name="email" placeholder="Your email address" required class="email-input">
+        <button type="submit" class="btn-primary">Get the free digest</button>
+      </div>
+      <p class="form-note">Free daily digest. No card required. Unsubscribe any time.</p>
+    </form>
   </div>
   <div class="hero-right">
     <div class="mock-card">
@@ -904,7 +938,7 @@
       <div class="price-row">
         <div>
           <div class="price-species">Haddock</div>
-          <div class="price-port">Peterhead · Grade I</div>
+          <div class="price-port">Peterhead · A1</div>
         </div>
         <div class="price-val">£2.84</div>
         <div class="price-change up">▲ 8%</div>
@@ -912,7 +946,7 @@
       <div class="price-row">
         <div>
           <div class="price-species">Haddock</div>
-          <div class="price-port">Aberdeen · Grade I</div>
+          <div class="price-port">Lerwick · L</div>
         </div>
         <div class="price-val">£2.71</div>
         <div class="price-change down">▼ 2%</div>
@@ -920,7 +954,7 @@
       <div class="price-row">
         <div>
           <div class="price-species">Haddock</div>
-          <div class="price-port">Fraserburgh · Grade I</div>
+          <div class="price-port">Brixham · 1</div>
         </div>
         <div class="price-val">£2.66</div>
         <div class="price-change up">▲ 1%</div>
@@ -928,16 +962,17 @@
       <div class="price-row">
         <div>
           <div class="price-species">Haddock</div>
-          <div class="price-port">Lerwick · Grade I</div>
+          <div class="price-port">Scrabster</div>
         </div>
         <div class="price-val">£2.61</div>
         <div class="price-change down">▼ 4%</div>
       </div>
     </div>
     <div class="mock-digest">
-      <div class="digest-subject">↑ QUAYSIDE DIGEST — WED 11 MAR, 06:47</div>
+      <div class="digest-subject">↑ QUAYSIDE DIGEST — FRI 14 MAR, 06:47</div>
       <div class="digest-body">
-        <strong>Cod</strong> up 12% at Peterhead vs last week. <strong>Saithe</strong> soft across all Scottish ports. <strong>Monkfish</strong> strong at Lerwick — best price in 3 weeks. Full breakdown ↓
+        <strong>5 ports reporting</strong> · 114 species · 430 prices · GBP/EUR 1.156<br>
+        <strong>Monkfish</strong> strong at Lerwick £5.60. <strong>Dover Sole</strong> best at Brixham £14.50. <strong>Cod</strong> up 8% at Peterhead. Full breakdown ↓
       </div>
     </div>
   </div>
@@ -949,11 +984,9 @@
   <div class="trust-ports">
     <span class="trust-port">Peterhead</span>
     <span class="trust-port">Lerwick</span>
-    <span class="trust-port">Scalloway</span>
-    <span class="trust-port">Aberdeen</span>
-    <span class="trust-port">Fraserburgh</span>
     <span class="trust-port">Brixham</span>
-    <span class="trust-port">Grimsby</span>
+    <span class="trust-port">Newlyn</span>
+    <span class="trust-port">Scrabster</span>
   </div>
 </div>
 
@@ -965,16 +998,16 @@
       <div class="problem-left fade-up">
         <h2>The UK fish market runs on <em>incomplete information.</em></h2>
         <p>Every morning, fish merchants across the UK make buying decisions worth thousands of pounds — often without knowing what the same species sold for at a port 200 miles away an hour earlier.</p>
-        <p>The data exists. It's just scattered across six different websites, in three different formats, updated at different times.</p>
+        <p>The data exists. It's just scattered across five different websites, in four different formats, updated at different times.</p>
       </div>
       <ul class="pain-list">
         <li class="pain-item">
           <span class="pain-num">01</span>
-          <span class="pain-text"><strong>Six websites, every morning.</strong> Peterhead, Shetland, SWFPA, Fraserburgh, Brixham, Grimsby — each with different formats, different update times, different species names.</span>
+          <span class="pain-text"><strong>Five websites, every morning.</strong> Peterhead, Lerwick, Brixham, Newlyn, Scrabster — each with different formats, different update times, different species names.</span>
         </li>
         <li class="pain-item">
           <span class="pain-num">02</span>
-          <span class="pain-text"><strong>No cross-port comparison.</strong> You know what cod costs at Aberdeen. You don't know that Peterhead is 15% cheaper today unless you check both — which most merchants don't have time to do.</span>
+          <span class="pain-text"><strong>No cross-port comparison.</strong> You know what haddock costs at Peterhead. You don't know that Lerwick is 15% cheaper today unless you check both — which most merchants don't have time to do.</span>
         </li>
         <li class="pain-item">
           <span class="pain-num">03</span>
@@ -997,7 +1030,7 @@
       <div class="how-step fade-up">
         <div class="how-num">01</div>
         <div class="how-title">Data scraped daily</div>
-        <div class="how-body">Every morning, Quayside pulls price data from all seven UK ports automatically — HTML markets, PDFs, Excel downloads. Normalised into a single schema. Species names standardised. Grades unified.</div>
+        <div class="how-body">Every morning, Quayside pulls price data from five UK ports automatically — HTML tables, PDFs, Excel downloads. Normalised into a single schema. 100+ species standardised across ports. GBP/EUR rate included.</div>
       </div>
       <div class="how-step fade-up">
         <div class="how-num">02</div>
@@ -1033,13 +1066,13 @@
       <span class="chat-title">Quayside — Ask the market</span>
     </div>
     <div class="chat-body">
-      <div class="chat-msg user">What's haddock doing at Peterhead vs Aberdeen over the last two weeks?</div>
+      <div class="chat-msg user">What's haddock doing at Peterhead vs Lerwick over the last two weeks?</div>
       <div class="chat-msg assistant">
-        <strong>Peterhead has been consistently stronger.</strong> Over the past 14 days, Grade I haddock averaged <span class="highlight">£2.79/kg at Peterhead</span> vs <span class="highlight">£2.64/kg at Aberdeen</span> — a spread of around 6%. The gap widened this week, with Peterhead up 8% while Aberdeen softened slightly. Volume at Peterhead is also higher, which is keeping the price firm.
+        <strong>Peterhead has been consistently stronger.</strong> Over the past 14 days, A1 haddock averaged <span class="highlight">£2.79/kg at Peterhead</span> vs <span class="highlight">£2.64/kg at Lerwick</span> — a spread of around 6%. The gap widened this week, with Peterhead up 8% while Lerwick softened slightly. Volume at Peterhead is also higher, which is keeping the price firm.
       </div>
       <div class="chat-msg user">Any species looking cheap right now relative to the last 30 days?</div>
       <div class="chat-msg assistant">
-        <strong>Saithe and whiting are both below their 30-day averages.</strong> Saithe is down around 11% across Scottish ports — likely oversupply from larger pelagic vessels. Whiting at Fraserburgh is at a 3-week low. If you're flexible on species, both represent reasonable value this week.
+        <strong>Coley and whiting are both below their 30-day averages.</strong> Coley is down around 11% across Scottish ports — likely oversupply from larger pelagic vessels. Whiting at Scrabster is at a 3-week low. If you're flexible on species, both represent reasonable value this week.
       </div>
     </div>
     <div class="chat-input-bar">
@@ -1057,38 +1090,40 @@
     <p>Start free. Upgrade when Quayside earns it.</p>
   </div>
   <div class="pricing-grid">
-    <!-- Free -->
+    <!-- Digest — Free -->
     <div class="plan">
-      <div class="plan-name">Free</div>
-      <div class="plan-audience">Anyone</div>
+      <div class="plan-badge">Available now</div>
+      <div class="plan-name">Digest</div>
+      <div class="plan-audience">Everyone</div>
       <div class="plan-price">
         <div class="plan-amount">£0</div>
-        <div class="plan-period">forever</div>
+        <div class="plan-period">free forever</div>
       </div>
       <ul class="plan-features">
-        <li>Weekly summary email</li>
-        <li>Top 3 species, UK average</li>
-        <li>Two-week data lag</li>
-        <li>No dashboard</li>
+        <li>Daily email digest, 5 ports</li>
+        <li>Cross-port price comparison</li>
+        <li>100+ species, all grades</li>
+        <li>Biggest movers &amp; trends</li>
+        <li>GBP/EUR exchange rate</li>
       </ul>
-      <a href="#" class="plan-cta">Sign up free</a>
+      <a href="#signup-form" class="plan-cta">Sign up free</a>
     </div>
-    <!-- Fisherman -->
+    <!-- Skipper -->
     <div class="plan">
-      <div class="plan-name">Fisherman</div>
-      <div class="plan-audience">Skippers · Vessel owners</div>
+      <div class="plan-name">Skipper</div>
+      <div class="plan-audience">Vessel owners · Skippers</div>
       <div class="plan-price">
-        <div class="plan-amount">£20</div>
+        <div class="plan-amount">£25</div>
         <div class="plan-period">per month</div>
       </div>
       <ul class="plan-features">
-        <li>Daily email digest</li>
+        <li>Everything in Digest</li>
         <li>WhatsApp morning alert</li>
-        <li>Your target species, all ports</li>
+        <li>Choose your target species</li>
         <li>30-day price history</li>
         <li>Know where to land before you do</li>
       </ul>
-      <a href="#" class="plan-cta">Start free trial</a>
+      <a href="#" class="plan-cta">Coming soon</a>
     </div>
     <!-- Trade — FEATURED -->
     <div class="plan featured">
@@ -1096,44 +1131,50 @@
       <div class="plan-name">Trade</div>
       <div class="plan-audience">Merchants · Processors · Buyers</div>
       <div class="plan-price">
-        <div class="plan-amount">£95</div>
+        <div class="plan-amount">£50</div>
         <div class="plan-period">per month</div>
       </div>
       <ul class="plan-features">
+        <li>Everything in Skipper</li>
         <li>Full multi-port dashboard</li>
         <li>90-day price history + trends</li>
-        <li>Daily digest + WhatsApp</li>
-        <li>AI chat — ask the data questions</li>
         <li>CSV export for procurement</li>
         <li>Species and grade breakdown</li>
+        <li>Price alerts — email + WhatsApp</li>
       </ul>
-      <a href="#" class="plan-cta">Start free trial</a>
+      <a href="#" class="plan-cta">Coming soon</a>
     </div>
-    <!-- Restaurant -->
+    <!-- Enterprise -->
     <div class="plan">
-      <div class="plan-name">Restaurant</div>
-      <div class="plan-audience">Chefs · Buyers · Groups</div>
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-audience">Supermarkets · Data teams · Resellers</div>
       <div class="plan-price">
-        <div class="plan-amount">£25</div>
+        <div class="plan-amount">Custom</div>
         <div class="plan-period">per month</div>
       </div>
       <ul class="plan-features">
-        <li>Daily email digest</li>
-        <li>Species price alerts via WhatsApp</li>
-        <li>30-day price charts</li>
-        <li>Menu planning intelligence</li>
-        <li>Buy better, waste less</li>
+        <li>API access — JSON feed, daily</li>
+        <li>Full historical dataset</li>
+        <li>Custom species coverage</li>
+        <li>SLA &amp; dedicated support</li>
+        <li>White-label available</li>
       </ul>
-      <a href="#" class="plan-cta">Start free trial</a>
+      <a href="mailto:hello@quayside.trade" class="plan-cta">Get in touch</a>
     </div>
   </div>
 </section>
 
 <!-- CTA BAND -->
 <section class="cta-band">
-  <h2>30 days free. No card required.</h2>
-  <p>See what you've been missing every morning.</p>
-  <a href="#" class="btn-white">Start your free trial</a>
+  <h2>Every UK auction price. One email. Every morning.</h2>
+  <p>Join fish buyers who start their day with the full picture.</p>
+  <form class="cta-form" action="#" method="POST">
+    <div style="display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;">
+      <input type="email" name="email" placeholder="Your email address" required class="email-input" style="border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.95);">
+      <button type="submit" class="btn-white">Get the free digest</button>
+    </div>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(255,255,255,0.6);margin-top:12px;letter-spacing:0.06em;">Five ports. 100+ species. 400+ daily prices. Free.</p>
+  </form>
 </section>
 
 <!-- FOOTER -->
@@ -1144,7 +1185,7 @@
     <li><a href="#">Terms</a></li>
     <li><a href="#">Contact</a></li>
   </ul>
-  <div class="footer-copy">© 2025 Quayside Data Ltd · All prices indicative</div>
+  <div class="footer-copy">© 2026 Quayside Data Ltd · All prices indicative · Sources: Peterhead, Lerwick, Brixham, Newlyn, Scrabster</div>
 </footer>
 
 <script>

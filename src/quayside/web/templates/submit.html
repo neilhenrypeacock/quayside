@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+{% block title %}Submit Prices — Quayside{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .page-header h1 {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 4px;
+    }
+    .page-header .meta {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+    }
+
+    /* Top controls */
+    .controls {
+        display: flex;
+        gap: 16px;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .control-group label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+    .control-group select,
+    .control-group input[type="date"] {
+        min-width: 180px;
+    }
+
+    /* Price table */
+    .price-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    .price-table th {
+        text-align: left;
+        padding: 8px;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 400;
+        border-bottom: 2px solid var(--tide);
+    }
+    .price-table td {
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--salt);
+        vertical-align: middle;
+    }
+    .price-table input[type="text"],
+    .price-table input[type="number"],
+    .price-table select {
+        width: 100%;
+        padding: 6px 8px;
+        font-size: 13px;
+    }
+    .price-table .col-species { width: 30%; }
+    .price-table .col-grade { width: 14%; }
+    .price-table .col-price { width: 16%; }
+    .price-table .col-notes { width: 18%; }
+    .price-table .col-actions { width: 40px; text-align: center; }
+
+    .btn-delete-row {
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 16px;
+        padding: 4px 8px;
+        border-radius: 2px;
+        transition: color 0.2s, background 0.2s;
+    }
+    .btn-delete-row:hover {
+        color: var(--catch);
+        background: rgba(200,64,26,0.08);
+    }
+
+    /* Autocomplete */
+    .species-wrapper {
+        position: relative;
+    }
+    .species-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid var(--rule);
+        border-top: none;
+        max-height: 180px;
+        overflow-y: auto;
+        z-index: 50;
+        display: none;
+    }
+    .species-dropdown.visible {
+        display: block;
+    }
+    .species-dropdown div {
+        padding: 6px 10px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+    .species-dropdown div:hover,
+    .species-dropdown div.active {
+        background: var(--foam);
+        color: var(--tide);
+    }
+
+    /* Actions bar */
+    .actions-bar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+    .actions-bar .spacer {
+        flex: 1;
+    }
+
+    /* Result messages */
+    .msg-success {
+        padding: 12px 20px;
+        border-radius: 2px;
+        margin-bottom: 16px;
+        background: rgba(109,184,138,0.12);
+        border-left: 3px solid var(--up);
+        color: var(--tide);
+        font-size: 14px;
+    }
+    .msg-error {
+        padding: 12px 20px;
+        border-radius: 2px;
+        margin-bottom: 16px;
+        background: rgba(200,64,26,0.08);
+        border-left: 3px solid var(--catch);
+        color: var(--catch);
+        font-size: 14px;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .control-group select,
+        .control-group input[type="date"] {
+            min-width: 0;
+            width: 100%;
+        }
+        .price-table {
+            font-size: 12px;
+        }
+        .price-table .col-notes {
+            display: none;
+        }
+        .price-table th:nth-child(5),
+        .price-table td:nth-child(5) {
+            display: none;
+        }
+        .actions-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .actions-bar .spacer {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if port_slug %}
+<a href="{{ url_for('port_upload', slug=port_slug) }}" style="display:inline-block;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;color:var(--muted);text-decoration:none;margin-bottom:20px;">&larr; Back to add prices</a>
+{% endif %}
+
+<div class="page-header">
+    <h1>Submit prices</h1>
+    <div class="meta">{% if selected_port %}{{ selected_port }} &middot; {% endif %}Manual data entry</div>
+</div>
+
+<div id="resultMsg"></div>
+
+<form id="submitForm" novalidate>
+    <!-- Top controls -->
+    <div class="controls">
+        <div class="control-group">
+            <label for="dateField">Date</label>
+            <input type="date" id="dateField" name="date" value="{{ today }}">
+        </div>
+        <div class="control-group">
+            <label for="portField">Port</label>
+            <select id="portField" name="port">
+                <option value="">Select a port&hellip;</option>
+                {% for p in ports %}
+                <option value="{{ p.name }}" {% if selected_port == p.name %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Price entry table -->
+    <div class="card">
+        <table class="price-table">
+            <thead>
+                <tr>
+                    <th class="col-species">Species</th>
+                    <th class="col-grade">Grade</th>
+                    <th class="col-price text-right">Price (&pound;/kg)</th>
+                    <th class="col-notes">Notes</th>
+                    <th class="col-actions"></th>
+                </tr>
+            </thead>
+            <tbody id="priceRows">
+                <!-- Rows added by JS -->
+            </tbody>
+        </table>
+
+        <div class="actions-bar">
+            <button type="button" class="btn btn-secondary" id="addRowBtn">+ Add row</button>
+            <span class="spacer"></span>
+            <button type="button" class="btn btn-secondary" id="exportBtn">Export CSV</button>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Submit prices</button>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const SPECIES = {{ species_list | tojson }};
+const GRADES = ["GI", "GII", "GIII", "Ungraded"];
+
+let rowIndex = 0;
+
+function createRow() {
+    const idx = rowIndex++;
+    const tr = document.createElement("tr");
+    tr.dataset.idx = idx;
+    tr.innerHTML = `
+        <td class="col-species">
+            <div class="species-wrapper">
+                <input type="text" name="species_${idx}" placeholder="e.g. Haddock"
+                       autocomplete="off" class="species-input" data-idx="${idx}">
+                <div class="species-dropdown" id="dropdown_${idx}"></div>
+            </div>
+        </td>
+        <td class="col-grade">
+            <select name="grade_${idx}">
+                ${GRADES.map(g => `<option value="${g}">${g}</option>`).join("")}
+            </select>
+        </td>
+        <td class="col-price">
+            <input type="number" name="price_${idx}" step="0.01" min="0" placeholder="0.00">
+        </td>
+        <td class="col-notes">
+            <input type="text" name="notes_${idx}" placeholder="Optional">
+        </td>
+        <td class="col-actions">
+            <button type="button" class="btn-delete-row" onclick="deleteRow(this)">&times;</button>
+        </td>
+    `;
+    return tr;
+}
+
+function deleteRow(btn) {
+    const tbody = document.getElementById("priceRows");
+    if (tbody.rows.length > 1) {
+        btn.closest("tr").remove();
+    }
+}
+
+function initRows(count) {
+    const tbody = document.getElementById("priceRows");
+    for (let i = 0; i < count; i++) {
+        tbody.appendChild(createRow());
+    }
+}
+
+// --- Autocomplete ---
+document.getElementById("priceRows").addEventListener("input", function(e) {
+    if (!e.target.classList.contains("species-input")) return;
+    const idx = e.target.dataset.idx;
+    const dropdown = document.getElementById("dropdown_" + idx);
+    const val = e.target.value.toLowerCase().trim();
+
+    if (!val) {
+        dropdown.classList.remove("visible");
+        return;
+    }
+
+    const matches = SPECIES.filter(s => s.toLowerCase().includes(val)).slice(0, 10);
+    if (matches.length === 0) {
+        dropdown.classList.remove("visible");
+        return;
+    }
+
+    dropdown.innerHTML = matches.map(s =>
+        `<div onmousedown="pickSpecies('${idx}', '${s.replace(/'/g, "\\'")}')">${s}</div>`
+    ).join("");
+    dropdown.classList.add("visible");
+});
+
+document.getElementById("priceRows").addEventListener("focusout", function(e) {
+    if (!e.target.classList.contains("species-input")) return;
+    const idx = e.target.dataset.idx;
+    setTimeout(() => {
+        document.getElementById("dropdown_" + idx).classList.remove("visible");
+    }, 150);
+});
+
+function pickSpecies(idx, name) {
+    const input = document.querySelector(`input[name="species_${idx}"]`);
+    input.value = name;
+    document.getElementById("dropdown_" + idx).classList.remove("visible");
+}
+
+// --- Validation ---
+function validate() {
+    const port = document.getElementById("portField").value;
+    const date = document.getElementById("dateField").value;
+    const errors = [];
+
+    if (!port) errors.push("Please select a port.");
+    if (!date) errors.push("Please select a date.");
+
+    const rows = collectRows();
+    if (rows.length === 0) errors.push("Please enter at least one price row.");
+
+    for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r.species) errors.push(`Row ${i + 1}: species is required.`);
+        if (r.price_avg === null || r.price_avg <= 0) errors.push(`Row ${i + 1}: price must be greater than zero.`);
+    }
+
+    return errors;
+}
+
+function collectRows() {
+    const rows = [];
+    const tbody = document.getElementById("priceRows");
+    for (const tr of tbody.rows) {
+        const idx = tr.dataset.idx;
+        const species = (tr.querySelector(`[name="species_${idx}"]`)?.value || "").trim();
+        const grade = (tr.querySelector(`[name="grade_${idx}"]`)?.value || "").trim();
+        const priceVal = tr.querySelector(`[name="price_${idx}"]`)?.value;
+        const notes = (tr.querySelector(`[name="notes_${idx}"]`)?.value || "").trim();
+
+        const price = priceVal ? parseFloat(priceVal) : null;
+        if (!species && price === null) continue; // skip empty rows
+
+        rows.push({
+            species: species,
+            grade: grade,
+            price_avg: price,
+            notes: notes || null,
+        });
+    }
+    return rows;
+}
+
+// --- Submit ---
+document.getElementById("submitForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const errors = validate();
+    if (errors.length > 0) {
+        showMsg("error", errors.join("<br>"));
+        return;
+    }
+
+    const payload = {
+        port: document.getElementById("portField").value,
+        date: document.getElementById("dateField").value,
+        rows: collectRows(),
+        overwrite: false,
+    };
+
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.textContent = "Submitting…";
+
+    try {
+        const resp = await fetch("/api/v1/ingest", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+
+        if (resp.ok) {
+            showMsg("success", data.message || `Submitted ${data.count} prices.`);
+            // Clear table and reset
+            document.getElementById("priceRows").innerHTML = "";
+            rowIndex = 0;
+            initRows(3);
+        } else if (resp.status === 409) {
+            // Duplicate — ask to overwrite
+            if (confirm(data.error + "\n\nOverwrite existing data?")) {
+                payload.overwrite = true;
+                const resp2 = await fetch("/api/v1/ingest", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(payload),
+                });
+                const data2 = await resp2.json();
+                if (resp2.ok) {
+                    showMsg("success", data2.message || `Overwrote with ${data2.count} prices.`);
+                    document.getElementById("priceRows").innerHTML = "";
+                    rowIndex = 0;
+                    initRows(3);
+                } else {
+                    showMsg("error", data2.error || "Overwrite failed.");
+                }
+            }
+        } else {
+            showMsg("error", data.error || "Submission failed.");
+        }
+    } catch (err) {
+        showMsg("error", "Network error — please try again.");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Submit prices";
+    }
+});
+
+// --- Export CSV button ---
+document.getElementById("exportBtn").addEventListener("click", function() {
+    const port = document.getElementById("portField").value;
+    if (!port) {
+        showMsg("error", "Please select a port to export.");
+        return;
+    }
+    const today = new Date();
+    const dateTo = today.toISOString().slice(0, 10);
+    const dateFrom = new Date(today.getTime() - 30 * 86400000).toISOString().slice(0, 10);
+    window.location.href = `/api/v1/export/csv?port=${encodeURIComponent(port)}&date_from=${dateFrom}&date_to=${dateTo}`;
+});
+
+// --- Message display ---
+function showMsg(type, html) {
+    const el = document.getElementById("resultMsg");
+    el.className = type === "success" ? "msg-success" : "msg-error";
+    el.innerHTML = html;
+    el.scrollIntoView({behavior: "smooth", block: "nearest"});
+}
+
+// --- Init ---
+initRows(3);
+</script>
+{% endblock %}

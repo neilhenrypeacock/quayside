@@ -201,6 +201,32 @@ def get_previous_date(date: str) -> str | None:
     return row[0] if row else None
 
 
+def get_prices_for_date_range(start_date: str, end_date: str) -> list[tuple]:
+    """All price rows between two dates inclusive, across all ports."""
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT date, port, species, grade, price_low, price_high, price_avg
+           FROM prices WHERE date >= ? AND date <= ?
+           ORDER BY date, species, port, grade""",
+        (start_date, end_date),
+    ).fetchall()
+    conn.close()
+    return rows
+
+
+def get_trading_dates(start_date: str, end_date: str) -> list[str]:
+    """Distinct dates with price data in a range, sorted ascending."""
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT DISTINCT date FROM prices
+           WHERE date >= ? AND date <= ?
+           ORDER BY date""",
+        (start_date, end_date),
+    ).fetchall()
+    conn.close()
+    return [r[0] for r in rows]
+
+
 # --- Port management ---
 
 
@@ -503,6 +529,99 @@ def seed_demo_data() -> None:
                     ))
 
     upsert_prices(records)
+
+
+def get_prices_by_date_for_port(date: str, port: str) -> list[tuple]:
+    """Price rows for a specific port on a specific date (same as get_prices_by_date)."""
+    return get_prices_by_date(date, port)
+
+
+def get_same_day_last_week(port: str, date: str) -> dict[str, dict]:
+    """Get prices for the same weekday one week ago for a port.
+
+    Returns {(species, grade): {price_avg, price_low, price_high}}.
+    """
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT species, grade, price_low, price_high, price_avg
+           FROM prices
+           WHERE port = ? AND date = date(?, '-7 days')""",
+        (port, date),
+    ).fetchall()
+    conn.close()
+    return {
+        (r[0], r[1]): {"price_avg": r[4], "price_low": r[2], "price_high": r[3]}
+        for r in rows
+    }
+
+
+def get_species_availability_gaps(port: str, date: str) -> list[str]:
+    """Species active in prior 25 days but absent in last 5 days for a port.
+
+    Returns list of species names.
+    """
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT DISTINCT species FROM prices
+           WHERE port = ?
+             AND date > date(?, '-30 days')
+             AND date <= date(?, '-5 days')
+             AND species NOT IN (
+                 SELECT DISTINCT species FROM prices
+                 WHERE port = ? AND date > date(?, '-5 days') AND date <= ?
+             )""",
+        (port, date, date, port, date, date),
+    ).fetchall()
+    conn.close()
+    return [r[0] for r in rows]
+
+
+def get_seasonal_comparison(port: str, date: str) -> dict[str, float]:
+    """Average price per species for the same week one year ago.
+
+    Returns {species: avg_price} or empty dict if no data exists.
+    """
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT species, AVG(price_avg) as avg_price
+           FROM prices
+           WHERE port = ?
+             AND date >= date(?, '-1 year', '-3 days')
+             AND date <= date(?, '-1 year', '+3 days')
+             AND price_avg IS NOT NULL
+           GROUP BY species""",
+        (port, date, date),
+    ).fetchall()
+    conn.close()
+    return {r[0]: round(r[1], 2) for r in rows}
+
+
+def get_market_averages_for_range(
+    start_date: str, end_date: str,
+) -> dict[str, dict[str, float]]:
+    """Per-species market average by date for a date range.
+
+    Returns {date: {species: avg_across_ports}}.
+    """
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT date, species, AVG(price_avg) as market_avg
+           FROM (
+               SELECT date, species, port, MAX(price_avg) as price_avg
+               FROM prices
+               WHERE date >= ? AND date <= ? AND price_avg IS NOT NULL
+               GROUP BY date, port, species
+           )
+           GROUP BY date, species""",
+        (start_date, end_date),
+    ).fetchall()
+    conn.close()
+
+    from collections import defaultdict
+    result: dict[str, dict[str, float]] = defaultdict(dict)
+    for date, species, market_avg in rows:
+        result[date][species] = round(market_avg, 2)
+    return dict(result)
 
 
 def get_market_averages_for_date(date: str) -> dict[str, dict]:

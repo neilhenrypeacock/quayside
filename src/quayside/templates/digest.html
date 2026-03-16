@@ -177,7 +177,7 @@
     margin-top: 0;
   }
   .price-table thead tr {
-    border-bottom: 2px solid #1a3a4a;
+    border-bottom: 2px solid #0f0e0c;
   }
   .price-table th {
     font-family: 'Courier New', monospace;
@@ -288,16 +288,18 @@
 
   /* MOVERS */
   .movers-grid {
-    display: flex;
-    gap: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     border-bottom: 1px solid #c8bfaa;
   }
   .mover-card {
-    flex: 1;
-    padding: 20px 32px;
+    padding: 20px 24px;
     border-right: 1px solid #c8bfaa;
+    border-bottom: 1px solid #c8bfaa;
   }
-  .mover-card:last-child { border-right: none; }
+  .mover-card:nth-child(3n) { border-right: none; }
+  .mover-card:nth-last-child(-n+3):nth-child(3n+1),
+  .mover-card:nth-last-child(-n+3):nth-child(3n+1) ~ .mover-card { border-bottom: none; }
   .mover-card.down-card { }
   .mover-label {
     font-family: 'Courier New', monospace;
@@ -318,6 +320,9 @@
     font-size: 18px;
     font-weight: 700;
     color: #0f0e0c;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .mover-pct {
     font-family: 'Courier New', monospace;

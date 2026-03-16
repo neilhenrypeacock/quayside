@@ -1,10 +1,44 @@
 {% extends "base.html" %}
 {% block title %}Edit — {{ port.name }} — Quayside{% endblock %}
 
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .page-header h1 {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 4px;
+    }
+    .page-header .meta {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+    }
+    .delete-btn {
+        background: none;
+        border: none;
+        color: var(--catch);
+        cursor: pointer;
+        font-size: 16px;
+        font-family: var(--font-mono);
+        padding: 4px 8px;
+        transition: opacity 0.2s;
+    }
+    .delete-btn:hover { opacity: 0.7; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="margin-bottom:24px;">
-    <h1 style="font-family:var(--font-serif);font-size:24px;color:var(--tide);">Fix {{ port.name }} prices</h1>
-    <p style="color:#666;font-size:14px;">{{ upload.date }} &middot; Edit any cells that need correcting</p>
+<div class="page-header">
+    <h1>Fix {{ port.name }} prices</h1>
+    <div class="meta">{{ upload.date }} &middot; Edit any cells that need correcting</div>
 </div>
 
 <div class="card">
@@ -14,9 +48,9 @@
                 <tr>
                     <th>Species</th>
                     <th>Grade</th>
-                    <th>Low (&pound;/kg)</th>
-                    <th>High (&pound;/kg)</th>
-                    <th>Avg (&pound;/kg)</th>
+                    <th class="text-right">Low (&pound;/kg)</th>
+                    <th class="text-right">High (&pound;/kg)</th>
+                    <th class="text-right">Avg (&pound;/kg)</th>
                     <th></th>
                 </tr>
             </thead>
@@ -28,7 +62,7 @@
                     <td><input type="number" name="low_{{ loop.index0 }}" value="{{ row[4] if row[4] else '' }}" step="0.01" min="0" style="width:80px;"></td>
                     <td><input type="number" name="high_{{ loop.index0 }}" value="{{ row[5] if row[5] else '' }}" step="0.01" min="0" style="width:80px;"></td>
                     <td><input type="number" name="avg_{{ loop.index0 }}" value="{{ row[6] if row[6] else '' }}" step="0.01" min="0" style="width:80px;"></td>
-                    <td><button type="button" onclick="this.closest('tr').remove()" style="background:none;border:none;color:var(--catch);cursor:pointer;font-size:16px;">&times;</button></td>
+                    <td><button type="button" class="delete-btn" onclick="this.closest('tr').remove()">&times;</button></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -54,7 +88,7 @@ function addRow() {
         <td><input type="number" name="low_${rowCount}" step="0.01" min="0" style="width:80px;"></td>
         <td><input type="number" name="high_${rowCount}" step="0.01" min="0" style="width:80px;"></td>
         <td><input type="number" name="avg_${rowCount}" step="0.01" min="0" style="width:80px;"></td>
-        <td><button type="button" onclick="this.closest('tr').remove()" style="background:none;border:none;color:var(--catch);cursor:pointer;font-size:16px;">&times;</button></td>
+        <td><button type="button" class="delete-btn" onclick="this.closest('tr').remove()">&times;</button></td>
     `;
     tbody.appendChild(tr);
     rowCount++;

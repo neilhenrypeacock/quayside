@@ -1,286 +1,1524 @@
-{% extends "base.html" %}
-{% block title %}Quayside — UK Fish Auction Prices{% endblock %}
-
-{% block head %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quayside — UK Fish Market Prices, Aggregated</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
-    .landing-hero {
-        text-align: center;
-        padding: 60px 20px 40px;
-    }
-    .landing-hero h1 {
-        font-family: 'Playfair Display', var(--font-serif);
-        font-size: 40px;
-        color: var(--tide);
-        line-height: 1.2;
-        margin-bottom: 16px;
-    }
-    .landing-hero .subtitle {
-        font-size: 18px;
-        color: #555;
-        max-width: 560px;
-        margin: 0 auto 32px;
-    }
-    .cta-group {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    .btn-large {
-        padding: 14px 32px;
-        font-size: 16px;
-        border-radius: 8px;
-    }
-    .trust-bar {
-        text-align: center;
-        padding: 20px;
-        font-size: 13px;
-        color: #888;
-        letter-spacing: 0.3px;
-    }
-    .trust-bar strong { color: #555; }
-    .section { padding: 40px 0; }
-    .section-title {
-        font-family: 'Playfair Display', var(--font-serif);
-        font-size: 28px;
-        color: var(--tide);
-        margin-bottom: 12px;
-    }
-    .section-subtitle {
-        font-size: 16px;
-        color: #666;
-        margin-bottom: 32px;
-    }
-    .problem-text {
-        font-size: 18px;
-        color: #444;
-        max-width: 640px;
-        line-height: 1.7;
-    }
-    .steps-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 24px;
-        margin-top: 24px;
-    }
-    .step-card {
-        background: var(--cream);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 24px;
-    }
-    .step-number {
-        display: inline-block;
-        width: 32px; height: 32px;
-        background: var(--tide);
-        color: #fff;
-        border-radius: 50%;
-        text-align: center;
-        line-height: 32px;
-        font-weight: 700;
-        font-size: 14px;
-        margin-bottom: 12px;
-    }
-    .step-card h3 {
-        font-size: 16px;
-        color: var(--tide);
-        margin-bottom: 8px;
-    }
-    .step-card p { font-size: 14px; color: #555; }
-    .pricing-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-top: 24px;
-    }
-    .price-card {
-        background: var(--cream);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 24px;
-        text-align: center;
-    }
-    .price-card.featured {
-        border-color: var(--tide);
-        box-shadow: 0 4px 12px rgba(26,58,74,0.12);
-    }
-    .price-card .tier-name {
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #888;
-        margin-bottom: 8px;
-    }
-    .price-card .tier-price {
-        font-family: 'Playfair Display', var(--font-serif);
-        font-size: 32px;
-        color: var(--tide);
-        margin-bottom: 4px;
-    }
-    .price-card .tier-period { font-size: 13px; color: #999; margin-bottom: 16px; }
-    .price-card ul {
-        list-style: none;
-        text-align: left;
-        font-size: 13px;
-        color: #555;
-    }
-    .price-card li { padding: 4px 0; }
-    .price-card li::before { content: "\2713\00a0"; color: var(--green); font-weight: 700; }
-    .digest-preview {
-        background: var(--cream);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 24px;
-        text-align: center;
-        margin-top: 24px;
-    }
-    .final-cta {
-        text-align: center;
-        padding: 48px 20px;
-        background: var(--tide);
-        margin: 40px -24px -24px;
-        border-radius: 0 0 0 0;
-    }
-    .final-cta h2 {
-        font-family: 'Playfair Display', var(--font-serif);
-        font-size: 28px;
-        color: #fff;
-        margin-bottom: 12px;
-    }
-    .final-cta p { color: rgba(255,255,255,0.8); margin-bottom: 24px; }
-    .final-cta .btn-primary { background: var(--catch); }
-    .final-cta .btn-primary:hover { background: #a83515; }
-    .port-link { color: rgba(255,255,255,0.7); font-size: 13px; }
-    .port-link a { color: #fff; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f0e8;
+    --tide: #1a3a4a;
+    --salt: #e8e0d0;
+    --catch: #c8401a;
+    --foam: #f0ebe0;
+    --muted: #7a7060;
+    --rule: #c8bfaa;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* TICKER */
+  .ticker-wrap {
+    background: var(--tide);
+    color: #a8c8d8;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    overflow: hidden;
+    padding: 8px 0;
+    border-bottom: 1px solid #2a5a70;
+  }
+  .ticker {
+    display: flex;
+    white-space: nowrap;
+    animation: ticker 40s linear infinite;
+  }
+  .ticker span {
+    padding: 0 40px;
+    color: #d0e8f0;
+  }
+  .ticker span.up { color: #6db88a; }
+  .ticker span.down { color: #e07060; }
+  .ticker-label {
+    color: #5a8a9a;
+    padding-right: 8px;
+  }
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 48px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .nav-logo span {
+    color: var(--catch);
+  }
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-num { font-size: 8px; letter-spacing: 0.06em; color: var(--rule); margin-right: 3px; font-weight: 500; }
+  .nav-cta {
+    background: var(--tide);
+    color: #d0e8f0 !important;
+    padding: 8px 20px !important;
+    border-radius: 2px;
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: var(--catch) !important; color: white !important; }
+
+  /* HERO */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 88vh;
+    border-bottom: 1px solid var(--rule);
+  }
+  .hero-left {
+    padding: 80px 48px 80px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid var(--rule);
+  }
+  .hero-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--catch);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--catch);
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(48px, 5vw, 72px);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin-bottom: 32px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--tide);
+  }
+  .hero-sub {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #4a4438;
+    max-width: 420px;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .btn-primary {
+    background: var(--catch);
+    color: white;
+    padding: 14px 32px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.2s, transform 0.1s;
+    border-radius: 2px;
+  }
+  .btn-primary:hover { background: #a83010; transform: translateY(-1px); }
+  .btn-ghost {
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink); }
+
+  .email-input {
+    padding: 14px 20px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    border: 1px solid var(--rule);
+    background: white;
+    color: var(--ink);
+    border-radius: 2px;
+    width: 260px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .email-input:focus { border-color: var(--tide); }
+  .email-input::placeholder { color: #a09888; }
+  .form-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-top: 12px;
+  }
+
+  /* HERO RIGHT — MOCK DASHBOARD */
+  .hero-right {
+    background: var(--tide);
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-right::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .mock-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(10px);
+  }
+  .mock-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .mock-card-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #7ab0c8;
+  }
+  .mock-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6db88a;
+    background: rgba(109,184,138,0.15);
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+  .mock-tag.live {
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .price-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .price-row:last-child { border-bottom: none; }
+  .price-species {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    color: #d0e8f0;
+    font-style: italic;
+  }
+  .price-port {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: #7ab0c8;
+    letter-spacing: 0.05em;
+  }
+  .price-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: #f0ebe0;
+  }
+  .price-change {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+  }
+  .price-change.up { color: #6db88a; }
+  .price-change.down { color: #e07060; }
+
+  .mock-digest {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px;
+    padding: 16px 20px;
+  }
+  .digest-subject {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #7ab0c8;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .digest-body {
+    font-size: 12px;
+    color: #a8c8d8;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+  .digest-body strong {
+    color: #d0e8f0;
+    font-weight: 500;
+  }
+
+  /* TRUST BAR */
+  .trust-bar {
+    padding: 24px 48px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    gap: 48px;
+    align-items: center;
+    background: var(--foam);
+  }
+  .trust-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .trust-ports {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .trust-port {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .trust-port::before {
+    content: '\25CF';
+    font-size: 6px;
+    color: var(--catch);
+  }
+
+  /* PROBLEM SECTION */
+  .section {
+    padding: 96px 48px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+    max-width: 200px;
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .problem-left h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 4vw, 52px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 32px;
+  }
+  .problem-left h2 em {
+    font-style: italic;
+    color: var(--muted);
+  }
+  .problem-left p {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #4a4438;
+    margin-bottom: 24px;
+  }
+
+  .pain-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .pain-item {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .pain-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .pain-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--catch);
+    letter-spacing: 0.05em;
+    padding-top: 2px;
+    min-width: 24px;
+  }
+  .pain-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #3a3428;
+  }
+  .pain-text strong { font-weight: 500; }
+
+  /* PRICING */
+  .pricing-section {
+    background: var(--ink);
+    padding: 96px 48px;
+    border-bottom: 1px solid #2a2820;
+  }
+  .pricing-section .section-label {
+    color: #5a5448;
+  }
+  .pricing-section .section-label::after {
+    background: #2a2820;
+  }
+  .pricing-header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+  .pricing-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 4vw, 52px);
+    font-weight: 700;
+    color: var(--paper);
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .pricing-header p {
+    color: #7a7060;
+    font-size: 16px;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: #2a2820;
+    max-width: 1100px;
+    margin: 0 auto;
+    border: 1px solid #2a2820;
+  }
+  .plan {
+    background: #161410;
+    padding: 40px 32px;
+    position: relative;
+    transition: background 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .plan:hover { background: #1e1c18; }
+  .plan.featured {
+    background: var(--tide);
+  }
+  .plan.featured:hover { background: #224455; }
+  .plan-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--catch);
+    background: rgba(200,64,26,0.15);
+    padding: 4px 10px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-bottom: 20px;
+  }
+  .plan-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--paper);
+    margin-bottom: 8px;
+  }
+  .plan-audience {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: #5a6870;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+  }
+  .plan.featured .plan-audience { color: #7ab0c8; }
+  .plan-price {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid #2a2820;
+  }
+  .plan.featured .plan-price { border-color: rgba(255,255,255,0.1); }
+  .plan-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--paper);
+    line-height: 1;
+  }
+  .plan-period {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #5a5448;
+    letter-spacing: 0.05em;
+  }
+  .plan.featured .plan-period { color: #7ab0c8; }
+  .plan-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+    flex: 1;
+  }
+  .plan-features li {
+    font-size: 13px;
+    color: #8a8070;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    line-height: 1.5;
+  }
+  .plan.featured .plan-features li { color: #a8c8d8; }
+  .plan-features li::before {
+    content: '\2192';
+    color: var(--catch);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding-top: 1px;
+    flex-shrink: 0;
+  }
+  .plan.featured .plan-features li::before { color: #6db88a; }
+  .plan-cta {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid #3a3428;
+    color: #7a7060;
+    text-decoration: none;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+  .plan-cta:hover { border-color: var(--muted); color: var(--paper); }
+  .plan.featured .plan-cta {
+    background: var(--catch);
+    border-color: var(--catch);
+    color: white;
+  }
+  .plan.featured .plan-cta:hover { background: #a83010; border-color: #a83010; }
+
+  /* HOW IT WORKS */
+  .how-section {
+    padding: 96px 48px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--foam);
+  }
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    max-width: 1100px;
+    margin: 48px auto 0;
+  }
+  .how-step {
+    background: var(--foam);
+    padding: 48px 40px;
+  }
+  .how-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 72px;
+    font-weight: 900;
+    color: var(--salt);
+    line-height: 1;
+    margin-bottom: 24px;
+  }
+  .how-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .how-body {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #5a5448;
+  }
+
+  /* CHAT PREVIEW */
+  .chat-section {
+    padding: 96px 48px;
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .chat-left h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 3.5vw, 48px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 24px;
+  }
+  .chat-left h2 em { font-style: italic; color: var(--tide); }
+  .chat-left p {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #5a5448;
+    margin-bottom: 16px;
+  }
+  .chat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--tide);
+    color: #7ab0c8;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 2px;
+    margin-top: 8px;
+  }
+
+  .chat-window {
+    background: var(--ink);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #2a2820;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.2);
+  }
+  .chat-topbar {
+    background: #1a1810;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #2a2820;
+  }
+  .chat-dots { display: flex; gap: 6px; }
+  .chat-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #3a3428;
+  }
+  .chat-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: #5a5448;
+    text-transform: uppercase;
+    margin-left: 8px;
+  }
+  .chat-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .chat-msg {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .chat-msg.user {
+    background: var(--tide);
+    color: #d0e8f0;
+    align-self: flex-end;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .chat-msg.assistant {
+    background: #1e1c18;
+    color: #c8c0b0;
+    align-self: flex-start;
+    border: 1px solid #2a2820;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .chat-msg.assistant strong { color: #d0e8f0; font-weight: 500; }
+  .chat-msg.assistant .highlight { color: #6db88a; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .chat-input-bar {
+    padding: 16px 20px;
+    border-top: 1px solid #2a2820;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .chat-input-mock {
+    flex: 1;
+    background: #1a1810;
+    border: 1px solid #2a2820;
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #5a5448;
+    letter-spacing: 0.03em;
+  }
+  .chat-send {
+    background: var(--catch);
+    border: none;
+    border-radius: 4px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    color: white;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    padding: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--paper);
+  }
+  .footer-logo span { color: var(--catch); }
+  .footer-copy {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: #3a3428;
+  }
+  .footer-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+  }
+  .footer-links a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #3a3428;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--muted); }
+
+  /* CTA BAND */
+  .cta-band {
+    background: var(--catch);
+    padding: 64px 48px;
+    text-align: center;
+    border-bottom: 1px solid #a83010;
+  }
+  .cta-band h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .cta-band p {
+    color: rgba(255,255,255,0.7);
+    font-size: 16px;
+    margin-bottom: 36px;
+  }
+  .btn-white {
+    background: white;
+    color: var(--catch);
+    padding: 16px 40px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 2px;
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+  .btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+
+  /* LAUNCH SECTION */
+  .launch-section {
+    background: var(--ink);
+    padding: 80px 48px;
+    border-bottom: 1px solid #2a2820;
+    text-align: center;
+  }
+  .launch-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .launch-pill {
+    display: inline-block;
+    background: var(--catch);
+    color: white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 8px 24px;
+    border-radius: 2px;
+    margin-bottom: 28px;
+    animation: pulse-pill 2s ease-in-out infinite;
+  }
+  @keyframes pulse-pill {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200,64,26,0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(200,64,26,0); }
+  }
+  .launch-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 700;
+    color: var(--paper);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .launch-headline em {
+    font-style: italic;
+    color: #7ab0c8;
+  }
+  .launch-sub {
+    font-size: 17px;
+    color: #7a7060;
+    line-height: 1.7;
+    max-width: 560px;
+    margin: 0 auto 48px;
+  }
+  .launch-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #2a2820;
+    border: 1px solid #2a2820;
+    text-align: left;
+  }
+  .launch-col {
+    background: #161410;
+    padding: 40px 36px;
+  }
+  .launch-col:hover { background: #1e1c18; }
+  .launch-col h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .launch-col h3::before {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .launch-col-now h3 { color: #6db88a; }
+  .launch-col-now h3::before { background: #6db88a; }
+  .launch-col-soon h3 { color: var(--catch); }
+  .launch-col-soon h3::before { background: var(--catch); animation: pulse 2s ease-in-out infinite; }
+  .launch-col ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .launch-col ul li {
+    font-size: 14px;
+    color: #a8c8d8;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.6;
+  }
+  .launch-col ul li::before {
+    content: '\2192';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding-top: 3px;
+    flex-shrink: 0;
+  }
+  .launch-col-now ul li::before { color: #6db88a; }
+  .launch-col-soon ul li::before { color: var(--catch); }
+
+  /* TWO AUDIENCES */
+  .audiences {
+    border-bottom: 1px solid var(--rule);
+  }
+  .audiences-header {
+    text-align: center;
+    padding: 64px 48px 0;
+  }
+  .audiences-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .audiences-header h2 em { font-style: italic; color: var(--catch); }
+  .audiences-header p {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  .audience-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px;
+    gap: 1px;
+    background: transparent;
+  }
+  .audience-card {
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--rule);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .audience-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+  }
+  .audience-card-buyers {
+    background: var(--tide);
+    color: var(--paper);
+    border-color: #2a5a70;
+  }
+  .audience-card-buyers:hover { background: #1e4a5c; }
+  .audience-card-ports {
+    background: var(--catch);
+    color: white;
+    border-color: #a83010;
+  }
+  .audience-card-ports:hover { background: #b83818; }
+  .audience-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .audience-card-buyers .audience-label { color: #7ab0c8; }
+  .audience-card-ports .audience-label { color: rgba(255,255,255,0.7); }
+  .audience-product {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .audience-card-buyers .audience-product { color: white; }
+  .audience-card-ports .audience-product { color: white; }
+  .audience-card h3 {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    letter-spacing: 0;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .audience-card-buyers h3 { color: #a8c8d8; }
+  .audience-card-ports h3 { color: rgba(255,255,255,0.75); }
+  .audience-card p {
+    font-size: 15px;
+    line-height: 1.7;
+    flex: 1;
+    margin-bottom: 24px;
+  }
+  .audience-card-buyers p { color: #a8c8d8; }
+  .audience-card-ports p { color: rgba(255,255,255,0.8); }
+  .audience-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .audience-card ul li {
+    font-size: 13px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+  }
+  .audience-card-buyers ul li { color: #c0d8e4; }
+  .audience-card-ports ul li { color: rgba(255,255,255,0.85); }
+  .audience-card ul li::before {
+    content: '\2192';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding-top: 1px;
+    flex-shrink: 0;
+  }
+  .audience-card-buyers ul li::before { color: #6db88a; }
+  .audience-card-ports ul li::before { color: rgba(255,255,255,0.5); }
+  .audience-pill {
+    display: inline-block;
+    align-self: flex-start;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+  .audience-card-buyers .audience-pill {
+    background: var(--catch);
+    color: white;
+    animation: pulse-pill 2s ease-in-out infinite;
+  }
+  .audience-card-ports .audience-pill {
+    background: rgba(255,255,255,0.15);
+    color: white;
+  }
+  .audience-cta {
+    display: inline-block;
+    padding: 14px 28px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 2px;
+    font-weight: 500;
+    text-align: center;
+    transition: transform 0.1s, box-shadow 0.2s;
+    align-self: flex-start;
+  }
+  .audience-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+  .audience-card-buyers .audience-cta { background: white; color: var(--tide); }
+  .audience-card-ports .audience-cta { background: white; color: var(--catch); }
+
+  @media (max-width: 900px) {
+    .launch-section { padding: 64px 24px; }
+    .launch-columns { grid-template-columns: 1fr; }
+    .audiences-header { padding: 48px 24px 0; }
+    .audience-grid { grid-template-columns: 1fr; padding: 32px 24px 48px; gap: 16px; }
+    .audience-card { padding: 36px 28px; }
+  }
+
+  /* SCROLL ANIMATIONS */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none !important; }
+    .nav-links.open { display: flex !important; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: var(--paper); border-bottom: 1px solid var(--rule); padding: 12px 24px 20px; gap: 0; box-shadow: 0 4px 12px rgba(15,14,12,0.08); z-index: 200; }
+    .nav-links.open li { list-style: none; }
+    .nav-links.open a { display: block; padding: 10px 0; border-bottom: 1px solid var(--salt); font-size: 12px; }
+    .nav-burger-landing { display: flex !important; }
+    .hero { grid-template-columns: 1fr; min-height: auto; }
+    .hero-left { padding: 48px 24px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .email-input { width: 100%; }
+    .hero-actions { flex-direction: column; }
+    .hero-actions .btn-primary { width: 100%; text-align: center; }
+    .hero-right { padding: 32px 24px; min-height: 400px; }
+    .problem-grid, .chat-section { grid-template-columns: 1fr; gap: 40px; }
+    .pricing-grid { grid-template-columns: 1fr 1fr; }
+    .how-grid { grid-template-columns: 1fr; }
+    .section, .how-section { padding: 64px 24px; }
+    .trust-bar { padding: 20px 24px; gap: 20px; flex-wrap: wrap; }
+    .chat-section { padding: 64px 24px; }
+    .cta-band { padding: 48px 24px; }
+    footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
+  }
 </style>
-{% endblock %}
+</head>
+<body>
 
-{% block content %}
-<!-- Hero -->
-<div class="landing-hero">
-    <h1>Every UK auction price.<br>One email. Every morning.</h1>
-    <p class="subtitle">
-        Quayside collects daily fish prices from auction markets across the UK and delivers them
-        in one clear comparison &mdash; so you can buy, sell, and plan with the full picture.
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    {% if ld and ld.ticker_items %}
+      {% for item in ld.ticker_items %}
+      <span><span class="ticker-label">{{ item.port_code }}</span> {{ item.species }} <span class="{{ item.direction }}">&pound;{{ "%.2f"|format(item.price) }}/kg {% if item.direction == "up" %}&#9650;{% elif item.direction == "down" %}&#9660;{% endif %}</span></span>
+      {% endfor %}
+      {% for item in ld.ticker_items %}
+      <span><span class="ticker-label">{{ item.port_code }}</span> {{ item.species }} <span class="{{ item.direction }}">&pound;{{ "%.2f"|format(item.price) }}/kg {% if item.direction == "up" %}&#9650;{% elif item.direction == "down" %}&#9660;{% endif %}</span></span>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+
+<!-- NAV -->
+<nav style="position:relative;">
+  <a href="{{ url_for('landing') }}" class="nav-logo">Quay<span>side</span></a>
+  <button class="nav-burger-landing" style="display:none;flex-direction:column;gap:4px;background:none;border:none;cursor:pointer;padding:4px;" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+    <span style="display:block;width:20px;height:2px;background:var(--ink);border-radius:1px;"></span>
+    <span style="display:block;width:20px;height:2px;background:var(--ink);border-radius:1px;"></span>
+    <span style="display:block;width:20px;height:2px;background:var(--ink);border-radius:1px;"></span>
+  </button>
+  <ul class="nav-links">
+    <li><a href="{{ url_for('landing') }}" style="color:var(--ink);">Home</a></li>
+    <li><a href="{{ url_for('digest_page') }}">Daily Report</a></li>
+    <li><a href="{{ url_for('weekly_digest') }}">Weekly</a></li>
+    <li><a href="{{ url_for('monthly_digest') }}">Monthly</a></li>
+    <li><a href="{{ url_for('for_ports') }}">For Ports</a></li>
+    <li><a href="{{ url_for('port_dashboard', slug='peterhead') }}">Dashboard</a></li>
+    <li><a href="{{ url_for('index') }}">Overview</a></li>
+    <li><a href="{{ url_for('ops_dashboard') }}">Operations</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">For fish buyers, merchants &amp; processors</div>
+    <h1>UK fish prices.<br><em>Aggregated.</em><br>Every morning.</h1>
+    <p class="hero-sub">
+      Quayside is building the most comprehensive daily view of UK fish auction prices. Live across multiple UK ports and growing every week &mdash; species normalised, prices compared, trends tracked. One digest. One place to look.
     </p>
-    <div class="cta-group">
-        <a href="mailto:hello@quayside.fish?subject=Sign%20me%20up%20for%20the%20digest" class="btn btn-primary btn-large">Get the free daily digest</a>
-        <a href="{{ url_for('digest_page') }}" class="btn btn-secondary btn-large">See today's digest</a>
+    <form class="hero-form" action="#" method="POST" id="signup-form">
+      <div class="hero-actions">
+        <input type="email" name="email" placeholder="Your email address" required class="email-input">
+        <button type="submit" class="btn-primary">Get early access</button>
+      </div>
+      <p class="form-note">Free daily digest launching April 2026. Sign up now to be first in line.</p>
+    </form>
+  </div>
+  <div class="hero-right">
+    {% if ld and ld.haddock_rows %}
+    <div class="mock-card">
+      <div class="mock-card-header">
+        <span class="mock-card-title">Today's best prices &mdash; Haddock</span>
+        <span class="mock-tag live">&#9679; Live</span>
+      </div>
+      {% for row in ld.haddock_rows %}
+      <div class="price-row">
+        <div>
+          <div class="price-species">Haddock</div>
+          <div class="price-port">{{ row.port_label }}</div>
+        </div>
+        <div class="price-val">&pound;{{ "%.2f"|format(row.price) }}</div>
+        <div class="price-change {{ row.direction }}">
+          {% if row.direction == "up" %}&#9650;{% elif row.direction == "down" %}&#9660;{% else %}&#8212;{% endif %}
+          {{ row.pct_str }}
+        </div>
+      </div>
+      {% endfor %}
     </div>
-</div>
-
-<!-- Trust bar -->
-<div class="trust-bar">
-    <strong>Currently covering:</strong>
-    Peterhead &middot; Brixham &middot; Newlyn &middot; Scrabster &middot; Lerwick
-    &nbsp;&mdash;&nbsp; <em>10 more ports joining</em>
-</div>
-
-<hr style="border:none;border-top:1px solid var(--border);margin:0;">
-
-<!-- Problem -->
-<div class="section">
-    <h2 class="section-title">Incomplete information costs you money</h2>
-    <p class="problem-text">
-        UK fish prices are scattered across port websites, PDFs, emailed spreadsheets, and phone calls.
-        By the time you've pieced together what's happening across the market, the best lots are gone.
-        <br><br>
-        Quayside fixes that. We scrape every public source, ingest port uploads, and normalise it all into
-        one daily comparison &mdash; species by species, port by port, with trends and alerts.
-    </p>
-</div>
-
-<!-- How it works -->
-<div class="section">
-    <h2 class="section-title">How it works</h2>
-    <p class="section-subtitle">Three steps. No apps to install. No dashboards to learn.</p>
-    <div class="steps-grid">
-        <div class="step-card">
-            <span class="step-number">1</span>
-            <h3>We collect</h3>
-            <p>Automated scrapers and port uploads pull daily prices from auction markets across the UK. Every species, every grade.</p>
-        </div>
-        <div class="step-card">
-            <span class="step-number">2</span>
-            <h3>We compare</h3>
-            <p>Species names are normalised across ports. Best prices, biggest movers, and cross-port spreads are calculated automatically.</p>
-        </div>
-        <div class="step-card">
-            <span class="step-number">3</span>
-            <h3>You get one email</h3>
-            <p>A clear, scannable digest arrives before 10am. Price tables, trend charts, and alerts &mdash; everything you need to start the day.</p>
-        </div>
+    <div class="mock-digest">
+      <div class="digest-subject">&#8593; QUAYSIDE DIGEST &mdash; {{ ld.date_upper }}</div>
+      <div class="digest-body">
+        <strong>{{ ld.port_count }} ports reporting</strong> &middot; {{ ld.species_count }} species &middot; {{ ld.price_count }} prices{% if ld.fx_str %} &middot; {{ ld.fx_str }}{% endif %}<br>
+        {% for m in ld.top_movers %}<strong>{{ m.species }}</strong> {% if m.direction == "up" %}surging{% else %}down{% endif %}{% if m.port %} at {{ m.port }}{% endif %} &pound;{{ "%.2f"|format(m.price) }}.{% if not loop.last %} {% endif %}{% endfor %} Full breakdown &#8595;
+      </div>
     </div>
-</div>
-
-<!-- Sample digest -->
-<div class="digest-preview">
-    <p style="font-size:14px;color:#888;margin-bottom:12px;">See what you'll get every morning</p>
-    <a href="{{ url_for('digest_page') }}" class="btn btn-primary">View today's digest</a>
-</div>
-
-<!-- Pricing -->
-<div class="section">
-    <h2 class="section-title">Pricing</h2>
-    <p class="section-subtitle">Start free. Upgrade when you need more.</p>
-    <div class="pricing-grid">
-        <div class="price-card">
-            <div class="tier-name">Digest</div>
-            <div class="tier-price">&pound;0</div>
-            <div class="tier-period">free forever</div>
-            <ul>
-                <li>Daily email digest</li>
-                <li>Cross-port comparison</li>
-                <li>Key species benchmarks</li>
-                <li>Biggest movers alerts</li>
-            </ul>
-        </div>
-        <div class="price-card">
-            <div class="tier-name">Skipper</div>
-            <div class="tier-price">&pound;25</div>
-            <div class="tier-period">per month</div>
-            <ul>
-                <li>Everything in Digest</li>
-                <li>WhatsApp price alerts</li>
-                <li>30-day price history</li>
-                <li>Species watchlist</li>
-            </ul>
-        </div>
-        <div class="price-card featured">
-            <div class="tier-name">Trade</div>
-            <div class="tier-price">&pound;50</div>
-            <div class="tier-period">per month</div>
-            <ul>
-                <li>Everything in Skipper</li>
-                <li>Full web dashboard</li>
-                <li>90-day history + trends</li>
-                <li>CSV data export</li>
-                <li>Custom alerts &amp; filters</li>
-            </ul>
-        </div>
-        <div class="price-card">
-            <div class="tier-name">Enterprise</div>
-            <div class="tier-price">Custom</div>
-            <div class="tier-period">contact us</div>
-            <ul>
-                <li>Everything in Trade</li>
-                <li>API access</li>
-                <li>SLA &amp; priority support</li>
-                <li>White-label options</li>
-                <li>Custom integrations</li>
-            </ul>
-        </div>
+    {% else %}
+    <div class="mock-card">
+      <div class="mock-card-header">
+        <span class="mock-card-title">Today's best prices &mdash; Haddock</span>
+        <span class="mock-tag">Launching April 2026</span>
+      </div>
+      <div class="price-row" style="opacity:0.5;">
+        <div><div class="price-species">Data arriving shortly</div><div class="price-port">Multiple UK ports</div></div>
+      </div>
     </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar" id="ports">
+  <span class="trust-label">Ports live &amp; growing</span>
+  <div class="trust-ports">
+    <span class="trust-port">Peterhead</span>
+    <span class="trust-port">Lerwick</span>
+    <span class="trust-port">Brixham</span>
+    <span class="trust-port">Newlyn</span>
+    <span class="trust-port">Scrabster</span>
+    <span class="trust-port" style="color:var(--catch);font-style:italic;">+ more joining</span>
+  </div>
 </div>
 
-<!-- Final CTA -->
-<div class="final-cta">
-    <h2>Start with the free digest</h2>
-    <p>Join buyers, sellers, and processors who get the full UK market picture every morning.</p>
-    <a href="mailto:hello@quayside.fish?subject=Sign%20me%20up%20for%20the%20digest" class="btn btn-primary btn-large">Get the daily digest</a>
-    <p class="port-link" style="margin-top:20px;">
-        Run a port or fish market? <a href="{{ url_for('for_ports') }}">Join our network &rarr;</a>
-    </p>
-</div>
-{% endblock %}
+<!-- TWO AUDIENCES -->
+<section class="audiences">
+  <div class="audiences-header fade-up">
+    <h2>Two audiences.<br><em>One platform.</em></h2>
+    <p>Whether you buy fish or sell it, Quayside has something for you.</p>
+  </div>
+  <div class="audience-grid">
+    <a href="#signup-form" class="audience-card audience-card-buyers fade-up">
+      <div class="audience-label">For buyers, merchants &amp; processors</div>
+      <div class="audience-pill">Launching April 2026</div>
+      <div class="audience-product">The Daily Digest</div>
+      <h3>A daily email with auction prices across UK ports.</h3>
+      <p>One email, every weekday morning. Prices from multiple UK ports &mdash; normalised, compared, and growing every week. Cross-port comparisons, biggest movers, best prices by species. No more checking five websites before breakfast.</p>
+      <ul>
+        <li>27 species across 5 ports today, more joining weekly</li>
+        <li>Price trends and biggest movers flagged daily</li>
+        <li>Free to start &mdash; no card, no contract</li>
+      </ul>
+      <span class="audience-cta">Sign up for early access &rarr;</span>
+    </a>
+    <a href="{{ url_for('for_ports') }}" class="audience-card audience-card-ports fade-up">
+      <div class="audience-label">For port &amp; auction operators</div>
+      <div class="audience-pill">Available now</div>
+      <div class="audience-product">The Port Dashboard</div>
+      <h3>A free dashboard for your port. Exposure to buyers across the UK.</h3>
+      <p>We build and maintain a price intelligence dashboard for your port at no cost &mdash; your full price history, trends, and how you benchmark against other markets. Your prices also get featured in the daily digest, putting your auction in front of a growing audience of UK fish buyers every morning.</p>
+      <ul>
+        <li>Full price history with trends and cross-port benchmarks</li>
+        <li>Your market featured in front of buyers every weekday morning</li>
+        <li>No cost, no contract, no setup work on your end</li>
+      </ul>
+      <span class="audience-cta">Apply for free &rarr;</span>
+    </a>
+  </div>
+</section>
+
+<!-- PROBLEM SECTION -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-label">The problem</div>
+    <div class="problem-grid">
+      <div class="problem-left fade-up">
+        <h2>The UK fish market runs on <em>incomplete information.</em></h2>
+        <p>Every morning, fish merchants across the UK make buying decisions worth thousands of pounds &mdash; often without knowing what the same species sold for at a port 200 miles away an hour earlier.</p>
+        <p>The data exists. It's just scattered across five different websites, in four different formats, updated at different times.</p>
+      </div>
+      <ul class="pain-list">
+        <li class="pain-item">
+          <span class="pain-num">01</span>
+          <span class="pain-text"><strong>Five websites, every morning.</strong> Peterhead, Lerwick, Brixham, Newlyn, Scrabster &mdash; each with different formats, different update times, different species names.</span>
+        </li>
+        <li class="pain-item">
+          <span class="pain-num">02</span>
+          <span class="pain-text"><strong>No cross-port comparison.</strong> You know what haddock costs at Peterhead. You don't know that Lerwick is 15% cheaper today unless you check both &mdash; which most merchants don't have time to do.</span>
+        </li>
+        <li class="pain-item">
+          <span class="pain-num">03</span>
+          <span class="pain-text"><strong>No history, no trends.</strong> Is this price high or low for this time of year? For this species? There's no way to know without building your own spreadsheet over months.</span>
+        </li>
+        <li class="pain-item">
+          <span class="pain-num">04</span>
+          <span class="pain-text"><strong>No equivalent product exists.</strong> This is not a solved problem. Quayside is the first UK-wide fish price aggregator.</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-inner">
+    <div class="section-label">How it works</div>
+    <div class="how-grid">
+      <div class="how-step fade-up">
+        <div class="how-num">01</div>
+        <div class="how-title">Data scraped daily</div>
+        <div class="how-body">Every morning, Quayside pulls price data from UK ports automatically &mdash; HTML tables, PDFs, Excel downloads. Normalised into a single schema. 27 species standardised across ports today, growing as we add more. GBP/EUR rate included.</div>
+      </div>
+      <div class="how-step fade-up">
+        <div class="how-num">02</div>
+        <div class="how-title">Digest hits your inbox</div>
+        <div class="how-body">Launching April 2026. A clean daily email with the prices that matter to you, delivered every weekday morning. Data arrives from ports at staggered times &mdash; Quayside publishes as it arrives, building a full picture of daily market performance by morning. Top movers. Cross-port comparisons. Anything unusual flagged.</div>
+      </div>
+      <div class="how-step fade-up">
+        <div class="how-num">03</div>
+        <div class="how-title">Dashboard + chat for Trade</div>
+        <div class="how-body">Trade subscribers get full dashboard access &mdash; 90-day price history, species and port filters, CSV export. Plus an AI chat interface. Ask questions in plain English and get answers from the data.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHAT SECTION -->
+<section class="chat-section">
+  <div class="chat-left fade-up">
+    <h2>Ask your data <em>questions.</em></h2>
+    <p>Trade tier subscribers get access to a Claude-powered chat interface built on top of the full price database. Ask anything.</p>
+    <p>No SQL. No spreadsheets. Just a question in plain English and an answer drawn from live market data. Query via the dashboard or WhatsApp &mdash; whichever suits you.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+      <div class="chat-badge">&#9670; Dashboard</div>
+      <div class="chat-badge">&#9670; WhatsApp</div>
+    </div>
+  </div>
+  <div class="chat-window fade-up">
+    <div class="chat-topbar">
+      <div class="chat-dots">
+        <div class="chat-dot"></div>
+        <div class="chat-dot"></div>
+        <div class="chat-dot"></div>
+      </div>
+      <span class="chat-title">Quayside &mdash; Ask the market</span>
+    </div>
+    <div class="chat-body">
+      <div class="chat-msg user">Where's haddock cheapest today?</div>
+      <div class="chat-msg assistant">
+        <strong>Peterhead A1 at &pound;2.37/kg</strong> is your cheapest today. <span class="highlight">Scrabster jumped 17% to &pound;2.58/kg</span>, Lerwick is up 7% to &pound;2.47, and Brixham grade 1 is up 3% to &pound;2.40 &mdash; the whole market is firming.
+      </div>
+      <div class="chat-msg user">What's moving most across all ports?</div>
+      <div class="chat-msg assistant">
+        <strong>Halibut is surging.</strong> Up 18% at Scrabster to <span class="highlight">&pound;12.47/kg</span> and 20% at Peterhead A2. On the downside, whiting dropped 17% at Peterhead A1 to &pound;1.31/kg. Brill is strong at Brixham &mdash; up 11% to &pound;8.92.
+      </div>
+    </div>
+    <div class="chat-input-bar">
+      <div class="chat-input-mock">Ask about any species, port or price trend...</div>
+      <button class="chat-send">&#8593;</button>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div class="section-label">Pricing</div>
+  <div class="pricing-header">
+    <h2>Simple. Honest pricing.</h2>
+    <p>Start free. Upgrade when Quayside earns it.</p>
+  </div>
+  <div class="pricing-grid">
+    <!-- Digest — Free -->
+    <div class="plan">
+      <div class="plan-badge">Launching April 2026</div>
+      <div class="plan-name">Digest</div>
+      <div class="plan-audience">Everyone</div>
+      <div class="plan-price">
+        <div class="plan-amount">&pound;0</div>
+        <div class="plan-period">free to start</div>
+      </div>
+      <ul class="plan-features">
+        <li>Daily email digest</li>
+        <li>Cross-port price comparison</li>
+        <li>27+ species, all grades</li>
+        <li>Biggest movers &amp; trends</li>
+        <li>GBP/EUR exchange rate</li>
+      </ul>
+      <a href="#signup-form" class="plan-cta">Sign up free</a>
+    </div>
+    <!-- Pro -->
+    <div class="plan">
+      <div class="plan-badge">Launching April 2026</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-audience">Skippers &middot; Agents &middot; Small buyers</div>
+      <div class="plan-price">
+        <div class="plan-amount">&pound;25</div>
+        <div class="plan-period">per month</div>
+      </div>
+      <ul class="plan-features">
+        <li>Everything in Digest</li>
+        <li>WhatsApp morning alert</li>
+        <li>Choose your target species</li>
+        <li>30-day price history</li>
+        <li>Best-port recommendations</li>
+      </ul>
+      <a href="#" class="plan-cta">Coming soon</a>
+    </div>
+    <!-- Trade — FEATURED -->
+    <div class="plan featured">
+      <div class="plan-badge">Launching April 2026</div>
+      <div class="plan-name">Trade</div>
+      <div class="plan-audience">Merchants &middot; Processors &middot; Buyers</div>
+      <div class="plan-price">
+        <div class="plan-amount">&pound;50</div>
+        <div class="plan-period">per month</div>
+      </div>
+      <ul class="plan-features">
+        <li>Everything in Pro</li>
+        <li>Full multi-port dashboard</li>
+        <li>90-day price history + trends</li>
+        <li>CSV export for procurement</li>
+        <li>Species and grade breakdown</li>
+        <li>Price alerts &mdash; email + WhatsApp</li>
+      </ul>
+      <a href="#" class="plan-cta">Coming soon</a>
+    </div>
+    <!-- Enterprise -->
+    <div class="plan">
+      <div class="plan-badge">Launching April 2026</div>
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-audience">Supermarkets &middot; Data teams &middot; Resellers</div>
+      <div class="plan-price">
+        <div class="plan-amount">Custom</div>
+        <div class="plan-period">per month</div>
+      </div>
+      <ul class="plan-features">
+        <li>API access &mdash; JSON feed, daily</li>
+        <li>Full historical dataset</li>
+        <li>Custom species coverage</li>
+        <li>SLA &amp; dedicated support</li>
+        <li>White-label available</li>
+      </ul>
+      <a href="mailto:hello@quayside.trade" class="plan-cta">Get in touch</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<section class="cta-band">
+  <h2>UK auction prices. One digest. Every morning.</h2>
+  <p>Join the buyers and merchants building the most comprehensive daily view of UK fish prices.</p>
+  <form class="cta-form" action="#" method="POST">
+    <div style="display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;">
+      <input type="email" name="email" placeholder="Your email address" required class="email-input" style="border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.95);">
+      <button type="submit" class="btn-white">Get early access</button>
+    </div>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(255,255,255,0.6);margin-top:12px;letter-spacing:0.06em;">Launching April 2026. New ports joining every week.</p>
+  </form>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Quay<span>side</span></div>
+  <ul class="footer-links">
+    <li><a href="#">Privacy</a></li>
+    <li><a href="#">Terms</a></li>
+    <li><a href="mailto:hello@quayside.trade">Contact</a></li>
+  </ul>
+  <div class="footer-copy">&copy; 2026 Quayside Data Ltd &middot; All prices indicative &middot; Sources: Peterhead, Lerwick, Brixham, Newlyn, Scrabster</div>
+</footer>
+
+<script>
+  // Scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, entry.target.dataset.delay || 0);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-up, .pain-item').forEach((el, i) => {
+    el.dataset.delay = (i % 3) * 100;
+    observer.observe(el);
+  });
+</script>
+
+</body>
+</html>

@@ -6,83 +6,107 @@
     .hub-header {
         text-align: center;
         padding: 32px 0 24px;
+        border-bottom: 1px solid var(--rule);
+        margin-bottom: 24px;
+    }
+    .hub-label {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--catch);
+        background: rgba(200,64,26,0.1);
+        border: 1px solid rgba(200,64,26,0.2);
+        padding: 4px 10px;
+        border-radius: 2px;
+        margin-bottom: 12px;
     }
     .hub-header h1 {
         font-family: var(--font-serif);
         font-size: 24px;
-        color: var(--tide);
+        font-weight: 700;
+        letter-spacing: -0.02em;
         margin-bottom: 8px;
     }
-    .hub-header p { font-size: 14px; color: #888; }
-    .hub-label {
-        display: inline-block;
-        background: var(--amber);
-        color: #fff;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        padding: 3px 10px;
-        border-radius: 4px;
-        margin-bottom: 12px;
+    .hub-header p {
+        font-size: 14px;
+        color: var(--muted);
     }
     .screen-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 16px;
+        gap: 1px;
+        background: var(--rule);
+        border: 1px solid var(--rule);
         margin-bottom: 32px;
     }
     .screen-card {
-        background: var(--cream);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 20px;
+        background: var(--foam);
+        padding: 24px;
         text-decoration: none;
         color: inherit;
-        transition: box-shadow 0.15s;
+        transition: background 0.15s;
     }
     .screen-card:hover {
-        box-shadow: 0 4px 12px rgba(26,58,74,0.1);
+        background: var(--salt);
     }
     .screen-card h3 {
+        font-family: var(--font-serif);
         font-size: 16px;
+        font-weight: 700;
         color: var(--tide);
         margin-bottom: 6px;
     }
-    .screen-card p { font-size: 13px; color: #666; }
+    .screen-card p {
+        font-size: 13px;
+        color: #5a5448;
+        line-height: 1.5;
+    }
     .screen-card .url {
         font-family: var(--font-mono);
-        font-size: 12px;
-        color: #999;
+        font-size: 10px;
+        color: var(--muted);
         margin-top: 8px;
+        letter-spacing: 0.04em;
     }
-    .port-list { margin-top: 8px; }
     .port-list h2 {
         font-family: var(--font-serif);
         font-size: 18px;
-        color: var(--tide);
+        font-weight: 700;
         margin-bottom: 12px;
     }
     .port-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 1px solid var(--border);
+        padding: 12px 0;
+        border-bottom: 1px solid var(--rule);
         font-size: 14px;
     }
     .port-row a {
         color: var(--tide);
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 500;
     }
-    .port-row a:hover { text-decoration: underline; }
+    .port-row a:hover { color: var(--catch); }
+    .port-row .region {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        margin-left: 8px;
+        letter-spacing: 0.04em;
+    }
     .port-links {
         display: flex;
-        gap: 12px;
-        font-size: 13px;
+        gap: 16px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
     }
-    .port-links a { color: var(--catch); }
+    .port-links a { color: var(--catch); text-decoration: none; }
+    .port-links a:hover { color: #a83010; }
 </style>
 {% endblock %}
 
@@ -109,6 +133,21 @@
         <p>Port marketing + onboarding. Value prop, demo, getting started steps.</p>
         <div class="url">/for-ports</div>
     </a>
+    <a href="{{ url_for('ops_dashboard') }}" class="screen-card">
+        <h3>Ops Dashboard</h3>
+        <p>Internal. Scraper health, port coverage, data gaps, auction frequency.</p>
+        <div class="url">/ops</div>
+    </a>
+    <a href="{{ url_for('weekly_digest') }}" class="screen-card">
+        <h3>Weekly Review</h3>
+        <p>5-day snapshot. Movers, benchmarks, port heatmap, cross-port spreads.</p>
+        <div class="url">/digest/weekly</div>
+    </a>
+    <a href="{{ url_for('monthly_digest') }}" class="screen-card">
+        <h3>Monthly Review</h3>
+        <p>Trends, volatility, port reliability, species availability matrix.</p>
+        <div class="url">/digest/monthly</div>
+    </a>
 </div>
 
 <div class="card port-list">
@@ -117,7 +156,7 @@
     <div class="port-row">
         <div>
             <a href="{{ url_for('port_dashboard', slug=port.slug) }}">{{ port.name }}</a>
-            <span style="color:#999;font-size:12px;margin-left:8px;">{{ port.region }}</span>
+            <span class="region">{{ port.region }}</span>
         </div>
         <div class="port-links">
             <a href="{{ url_for('port_dashboard', slug=port.slug) }}">Dashboard</a>

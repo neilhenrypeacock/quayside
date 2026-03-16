@@ -1,10 +1,54 @@
 {% extends "base.html" %}
 {% block title %}Confirm — {{ port.name }} — Quayside{% endblock %}
 
+{% block head %}
+<style>
+    .confirm-header {
+        text-align: center;
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .confirm-header h1 {
+        font-family: var(--font-serif);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    .confirm-header .meta {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        margin-top: 4px;
+    }
+    .confirm-actions {
+        text-align: center;
+        padding: 24px 0;
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+    .confirm-note {
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        margin-top: 8px;
+    }
+    .species-name {
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="text-align:center;margin-bottom:24px;">
-    <h1 style="font-family:var(--font-serif);font-size:24px;color:var(--tide);">{{ port.name }} prices</h1>
-    <p style="color:#666;font-size:14px;">{{ upload.date }} &middot; {{ prices|length }} species extracted</p>
+<div class="confirm-header">
+    <h1>{{ port.name }} prices</h1>
+    <div class="meta">{{ upload.date }} &middot; {{ prices|length }} species extracted</div>
 </div>
 
 <div class="card">
@@ -13,37 +57,37 @@
             <tr>
                 <th>Species</th>
                 <th>Grade</th>
-                <th class="price">Low</th>
-                <th class="price">High</th>
-                <th class="price">Avg</th>
+                <th class="text-right">Low</th>
+                <th class="text-right">High</th>
+                <th class="text-right">Avg</th>
             </tr>
         </thead>
         <tbody>
             {% for row in prices %}
             <tr>
-                <td>{{ row[2] }}</td>
-                <td>{{ row[3] }}</td>
+                <td><span class="species-name">{{ row[2] }}</span></td>
+                <td><span class="grade-badge">{{ row[3] }}</span></td>
                 <td class="price">{% if row[4] %}&pound;{{ "%.2f"|format(row[4]) }}{% else %}&mdash;{% endif %}</td>
                 <td class="price">{% if row[5] %}&pound;{{ "%.2f"|format(row[5]) }}{% else %}&mdash;{% endif %}</td>
-                <td class="price" style="font-weight:600;">{% if row[6] %}&pound;{{ "%.2f"|format(row[6]) }}{% else %}&mdash;{% endif %}</td>
+                <td class="price" style="font-weight:500;">{% if row[6] %}&pound;{{ "%.2f"|format(row[6]) }}{% else %}&mdash;{% endif %}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
 
-<div style="text-align:center;padding:20px 0;">
+<div class="confirm-actions">
     <form method="POST" action="{{ url_for('approve_upload', token=token) }}" style="display:inline;">
-        <button type="submit" class="btn btn-primary" style="font-size:16px;padding:14px 40px;">
+        <button type="submit" class="btn btn-primary" style="padding:14px 40px;">
             &#10003; Looks good
         </button>
     </form>
-    <a href="{{ url_for('edit_upload', token=token) }}" class="btn btn-secondary" style="font-size:16px;padding:14px 40px;margin-left:12px;">
-        &#9998; Fix something
+    <a href="{{ url_for('edit_upload', token=token) }}" class="btn btn-secondary" style="padding:14px 40px;">
+        Fix something
     </a>
 </div>
 
-<p style="text-align:center;font-size:12px;color:#999;margin-top:8px;">
+<p class="confirm-note">
     If we don't hear back within 2 hours, we'll publish this data as-is.
 </p>
 {% endblock %}

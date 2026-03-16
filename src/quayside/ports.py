@@ -14,23 +14,29 @@ logger = logging.getLogger(__name__)
 
 # Master list: (slug, name, code, region, data_method, status)
 _SEED_PORTS = [
-    # Current scraped ports
-    ("peterhead", "Peterhead", "PTH", "NE Scotland", "scraper", "active"),
-    ("lerwick", "Lerwick", "LWK", "Shetland", "scraper", "active"),
-    ("brixham", "Brixham", "BRX", "SW England", "scraper", "active"),
-    ("newlyn", "Newlyn", "NLN", "SW England", "scraper", "active"),
-    ("scrabster", "Scrabster", "SCR", "N Highlands", "scraper", "active"),
-    # Upload ports — onboarding targets
-    ("fraserburgh", "Fraserburgh", "FRB", "NE Scotland", "upload", "onboarding"),
-    ("kinlochbervie", "Kinlochbervie", "KLB", "NW Highlands", "upload", "onboarding"),
-    ("macduff", "Macduff", "MCD", "NE Scotland", "upload", "inactive"),
-    ("milford-haven", "Milford Haven", "MLF", "Wales", "upload", "inactive"),
-    ("grimsby", "Grimsby", "GRM", "E England", "upload", "inactive"),
-    ("lowestoft", "Lowestoft", "LOW", "E England", "upload", "inactive"),
-    ("eyemouth", "Eyemouth", "EYE", "SE Scotland", "upload", "inactive"),
-    ("whitby", "Whitby", "WHT", "NE England", "upload", "inactive"),
-    ("fleetwood", "Fleetwood", "FLW", "NW England", "upload", "inactive"),
-    ("kilkeel", "Kilkeel", "KIL", "N. Ireland", "upload", "inactive"),
+    # ── Live ports ──
+    # Scotland — North & Islands
+    ("lerwick", "Lerwick", "LWK", "Scotland — North & Islands", "scraper", "active"),
+    ("scrabster", "Scrabster", "SCR", "Scotland — North & Islands", "scraper", "active"),
+    # Scotland — North East
+    ("peterhead", "Peterhead", "PTH", "Scotland — North East", "scraper", "active"),
+    # England — South West
+    ("brixham", "Brixham", "BRX", "England — South West", "scraper", "active"),
+    ("newlyn", "Newlyn", "NLN", "England — South West", "scraper", "active"),
+    # ── Pipeline: priority outreach ──
+    # Scotland — priority targets (biggest ports after Peterhead)
+    ("fraserburgh", "Fraserburgh", "FRB", "Scotland — North East", "upload", "outreach"),
+    ("kinlochbervie", "Kinlochbervie", "KLB", "Scotland — North & Islands", "upload", "outreach"),
+    ("macduff", "Macduff", "MCD", "Scotland — North East", "upload", "outreach"),
+    ("eyemouth", "Eyemouth", "EYE", "Scotland — South East", "upload", "outreach"),
+    # England — priority targets
+    ("grimsby", "Grimsby", "GRM", "England — East", "upload", "outreach"),
+    ("fleetwood", "Fleetwood", "FLW", "England — North West", "upload", "outreach"),
+    # ── Future ──
+    ("lowestoft", "Lowestoft", "LOW", "England — East", "upload", "future"),
+    ("whitby", "Whitby", "WHT", "England — North East", "upload", "future"),
+    ("milford-haven", "Milford Haven", "MLF", "Wales", "upload", "future"),
+    ("kilkeel", "Kilkeel", "KIL", "Northern Ireland", "upload", "future"),
 ]
 
 

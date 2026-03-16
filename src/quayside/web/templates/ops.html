@@ -1,0 +1,684 @@
+{% extends "base.html" %}
+{% block title %}Ops — Quayside{% endblock %}
+
+{% block head %}
+<style>
+    .ops-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .ops-header h1 {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    .ops-header .ops-badge {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #fff;
+        background: var(--catch);
+        padding: 5px 12px;
+        border-radius: 2px;
+    }
+
+    /* Stats strip */
+    .stats-strip {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1px;
+        background: var(--rule);
+        border: 1px solid var(--rule);
+        margin-bottom: 24px;
+    }
+    .stat-box {
+        background: var(--foam);
+        padding: 20px;
+        text-align: center;
+    }
+    .stat-box .val {
+        font-family: var(--font-serif);
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1;
+    }
+    .stat-box .val.green { color: var(--up); }
+    .stat-box .val.red { color: var(--down); }
+    .stat-box .val.amber { color: var(--catch); }
+    .stat-box .lbl {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+
+    /* Section headers */
+    .section-head {
+        font-family: var(--font-serif);
+        font-size: 18px;
+        font-weight: 700;
+        margin: 32px 0 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--rule);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .section-head .count {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+    }
+
+    /* Scrape alerts */
+    .alert-banner {
+        background: rgba(224,112,96,0.08);
+        border: 2px solid rgba(224,112,96,0.3);
+        border-radius: 4px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+    }
+    .alert-banner.clear {
+        background: rgba(109,184,138,0.08);
+        border-color: rgba(109,184,138,0.3);
+    }
+    .alert-title {
+        font-family: var(--font-serif);
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .alert-title .alert-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--down);
+        display: inline-block;
+    }
+    .alert-banner.clear .alert-dot { background: var(--up); }
+    .alert-banner.clear .alert-title { color: var(--up); }
+    .alert-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    .alert-row {
+        display: grid;
+        grid-template-columns: 120px 100px 60px 1fr;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(224,112,96,0.12);
+        font-size: 13px;
+    }
+    .alert-row:last-child { border-bottom: none; }
+    .alert-port {
+        font-family: var(--font-serif);
+        font-weight: 700;
+    }
+    .alert-date {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+    }
+    .alert-dow {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+    }
+    .alert-reason {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        color: var(--down);
+        background: rgba(224,112,96,0.1);
+        padding: 3px 8px;
+        border-radius: 2px;
+        display: inline-block;
+    }
+    .alert-reason.holiday {
+        color: var(--catch);
+        background: rgba(200,64,26,0.08);
+    }
+    .alert-reason.pending {
+        color: var(--muted);
+        background: var(--salt);
+    }
+
+    /* Port status table */
+    .port-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    .port-table th {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 2px solid var(--rule);
+        white-space: nowrap;
+    }
+    .port-table td {
+        padding: 10px;
+        border-bottom: 1px solid var(--rule);
+        vertical-align: middle;
+    }
+    .port-table tr:hover { background: var(--foam); }
+    .port-name {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .port-code {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-left: 6px;
+    }
+    .country-header td {
+        font-family: var(--font-serif);
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--ink);
+        padding: 16px 10px 6px;
+        border-bottom: 2px solid var(--tide);
+        letter-spacing: -0.01em;
+    }
+    .region-header {
+        background: var(--foam);
+        padding: 10px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .region-header td {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 500;
+        padding: 6px 10px 6px 20px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .method-badge {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 2px;
+        display: inline-block;
+    }
+    .method-badge.scraper { background: rgba(26,58,74,0.1); color: var(--tide); }
+    .method-badge.upload { background: rgba(200,64,26,0.1); color: var(--catch); }
+    .status-badge {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 2px;
+        display: inline-block;
+    }
+    .status-badge.active { background: rgba(109,184,138,0.15); color: var(--up); }
+    .status-badge.outreach { background: rgba(200,64,26,0.12); color: var(--catch); }
+    .status-badge.future { background: var(--salt); color: var(--muted); }
+
+    /* Coverage heatmap */
+    .coverage-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+    }
+    .coverage-table th {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        text-align: center;
+        padding: 6px 4px;
+        border-bottom: 2px solid var(--rule);
+        white-space: nowrap;
+    }
+    .coverage-table th:first-child { text-align: left; }
+    .coverage-table td {
+        padding: 6px 4px;
+        border-bottom: 1px solid var(--rule);
+        text-align: center;
+    }
+    .coverage-table td:first-child {
+        text-align: left;
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    .week-divider {
+        border-left: 2px solid var(--rule);
+    }
+    .week-label-row th {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--tide);
+        letter-spacing: 0.08em;
+        padding: 8px 4px 2px;
+        border-bottom: none;
+    }
+    .cov-cell {
+        display: inline-block;
+        width: 32px;
+        height: 28px;
+        line-height: 28px;
+        border-radius: 2px;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        font-weight: 500;
+        text-align: center;
+    }
+    .cov-cell.ok { background: rgba(109,184,138,0.2); color: var(--up); }
+    .cov-cell.miss { background: rgba(224,112,96,0.15); color: var(--down); }
+    .cov-cell.weekend { background: var(--salt); color: var(--rule); }
+    .cov-cell.today { border: 2px solid var(--tide); }
+    .cov-cell.future { background: none; color: var(--rule); }
+
+    /* Frequency table */
+    .freq-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    .freq-table th {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-align: center;
+        padding: 8px 6px;
+        border-bottom: 2px solid var(--rule);
+    }
+    .freq-table th:first-child, .freq-table th:nth-child(7), .freq-table th:last-child { text-align: left; }
+    .freq-table td {
+        padding: 10px 6px;
+        border-bottom: 1px solid var(--rule);
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: 11px;
+    }
+    .freq-table td:first-child {
+        text-align: left;
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .freq-table td:nth-child(7), .freq-table td:last-child {
+        text-align: left;
+        font-size: 11px;
+        color: var(--muted);
+    }
+    .dow-cell {
+        display: inline-block;
+        width: 26px;
+        height: 26px;
+        line-height: 26px;
+        border-radius: 2px;
+        font-size: 9px;
+        font-weight: 500;
+    }
+    .dow-cell.active { background: rgba(109,184,138,0.25); color: var(--up); }
+    .dow-cell.rare { background: rgba(200,64,26,0.08); color: var(--muted); }
+    .dow-cell.none { background: var(--salt); color: var(--rule); }
+
+    /* Gaps / errors */
+    .gap-list {
+        list-style: none;
+        padding: 0;
+    }
+    .gap-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--rule);
+        font-size: 13px;
+    }
+    .gap-item .gap-icon {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--down);
+        flex-shrink: 0;
+    }
+    .gap-item .gap-port {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        min-width: 100px;
+    }
+    .gap-item .gap-date {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+    }
+    .gap-item .gap-type {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--down);
+        background: rgba(224,112,96,0.1);
+        padding: 2px 8px;
+        border-radius: 2px;
+    }
+
+    .no-issues {
+        text-align: center;
+        padding: 24px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--up);
+        background: rgba(109,184,138,0.08);
+        border: 1px solid rgba(109,184,138,0.2);
+        border-radius: 2px;
+    }
+
+    @media (max-width: 800px) {
+        .stats-strip { grid-template-columns: repeat(2, 1fr); }
+        .coverage-table { font-size: 9px; }
+        .cov-cell { width: 22px; height: 22px; line-height: 22px; font-size: 8px; }
+        .alert-row { grid-template-columns: 1fr 1fr; gap: 4px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ops-header">
+    <div>
+        <h1>Ops Dashboard</h1>
+    </div>
+    <span class="ops-badge">Internal</span>
+</div>
+
+<!-- Scrape Alerts — prominent at top -->
+<div class="alert-banner {% if scrape_alerts|length == 0 %}clear{% endif %}">
+    <div class="alert-title">
+        <span class="alert-dot"></span>
+        {% if scrape_alerts|length == 0 %}
+            All scrapes healthy — no missing data
+        {% else %}
+            {{ scrape_alerts|length }} missing data point{{ 's' if scrape_alerts|length != 1 }} (last 2 weeks)
+        {% endif %}
+    </div>
+    {% if scrape_alerts %}
+    <div class="alert-grid">
+        {% for alert in scrape_alerts %}
+        <div class="alert-row">
+            <span class="alert-port">{{ alert.port }}</span>
+            <span class="alert-date">{{ alert.date }}</span>
+            <span class="alert-dow">{{ alert.dow }}</span>
+            <span class="alert-reason {% if 'holiday' in alert.reason|lower %}holiday{% elif 'not yet' in alert.reason|lower %}pending{% endif %}">{{ alert.reason }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Stats strip -->
+<div class="stats-strip">
+    <div class="stat-box">
+        <div class="val">{{ active_port_names|length }}</div>
+        <div class="lbl">Active ports</div>
+    </div>
+    <div class="stat-box">
+        <div class="val">{{ ports|length }}</div>
+        <div class="lbl">Total ports</div>
+    </div>
+    <div class="stat-box">
+        <div class="val">{{ "{:,}".format(total_records) }}</div>
+        <div class="lbl">Price records</div>
+    </div>
+    <div class="stat-box">
+        <div class="val">{{ total_dates }}</div>
+        <div class="lbl">Days of data</div>
+    </div>
+    <div class="stat-box">
+        <div class="val {% if scrape_alerts|length == 0 %}green{% elif scrape_alerts|length <= 3 %}amber{% else %}red{% endif %}">{{ scrape_alerts|length }}</div>
+        <div class="lbl">Alerts (2 weeks)</div>
+    </div>
+</div>
+
+<!-- Data Coverage Heatmap — by week -->
+<div class="card">
+    <div class="section-head">
+        Data Coverage — Last 3 Weeks
+        <span class="count">Species count per day &middot; weekends greyed out</span>
+    </div>
+    {% for week in weeks %}
+    <div style="margin-bottom:2px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--tide);{% if not loop.first %}margin-top:12px;{% endif %}">{{ week.label }}</div>
+    <table class="coverage-table" style="margin-bottom:0;">
+        <thead>
+            <tr>
+                <th style="min-width:100px;"></th>
+                {% for dd in week.dates %}
+                <th>{{ dd.dow_name }}<br>{{ dd.day_num }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for port_name in active_port_names %}
+            <tr>
+                <td>{{ port_name }}</td>
+                {% for dd in week.dates %}
+                <td>
+                    {% if dd.is_weekend %}
+                    <span class="cov-cell weekend{% if dd.is_today %} today{% endif %}">—</span>
+                    {% elif port_coverage.get(port_name, {}).get(dd.date_str) %}
+                    <span class="cov-cell ok{% if dd.is_today %} today{% endif %}">{{ port_coverage[port_name][dd.date_str].species }}</span>
+                    {% else %}
+                    <span class="cov-cell miss{% if dd.is_today %} today{% endif %}">—</span>
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+</div>
+
+<!-- Live Ports -->
+<div class="card">
+    <div class="section-head">
+        Live Ports
+        <span class="count">{{ live_ports|length }} ports with active data feeds</span>
+    </div>
+    <table class="port-table">
+        <thead>
+            <tr>
+                <th>Port</th>
+                <th>Method</th>
+                <th>Species</th>
+                <th>Last data</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set ns = namespace(current_country='') %}
+            {% for region, region_ports in live_by_region.items() %}
+            {% set country = region.split(' — ')[0] if ' — ' in region else region %}
+            {% set sub_region = region.split(' — ')[1] if ' — ' in region else '' %}
+            {% if country != ns.current_country %}
+            {% set ns.current_country = country %}
+            <tr class="country-header">
+                <td colspan="4">{{ country }}</td>
+            </tr>
+            {% endif %}
+            {% if sub_region %}
+            <tr class="region-header">
+                <td colspan="4">{{ sub_region }}</td>
+            </tr>
+            {% endif %}
+            {% for port in region_ports %}
+            <tr>
+                <td>
+                    <span class="port-name">{{ port.name }}</span>
+                    <span class="port-code">{{ port.code }}</span>
+                </td>
+                <td><span class="method-badge {{ port.data_method }}">{{ port.data_method }}</span></td>
+                <td style="font-family:var(--font-mono);font-size:12px;">{{ species_per_port.get(port.name, '—') }}</td>
+                <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">
+                    {% if port_coverage.get(port.name) %}
+                        {{ port_coverage[port.name].keys()|list|sort|last }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pipeline -->
+<div class="card">
+    <div class="section-head">
+        Pipeline
+        <span class="count">{{ pipeline_ports|length }} ports &middot; outreach &amp; future targets</span>
+    </div>
+    <table class="port-table">
+        <thead>
+            <tr>
+                <th>Port</th>
+                <th>Region</th>
+                <th>Status</th>
+                <th>Method</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set ns2 = namespace(current_status='') %}
+            {% for port in pipeline_ports %}
+            {% if port.status != ns2.current_status %}
+            {% set ns2.current_status = port.status %}
+            <tr class="country-header">
+                <td colspan="4">{{ 'Priority Outreach' if port.status == 'outreach' else 'Future' }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td>
+                    <span class="port-name">{{ port.name }}</span>
+                    <span class="port-code">{{ port.code }}</span>
+                </td>
+                <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">{{ port.region }}</td>
+                <td><span class="status-badge {{ port.status }}">{{ port.status }}</span></td>
+                <td><span class="method-badge {{ port.data_method }}">{{ port.data_method }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Auction Frequency -->
+<div class="card">
+    <div class="section-head">
+        Auction Frequency
+        <span class="count">Based on last 90 days of data</span>
+    </div>
+    <table class="freq-table">
+        <thead>
+            <tr>
+                <th>Port</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Pattern</th>
+                <th>Known schedule</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for port_name in active_port_names %}
+            {% set freq = port_frequency.get(port_name, {}) %}
+            <tr>
+                <td>{{ port_name }}</td>
+                {% for dow in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] %}
+                <td>
+                    {% set count = freq.get(dow, 0) %}
+                    <span class="dow-cell {% if count >= 8 %}active{% elif count >= 3 %}rare{% else %}none{% endif %}">
+                        {{ count }}
+                    </span>
+                </td>
+                {% endfor %}
+                <td>{{ classify_frequency(freq) }}</td>
+                <td style="font-size:10px;">{{ known_schedules.get(port_name, '—') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Data Gaps & Errors -->
+<div class="card">
+    <div class="section-head">
+        Data Gaps &amp; Errors
+        <span class="count">Last 10 weekdays, active ports only</span>
+    </div>
+    {% if gaps %}
+    <ul class="gap-list">
+        {% for gap in gaps %}
+        <li class="gap-item">
+            <span class="gap-icon"></span>
+            <span class="gap-port">{{ gap.port }}</span>
+            <span class="gap-date">{{ gap.date }}</span>
+            <span class="gap-type">{{ gap.type }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="no-issues">All active ports have data for the last 10 weekdays</div>
+    {% endif %}
+</div>
+
+<!-- Upload Stats -->
+<div class="card">
+    <div class="section-head">
+        Upload &amp; HITL Stats
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);">
+        <div class="stat-box">
+            <div class="val">{{ upload_summary.get('confirmed', 0) }}</div>
+            <div class="lbl">Confirmed</div>
+        </div>
+        <div class="stat-box">
+            <div class="val">{{ upload_summary.get('pending', 0) }}</div>
+            <div class="lbl">Pending</div>
+        </div>
+        <div class="stat-box">
+            <div class="val">{{ upload_summary.get('auto_published', 0) }}</div>
+            <div class="lbl">Auto-published</div>
+        </div>
+        <div class="stat-box">
+            <div class="val">{{ correction_count }}</div>
+            <div class="lbl">Corrections</div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

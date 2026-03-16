@@ -355,6 +355,109 @@ def build_report_data(date: str) -> dict:
     }
 
 
+def build_landing_data(date: str) -> dict:
+    """Build the minimal data set needed by the landing page hero section.
+
+    Computes per-port Haddock prices with individual day-over-day % changes
+    (build_report_data only gives the cross-port best, not per-port splits),
+    plus top-mover highlight data and stats for the mock digest panel.
+    """
+    data = build_report_data(date)
+
+    # --- Load previous day's prices once (used for both haddock rows + ticker) ---
+    prev_date = get_previous_date(date)
+    # Best price per (port, canonical_species) on the previous day
+    prev_port_species: dict[tuple[str, str], float] = {}
+    if prev_date:
+        prev_rows = get_all_prices_for_date(prev_date)
+        for r in prev_rows:
+            _, port, raw_species, _grade, _low, _high, avg = r
+            if avg:
+                key = (port, normalise_species(raw_species))
+                if key not in prev_port_species or avg > prev_port_species[key]:
+                    prev_port_species[key] = avg
+
+    # Convenience: per-port previous best for Haddock specifically
+    prev_port_haddock = {
+        port: price
+        for (port, species), price in prev_port_species.items()
+        if species == "Haddock"
+    }
+
+    haddock_rows = []
+    for item in data["prices_by_species"]:
+        if item["species"] == "Haddock":
+            for entry in item["rows"]:
+                port = entry["port"]
+                price = entry["price_avg"]
+                grade = entry["grade"] or ""
+                prev = prev_port_haddock.get(port)
+
+                direction, pct_str, arrow = "flat", "—", "—"
+                if prev and prev > 0:
+                    pct = round(((price - prev) / prev) * 100)
+                    direction = "up" if pct > 0 else ("down" if pct < 0 else "flat")
+                    sign = "+" if pct > 0 else ""
+                    pct_str = f"{sign}{pct}%"
+                    arrow = "▲" if pct > 0 else ("▼" if pct < 0 else "—")
+
+                haddock_rows.append({
+                    "port_label": f"{port} · {grade}" if grade else port,
+                    "price": price,
+                    "pct_str": pct_str,
+                    "direction": direction,
+                    "arrow": arrow,
+                })
+            break
+
+    haddock_rows.sort(key=lambda r: r["price"], reverse=True)
+
+    # --- Top movers with port attribution ---
+    # movers have no port field; find which port carries the best price today
+    species_top_port: dict[str, tuple[str, float]] = {}
+    for item in data["prices_by_species"]:
+        if item["rows"]:
+            best = item["rows"][0]  # already sorted price desc
+            species_top_port[item["species"]] = (best["port"], best["price_avg"])
+
+    top_movers = []
+    for m in data["movers"][:3]:
+        port, price = species_top_port.get(m["species"], ("", m["price"]))
+        top_movers.append({
+            "species": m["species"],
+            "price": price,
+            "port": port,
+            "pct_str": m["pct_str"],
+            "direction": m["direction"],
+        })
+
+    # --- Ticker items with per-port day-over-day direction ---
+    ticker_items = []
+    for item in data["ticker_items"]:
+        prev = prev_port_species.get((item["port"], item["species"]))
+        if prev and prev > 0:
+            pct = (item["price"] - prev) / prev * 100
+            direction = "up" if pct > 0.5 else ("down" if pct < -0.5 else "flat")
+        else:
+            direction = "flat"
+        ticker_items.append({**item, "direction": direction})
+
+    fx_str = None
+    if data["fx_rate"] and data["fx_rate"].get("rate"):
+        fx_str = f"GBP/EUR {data['fx_rate']['rate']:.2f}"
+
+    return {
+        "date_upper": data["report_date_short"].upper(),
+        "port_count": len(data["ports_reporting"]),
+        "species_count": data["total_species"],
+        "price_count": data["total_rows"],
+        "haddock_rows": haddock_rows[:5],
+        "ticker_items": ticker_items,
+        "top_movers": top_movers,
+        "fx_str": fx_str,
+    }
+
+
 def generate_report(date: str | None = None) -> Path:
     """Generate the HTML digest report for the given date (or latest).
 

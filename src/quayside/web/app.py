@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sqlite3
 from datetime import datetime
 from pathlib import Path
 
@@ -15,6 +16,7 @@ import jinja2
 from flask import (
     Flask,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -29,10 +31,15 @@ from quayside.db import (
     get_all_ports,
     get_latest_date,
     get_market_averages_for_date,
+    get_market_averages_for_range,
     get_port,
     get_port_by_token,
     get_port_prices_history,
     get_prices_by_date,
+    get_prices_for_date_range,
+    get_same_day_last_week,
+    get_species_availability_gaps,
+    get_seasonal_comparison,
     get_upload,
     init_db,
     log_correction,
@@ -40,10 +47,11 @@ from quayside.db import (
     upsert_prices_with_upload,
 )
 from quayside.extractors import extract_from_file
+from quayside.review import build_monthly_data, build_weekly_data
 from quayside.models import PriceRecord
 from quayside.ports import seed_ports
-from quayside.report import build_report_data
-from quayside.species import normalise_species
+from quayside.report import build_landing_data, build_report_data
+from quayside.species import get_all_canonical_names, normalise_species
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +76,15 @@ def create_app() -> Flask:
         seed_ports()
         seed_demo_data()
 
+    @app.context_processor
+    def inject_ticker():
+        """Make ticker data available to all templates via base.html."""
+        date = get_latest_date()
+        if date:
+            ld = build_landing_data(date)
+            return {"_ticker_items": ld.get("ticker_items", []) if ld else []}
+        return {"_ticker_items": []}
+
     @app.route("/")
     def index():
         """Staging hub — links to all screens."""
@@ -77,7 +94,9 @@ def create_app() -> Flask:
     @app.route("/landing")
     def landing():
         """Subscriber-focused marketing page."""
-        return render_template("landing.html")
+        date = get_latest_date()
+        ld = build_landing_data(date) if date else None
+        return render_template("landing.html", ld=ld)
 
     @app.route("/for-ports")
     def for_ports():
@@ -98,6 +117,20 @@ def create_app() -> Flask:
         digest_html = digest_template.render(**data)
         # Wrap in a simple page with nav
         return render_template("digest_wrapper.html", digest_html=digest_html, date=date)
+
+    @app.route("/digest/weekly")
+    @app.route("/digest/weekly/<date>")
+    def weekly_digest(date: str | None = None):
+        """Weekly review — 5-day snapshot with movers, benchmarks, spreads."""
+        data = build_weekly_data(date)
+        return render_template("weekly.html", data=data)
+
+    @app.route("/digest/monthly")
+    @app.route("/digest/monthly/<year_month>")
+    def monthly_digest(year_month: str | None = None):
+        """Monthly review — trends, volatility, reliability, availability."""
+        data = build_monthly_data(year_month)
+        return render_template("monthly.html", data=data)
 
     @app.route("/port/<slug>")
     def port_dashboard(slug: str):
@@ -121,6 +154,9 @@ def create_app() -> Flask:
         # Get market averages for comparison
         market = get_market_averages_for_date(date)
 
+        # Get same-day-last-week prices for delta comparison
+        last_week_prices = get_same_day_last_week(port["name"], date)
+
         # Normalise and build dashboard data
         today_data = []
         for row in port_prices:
@@ -135,6 +171,7 @@ def create_app() -> Flask:
                 market_max = market_info["max"]
                 is_best = avg >= market_max
                 is_below = avg < market_avg * 0.95  # 5% below market avg
+                vs_pct = round(((avg - market_avg) / market_avg) * 100, 1)
                 position = {
                     "market_avg": round(market_avg, 2),
                     "market_min": round(market_min, 2),
@@ -142,21 +179,112 @@ def create_app() -> Flask:
                     "port_count": market_info["port_count"],
                     "is_best": is_best,
                     "is_below": is_below,
+                    "vs_pct": vs_pct,
                     "pct_of_range": _pct_in_range(avg, market_min, market_max),
                 }
 
+            # Same-day-last-week delta for this species/grade
+            lw = last_week_prices.get((species, grade))
+            vs_last_week = None
+            if lw and lw["price_avg"] and avg:
+                vs_last_week = round(
+                    ((avg - lw["price_avg"]) / lw["price_avg"]) * 100, 1
+                )
+
             today_data.append({
                 "species": canonical,
+                "raw_species": species,
                 "grade": grade,
                 "price_low": low,
                 "price_high": high,
                 "price_avg": avg,
                 "position": position,
+                "vs_last_week": vs_last_week,
             })
 
-        # Get 30-day history for trend chart
-        history = get_port_prices_history(port["name"], days=30)
+        # Get 90-day history for trend chart (supports 7d/30d/90d toggles)
+        history = get_port_prices_history(port["name"], days=90)
         trend_data = _build_trend_data(history)
+
+        # Build best performers and insights
+        best_performers = _build_best_performers(port["name"], date, days=30)
+        all_insights = _build_insights(port["name"], date, today_data, history)
+
+        # ── Hero summary stats ──
+        avg_prices = [
+            item["price_avg"] for item in today_data if item["price_avg"]
+        ]
+        hero_avg_price = round(
+            sum(avg_prices) / len(avg_prices), 2
+        ) if avg_prices else None
+
+        hero_species_count = len(today_data)
+
+        above_count = sum(
+            1 for item in today_data
+            if item["position"] and item["position"]["vs_pct"] > 0
+        )
+
+        # Today vs same day last week (aggregate delta)
+        hero_vs_last_week = None
+        if last_week_prices:
+            lw_avgs = [
+                v["price_avg"] for v in last_week_prices.values()
+                if v["price_avg"]
+            ]
+            if lw_avgs and avg_prices:
+                lw_overall = sum(lw_avgs) / len(lw_avgs)
+                today_overall = sum(avg_prices) / len(avg_prices)
+                if lw_overall > 0:
+                    hero_vs_last_week = round(
+                        ((today_overall - lw_overall) / lw_overall) * 100, 1
+                    )
+
+        # Today vs UK market average (aggregate delta)
+        hero_vs_market = None
+        all_market_avgs = [
+            info["avg"] for info in market.values() if info.get("avg")
+        ]
+        if all_market_avgs and avg_prices:
+            market_overall = sum(all_market_avgs) / len(all_market_avgs)
+            port_overall = sum(avg_prices) / len(avg_prices)
+            if market_overall > 0:
+                hero_vs_market = round(
+                    ((port_overall - market_overall) / market_overall) * 100, 1
+                )
+
+        # ── Grade mix: group rows by species for expandable view ──
+        from collections import OrderedDict
+        species_grades = OrderedDict()
+        for item in today_data:
+            sp = item["species"]
+            if sp not in species_grades:
+                species_grades[sp] = []
+            species_grades[sp].append(item)
+
+        # ── Species availability gaps ──
+        species_gaps = [
+            normalise_species(s)
+            for s in get_species_availability_gaps(port["name"], date)
+        ]
+
+        # ── Seasonal comparison ──
+        seasonal_raw = get_seasonal_comparison(port["name"], date)
+        seasonal_data = {
+            normalise_species(sp): price
+            for sp, price in seasonal_raw.items()
+        }
+        has_seasonal = bool(seasonal_data)
+
+        # ── Day name for "vs last [day]" column header ──
+        from datetime import datetime as dt
+        try:
+            day_name = dt.strptime(date, "%Y-%m-%d").strftime("%A")[:3]
+        except ValueError:
+            day_name = "Week"
+
+        # ── Performance overview: week-over-week & month-over-month ──
+        perf = _build_performance_overview(port["name"], date, history, market)
 
         response = app.make_response(render_template(
             "dashboard.html",
@@ -164,7 +292,20 @@ def create_app() -> Flask:
             date=date,
             today_data=today_data,
             trend_data=json.dumps(trend_data),
-            total_species=len(today_data),
+            total_species=hero_species_count,
+            best_performers=best_performers,
+            port_insights=all_insights["port"],
+            market_insights=all_insights["market"],
+            above_count=above_count,
+            hero_avg_price=hero_avg_price,
+            hero_vs_last_week=hero_vs_last_week,
+            hero_vs_market=hero_vs_market,
+            species_grades=species_grades,
+            species_gaps=species_gaps,
+            seasonal_data=seasonal_data,
+            has_seasonal=has_seasonal,
+            day_name=day_name,
+            perf=perf,
         ))
 
         # Set auth cookie if token in query string
@@ -306,6 +447,294 @@ def create_app() -> Flask:
 
         return redirect(url_for("port_dashboard", slug=port["slug"]))
 
+    @app.route("/ops")
+    def ops_dashboard():
+        """Internal ops dashboard — scraper health, port status, data coverage."""
+        from collections import defaultdict, OrderedDict
+        from datetime import datetime as dt, timedelta
+
+        conn = __import__("quayside.db", fromlist=["get_connection"]).get_connection()
+
+        # All ports
+        conn.row_factory = sqlite3.Row
+        all_ports = [dict(r) for r in conn.execute("SELECT * FROM ports ORDER BY region, name").fetchall()]
+
+        # Group ports by region — geographic order (north to south)
+        _REGION_ORDER = [
+            "Scotland — North & Islands",
+            "Scotland — North East",
+            "Scotland — South East",
+            "England — North East",
+            "England — North West",
+            "England — East",
+            "England — South West",
+            "Wales",
+            "Northern Ireland",
+        ]
+        _region_rank = {r: i for i, r in enumerate(_REGION_ORDER)}
+
+        # Split into live vs pipeline
+        live_ports = [p for p in all_ports if p["status"] == "active"]
+        pipeline_ports = [p for p in all_ports if p["status"] in ("outreach", "future")]
+        # Pipeline: outreach first, then future — Scotland before England within each
+        _status_rank = {"outreach": 0, "future": 1}
+        pipeline_ports.sort(key=lambda p: (
+            _status_rank.get(p["status"], 99),
+            _region_rank.get(p["region"], 99),
+            p["name"],
+        ))
+
+        # Build region-grouped dict for live ports only
+        live_by_region: dict[str, list[dict]] = OrderedDict()
+        for p in sorted(live_ports, key=lambda p: (_region_rank.get(p["region"], 99), p["name"])):
+            live_by_region.setdefault(p["region"], []).append(p)
+
+        # Keep full region grouping for other uses
+        ports_by_region: dict[str, list[dict]] = OrderedDict()
+        for p in sorted(all_ports, key=lambda p: (_region_rank.get(p["region"], 99), p["name"])):
+            ports_by_region.setdefault(p["region"], []).append(p)
+
+        # Last 21 days of price data per port (3 full weeks)
+        daily_data = conn.execute(
+            """SELECT date, port, COUNT(DISTINCT species) as species_count,
+                      COUNT(*) as record_count, MIN(scraped_at) as first_scraped
+               FROM prices
+               WHERE date >= date('now', '-21 days')
+               GROUP BY date, port
+               ORDER BY date DESC, port"""
+        ).fetchall()
+
+        # Build per-port coverage map: {port: {date: {species, records, scraped_at}}}
+        port_coverage: dict[str, dict[str, dict]] = defaultdict(dict)
+        for row in daily_data:
+            port_coverage[row["port"]][row["date"]] = {
+                "species": row["species_count"],
+                "records": row["record_count"],
+                "scraped_at": row["first_scraped"],
+            }
+
+        # Build week-structured dates: current week (Mon-Sun) + 2 previous weeks
+        today = dt.now()
+        # Find Monday of current week
+        current_monday = today - timedelta(days=today.weekday())
+        weeks = []  # list of {label, dates: [{date_str, dow_name, is_today, is_weekend}]}
+        for week_offset in range(3):
+            monday = current_monday - timedelta(weeks=week_offset)
+            week_dates = []
+            for day_offset in range(7):
+                d = monday + timedelta(days=day_offset)
+                if d > today:
+                    continue  # don't show future dates
+                week_dates.append({
+                    "date_str": d.strftime("%Y-%m-%d"),
+                    "dow_name": d.strftime("%a"),
+                    "day_num": d.strftime("%d"),
+                    "is_today": d.date() == today.date(),
+                    "is_weekend": d.weekday() >= 5,
+                })
+            if week_dates:
+                label = f"w/c {monday.strftime('%d %b')}"
+                weeks.append({"label": label, "dates": week_dates})
+
+        # Flat list of all dates for coverage (newest first)
+        all_coverage_dates = []
+        for week in weeks:
+            for dd in week["dates"]:
+                all_coverage_dates.append(dd["date_str"])
+
+        # Unique species per port (all time)
+        species_per_port = {}
+        for row in conn.execute(
+            """SELECT port, COUNT(DISTINCT species) as species_count
+               FROM prices GROUP BY port"""
+        ).fetchall():
+            species_per_port[row["port"]] = row["species_count"]
+
+        # Total records
+        totals = conn.execute(
+            "SELECT COUNT(*) as total, COUNT(DISTINCT date) as dates FROM prices"
+        ).fetchone()
+
+        # Active ports
+        active_port_names = [p["name"] for p in all_ports if p["status"] == "active"]
+
+        # --- Scrape Alerts: detect empty/missing scrapes for current + last week ---
+        # Expected auction days per port (based on known schedules)
+        expected_auction_days = {
+            "Peterhead": {0, 1, 2, 3, 4},    # Mon-Fri
+            "Brixham": {0, 1, 2, 3, 4},       # Mon-Fri
+            "Newlyn": {0, 1, 2, 3, 4},         # Mon-Fri
+            "Scrabster": {0, 1, 2, 3, 4},      # Mon-Fri
+            "Lerwick": {0, 1, 2, 3, 4},         # Mon-Fri (variable landings)
+        }
+
+        scrape_alerts = []
+        # Check current week + last week (only past dates)
+        check_start = current_monday - timedelta(weeks=1)
+        d = check_start
+        while d <= today:
+            date_str = d.strftime("%Y-%m-%d")
+            dow = d.weekday()
+            is_today = d.date() == today.date()
+
+            for port_name in active_port_names:
+                expected_days = expected_auction_days.get(port_name, {0, 1, 2, 3, 4})
+                has_data = date_str in port_coverage.get(port_name, {})
+
+                if dow >= 5:
+                    continue  # skip weekends — no auctions expected
+
+                if not has_data and dow in expected_days:
+                    # Determine reason
+                    if is_today:
+                        # Check if any port has data today
+                        any_port_today = any(
+                            date_str in port_coverage.get(pn, {})
+                            for pn in active_port_names
+                        )
+                        if any_port_today:
+                            reason = "Scrape returned empty"
+                        else:
+                            reason = "Not yet scraped today"
+                    else:
+                        # Past weekday with no data
+                        any_port_that_day = any(
+                            date_str in port_coverage.get(pn, {})
+                            for pn in active_port_names
+                        )
+                        if not any_port_that_day:
+                            reason = "Public holiday — no auctions"
+                        else:
+                            reason = "No data published"
+                    scrape_alerts.append({
+                        "port": port_name,
+                        "date": date_str,
+                        "dow": d.strftime("%a"),
+                        "reason": reason,
+                        "is_today": is_today,
+                    })
+            d += timedelta(days=1)
+
+        # Sort alerts: today first, then most recent
+        scrape_alerts.sort(key=lambda a: (not a["is_today"], a["date"]), reverse=False)
+        scrape_alerts.sort(key=lambda a: a["date"], reverse=True)
+
+        # Auction frequency analysis: which days of the week does each port have data?
+        dow_data = conn.execute(
+            """SELECT port,
+                      CASE CAST(strftime('%w', date) AS INTEGER)
+                        WHEN 0 THEN 'Sun' WHEN 1 THEN 'Mon' WHEN 2 THEN 'Tue'
+                        WHEN 3 THEN 'Wed' WHEN 4 THEN 'Thu' WHEN 5 THEN 'Fri'
+                        WHEN 6 THEN 'Sat' END as dow,
+                      COUNT(DISTINCT date) as count
+               FROM prices
+               WHERE date >= date('now', '-90 days')
+               GROUP BY port, strftime('%w', date)
+               ORDER BY port, strftime('%w', date)"""
+        ).fetchall()
+
+        # Build frequency map: {port: {dow: count}}
+        port_frequency: dict[str, dict[str, int]] = defaultdict(dict)
+        for row in dow_data:
+            port_frequency[row["port"]][row["dow"]] = row["count"]
+
+        # Known auction schedules for display
+        known_schedules = {
+            "Peterhead": "Mon–Fri, morning auction via SWFPA",
+            "Brixham": "Mon–Fri, electronic auction",
+            "Newlyn": "Mon–Fri, morning market",
+            "Scrabster": "Mon–Fri, consignment sales",
+            "Lerwick": "Mon–Fri, varies with landings",
+        }
+
+        # Classify frequency
+        def classify_frequency(dow_counts: dict[str, int]) -> str:
+            active_days = [d for d, c in dow_counts.items() if c >= 3]
+            if len(active_days) >= 4:
+                return "Daily (Mon–Fri)"
+            elif len(active_days) == 3:
+                return f"3×/week ({', '.join(sorted(active_days))})"
+            elif len(active_days) == 2:
+                return f"2×/week ({', '.join(sorted(active_days))})"
+            elif len(active_days) == 1:
+                return f"Weekly ({active_days[0]})"
+            return "Irregular"
+
+        # Data gaps for the gap section (last 10 weekdays)
+        gaps = []
+        weekdays_checked = 0
+        d = today
+        while weekdays_checked < 10:
+            if d.weekday() < 5:
+                date_str = d.strftime("%Y-%m-%d")
+                for port_name in active_port_names:
+                    if date_str not in port_coverage.get(port_name, {}):
+                        gaps.append({"port": port_name, "date": date_str, "type": "missing"})
+                weekdays_checked += 1
+            d -= timedelta(days=1)
+
+        # Upload stats
+        upload_stats = conn.execute(
+            """SELECT status, COUNT(*) as count FROM uploads GROUP BY status"""
+        ).fetchall()
+        upload_summary = {row["status"]: row["count"] for row in upload_stats}
+
+        # Correction count
+        correction_count = conn.execute(
+            "SELECT COUNT(*) FROM extraction_corrections"
+        ).fetchone()[0]
+
+        conn.close()
+
+        return render_template(
+            "ops.html",
+            ports=all_ports,
+            ports_by_region=ports_by_region,
+            live_ports=live_ports,
+            live_by_region=live_by_region,
+            pipeline_ports=pipeline_ports,
+            port_coverage=dict(port_coverage),
+            weeks=weeks,
+            species_per_port=species_per_port,
+            total_records=totals["total"],
+            total_dates=totals["dates"],
+            active_port_names=active_port_names,
+            port_frequency=dict(port_frequency),
+            known_schedules=known_schedules,
+            classify_frequency=classify_frequency,
+            scrape_alerts=scrape_alerts,
+            gaps=gaps[:20],
+            upload_summary=upload_summary,
+            correction_count=correction_count,
+        )
+
+    @app.route("/port/<slug>/export")
+    def export_port_data(slug: str):
+        """Download all price data for this port as CSV."""
+        import csv
+        import io
+
+        port = get_port(slug)
+        if not port:
+            return "Port not found", 404
+
+        history = get_port_prices_history(port["name"], days=365)
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Date", "Species", "Grade", "Price Low", "Price High", "Price Avg"])
+        for date, species, grade, low, high, avg in history:
+            writer.writerow([date, species, grade, low, high, avg])
+
+        from flask import Response
+        return Response(
+            output.getvalue(),
+            mimetype="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename=quayside_{slug}_prices.csv",
+            },
+        )
+
     @app.route("/port/<slug>/template")
     def download_template(slug: str):
         """Download the port-specific XLSX upload template."""
@@ -320,6 +749,206 @@ def create_app() -> Flask:
             path,
             as_attachment=True,
             download_name=f"quayside_prices_{port['code'].lower()}.xlsx",
+        )
+
+    # ── Submit form ──
+
+    @app.route("/port/submit")
+    @app.route("/port/<slug>/submit")
+    def port_submit(slug: str | None = None):
+        """Price submission form — no login required."""
+        ports = get_all_ports(status="active")
+        today = datetime.now().strftime("%Y-%m-%d")
+        species_list = get_all_canonical_names()
+        selected_port = None
+        if slug:
+            port = get_port(slug)
+            if port:
+                selected_port = port["name"]
+        return render_template(
+            "submit.html", ports=ports, today=today,
+            species_list=species_list, selected_port=selected_port,
+            port_slug=slug,
+        )
+
+    # ── Ingest API ──
+
+    @app.route("/api/v1/ingest", methods=["POST"])
+    def api_ingest():
+        """Accept manual price submissions as JSON.
+
+        Payload: {port, date, rows: [{species, grade, price_avg, notes?}], overwrite?}
+        """
+        data = request.get_json(silent=True)
+        if not data:
+            return jsonify({"error": "Invalid JSON payload."}), 400
+
+        port_name = (data.get("port") or "").strip()
+        date = (data.get("date") or "").strip()
+        rows = data.get("rows") or []
+        overwrite = bool(data.get("overwrite", False))
+
+        # Validate required fields
+        if not port_name:
+            return jsonify({"error": "port is required."}), 400
+        if not date:
+            return jsonify({"error": "date is required."}), 400
+        if not rows:
+            return jsonify({"error": "At least one price row is required."}), 400
+
+        # Validate date format
+        try:
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            return jsonify({"error": "date must be YYYY-MM-DD format."}), 400
+
+        # Validate port exists
+        all_port_names = {p["name"] for p in get_all_ports()}
+        if port_name not in all_port_names:
+            return jsonify({"error": f"Unknown port: {port_name}"}), 400
+
+        # Check for duplicates unless overwrite
+        if not overwrite:
+            existing = get_prices_by_date(date, port_name)
+            if existing:
+                return jsonify({
+                    "error": f"Data already exists for {port_name} on {date} ({len(existing)} rows).",
+                }), 409
+
+        # Build PriceRecord list
+        now = datetime.now().isoformat()
+        records = []
+        errors = []
+        for i, row in enumerate(rows):
+            species = (row.get("species") or "").strip()
+            if not species:
+                errors.append(f"Row {i + 1}: species is required.")
+                continue
+            species_lower = species.lower()
+
+            grade = (row.get("grade") or "").strip()
+            price_avg = row.get("price_avg")
+
+            if price_avg is None:
+                errors.append(f"Row {i + 1}: price_avg is required.")
+                continue
+            try:
+                price_avg = round(float(price_avg), 2)
+            except (ValueError, TypeError):
+                errors.append(f"Row {i + 1}: price_avg must be a number.")
+                continue
+            if price_avg <= 0:
+                errors.append(f"Row {i + 1}: price_avg must be positive.")
+                continue
+
+            records.append(PriceRecord(
+                date=date,
+                port=port_name,
+                species=species_lower,
+                grade=grade,
+                price_low=None,
+                price_high=None,
+                price_avg=price_avg,
+                scraped_at=now,
+            ))
+
+        if errors:
+            return jsonify({"error": "Validation failed.", "details": errors}), 400
+
+        if not records:
+            return jsonify({"error": "No valid rows to insert."}), 400
+
+        # Write in a single transaction
+        from quayside.db import get_connection
+        conn = get_connection()
+        try:
+            conn.executemany(
+                """INSERT OR REPLACE INTO prices
+                   (date, port, species, grade, price_low, price_high, price_avg, scraped_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                [
+                    (r.date, r.port, r.species, r.grade,
+                     r.price_low, r.price_high, r.price_avg, r.scraped_at)
+                    for r in records
+                ],
+            )
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            logger.exception("Ingest transaction failed")
+            return jsonify({"error": "Database error.", "details": str(e)}), 500
+        finally:
+            conn.close()
+
+        return jsonify({
+            "message": f"Submitted {len(records)} prices for {port_name} on {date}.",
+            "count": len(records),
+            "port": port_name,
+            "date": date,
+        }), 201
+
+    # ── CSV Export API ──
+
+    @app.route("/api/v1/export/csv")
+    def api_export_csv():
+        """Export filtered price data as CSV download.
+
+        Query params: port (required), date_from, date_to, species, grade.
+        """
+        import csv
+        import io
+
+        port_name = request.args.get("port", "").strip()
+        if not port_name:
+            return jsonify({"error": "port query parameter is required."}), 400
+
+        date_from = request.args.get("date_from", "")
+        date_to = request.args.get("date_to", "")
+        species_filter = request.args.get("species", "").strip().lower()
+        grade_filter = request.args.get("grade", "").strip()
+
+        # Default date range: last 30 days
+        if not date_to:
+            date_to = datetime.now().strftime("%Y-%m-%d")
+        if not date_from:
+            from datetime import timedelta
+            date_from = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+
+        # Query prices
+        from quayside.db import get_connection
+        conn = get_connection()
+        query = """SELECT date, port, species, grade, price_low, price_high, price_avg
+                   FROM prices
+                   WHERE port = ? AND date >= ? AND date <= ?"""
+        params: list = [port_name, date_from, date_to]
+
+        if species_filter:
+            query += " AND LOWER(species) = ?"
+            params.append(species_filter)
+        if grade_filter:
+            query += " AND grade = ?"
+            params.append(grade_filter)
+
+        query += " ORDER BY date DESC, species, grade"
+        rows = conn.execute(query, params).fetchall()
+        conn.close()
+
+        # Build CSV
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(["Date", "Port", "Species", "Grade", "Price Low", "Price High", "Price Avg"])
+        for row in rows:
+            writer.writerow(row)
+
+        # Build filename
+        safe_port = port_name.lower().replace(" ", "_")
+        filename = f"quayside_{safe_port}_{date_from}_{date_to}.csv"
+
+        from flask import Response
+        return Response(
+            buf.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
 
     return app
@@ -359,6 +988,541 @@ def _build_trend_data(history: list[tuple]) -> dict:
             }
             for sp in top_species
         ],
+    }
+
+
+def _build_best_performers(
+    port_name: str, date: str, days: int = 30,
+) -> dict:
+    """Build strongest species and best days data for a port."""
+    from collections import defaultdict
+    from datetime import datetime as dt, timedelta
+
+    end_date = date
+    start_date = (dt.strptime(date, "%Y-%m-%d") - timedelta(days=days)).strftime("%Y-%m-%d")
+
+    # Get this port's history
+    port_history = get_port_prices_history(port_name, days=days)
+    # Get market averages for the same range
+    market_range = get_market_averages_for_range(start_date, end_date)
+
+    # Group port prices by (date, species) → best avg
+    port_by_date_species: dict[str, dict[str, float]] = defaultdict(dict)
+    for hist_date, species, _grade, _low, _high, avg in port_history:
+        if avg:
+            canonical = normalise_species(species)
+            if canonical not in port_by_date_species[hist_date] or avg > port_by_date_species[hist_date][canonical]:
+                port_by_date_species[hist_date][canonical] = avg
+
+    # --- Strongest species: % above market average over period ---
+    species_vs_market: dict[str, list[float]] = defaultdict(list)
+    species_above_count: dict[str, int] = defaultdict(int)
+    species_total_days: dict[str, int] = defaultdict(int)
+    species_avg_price: dict[str, list[float]] = defaultdict(list)
+
+    for hist_date, species_prices in port_by_date_species.items():
+        market_day = market_range.get(hist_date, {})
+        for species, price in species_prices.items():
+            raw_market = market_day.get(species)
+            if raw_market and raw_market > 0:
+                vs_pct = ((price - raw_market) / raw_market) * 100
+                species_vs_market[species].append(vs_pct)
+                species_total_days[species] += 1
+                if vs_pct > 0:
+                    species_above_count[species] += 1
+            species_avg_price[species].append(price)
+
+    strongest = []
+    for species, vs_list in species_vs_market.items():
+        avg_vs = sum(vs_list) / len(vs_list)
+        avg_price = sum(species_avg_price[species]) / len(species_avg_price[species])
+        total_days = species_total_days[species]
+        above_days = species_above_count[species]
+        strongest.append({
+            "species": species,
+            "avg_price": round(avg_price, 2),
+            "vs_market_pct": round(avg_vs, 1),
+            "above_days": above_days,
+            "total_days": total_days,
+        })
+    strongest.sort(key=lambda x: x["vs_market_pct"], reverse=True)
+
+    # --- Month summary: holistic top-line view ---
+    trading_dates = sorted(port_by_date_species.keys())
+    total_sessions = len(trading_dates)
+
+    # Per-day stats: avg price and species count
+    day_stats = []
+    all_month_prices = []
+    for d in trading_dates:
+        prices = list(port_by_date_species[d].values())
+        day_avg = sum(prices) / len(prices) if prices else 0
+        day_stats.append({
+            "date": d,
+            "avg_price": round(day_avg, 2),
+            "species_count": len(prices),
+        })
+        all_month_prices.extend(prices)
+
+    month_avg = round(
+        sum(all_month_prices) / len(all_month_prices), 2,
+    ) if all_month_prices else 0
+
+    # First half vs second half trend
+    month_trend_pct = None
+    if len(day_stats) >= 4:
+        mid = len(day_stats) // 2
+        first_half = [p for ds in day_stats[:mid] for p in port_by_date_species[ds["date"]].values()]
+        second_half = [p for ds in day_stats[mid:] for p in port_by_date_species[ds["date"]].values()]
+        if first_half and second_half:
+            fh_avg = sum(first_half) / len(first_half)
+            sh_avg = sum(second_half) / len(second_half)
+            if fh_avg > 0:
+                month_trend_pct = round(((sh_avg - fh_avg) / fh_avg) * 100, 1)
+
+    # Busiest and quietest days
+    busiest = max(day_stats, key=lambda x: x["species_count"]) if day_stats else None
+    quietest = min(day_stats, key=lambda x: x["species_count"]) if day_stats else None
+
+    # Highest and lowest avg price days
+    best_price_day = max(day_stats, key=lambda x: x["avg_price"]) if day_stats else None
+    worst_price_day = min(day_stats, key=lambda x: x["avg_price"]) if day_stats else None
+
+    # Unique species this month
+    all_month_species = set()
+    for d_prices in port_by_date_species.values():
+        all_month_species.update(d_prices.keys())
+
+    month_summary = {
+        "total_sessions": total_sessions,
+        "month_avg": month_avg,
+        "month_trend_pct": month_trend_pct,
+        "total_species": len(all_month_species),
+        "busiest_day": busiest,
+        "quietest_day": quietest,
+        "best_price_day": best_price_day,
+        "worst_price_day": worst_price_day,
+    }
+
+    return {
+        "strongest_species": strongest[:5],
+        "month_summary": month_summary,
+    }
+
+
+def _build_insights(
+    port_name: str, date: str, today_data: list[dict],
+    history: list[tuple],
+) -> dict:
+    """Generate rule-based insights split into port-specific and market-wide.
+
+    Returns {"port": [...], "market": [...]}.
+    """
+    from collections import defaultdict
+    from datetime import datetime as dt, timedelta
+
+    port_insights = []
+    market_insights = []
+
+    # Get market averages for today
+    market = get_market_averages_for_date(date)
+
+    # Each insight gets a priority (lower = more important) for ranking
+    _ranked_port: list[tuple[int, dict]] = []
+    _ranked_market: list[tuple[int, dict]] = []
+
+    recent_dates = sorted({h[0] for h in history}, reverse=True)
+
+    # ═══ PORT INTELLIGENCE — historical performance patterns ═══
+
+    # --- Day-of-week pattern ---
+    dow_prices: dict[int, list[float]] = defaultdict(list)
+    for hist_date, species, _grade, _low, _high, avg in history:
+        if avg:
+            try:
+                dow = dt.strptime(hist_date, "%Y-%m-%d").weekday()
+                dow_prices[dow].append(avg)
+            except ValueError:
+                pass
+
+    if dow_prices:
+        dow_avgs = {
+            dow: sum(prices) / len(prices)
+            for dow, prices in dow_prices.items()
+        }
+        best_dow = max(dow_avgs, key=dow_avgs.get)
+        best_dow_avg = dow_avgs[best_dow]
+        other_avg = sum(
+            v for k, v in dow_avgs.items() if k != best_dow
+        ) / max(1, len(dow_avgs) - 1)
+        if other_avg > 0 and ((best_dow_avg - other_avg) / other_avg) > 0.02:
+            day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+            if best_dow < 5:
+                pct_diff = round(((best_dow_avg - other_avg) / other_avg) * 100, 1)
+                _ranked_port.append((1, {
+                    "category": "PATTERN",
+                    "text": f"{day_names[best_dow]}s consistently deliver your best prices — {pct_diff}% higher than other days over the last 90 days.",
+                }))
+
+    # --- Price volatility: species with big swings recently ---
+    species_recent: dict[str, list[float]] = defaultdict(list)
+    for hist_date, species, _grade, _low, _high, avg in history:
+        if avg and hist_date in recent_dates[:5]:
+            canonical = normalise_species(species)
+            species_recent[canonical].append(avg)
+
+    for species, prices in species_recent.items():
+        if len(prices) >= 3:
+            pmin, pmax = min(prices), max(prices)
+            if pmin > 0:
+                volatility = ((pmax - pmin) / pmin) * 100
+                if volatility > 15:
+                    _ranked_port.append((2, {
+                        "category": "VOLATILITY",
+                        "text": f"{species} swung {volatility:.0f}% this week (£{pmin:.2f}–£{pmax:.2f}) — high volatility may signal changing supply or demand.",
+                    }))
+                    break
+
+    # --- Species count trend ---
+    species_by_date: dict[str, set] = defaultdict(set)
+    for hist_date, species, *_ in history:
+        species_by_date[hist_date].add(normalise_species(species))
+    if len(recent_dates) >= 3:
+        recent_counts = [len(species_by_date.get(d, set())) for d in recent_dates[:3]]
+        older_counts = [len(species_by_date.get(d, set())) for d in recent_dates[3:] if d in species_by_date]
+        if older_counts:
+            recent_avg = sum(recent_counts) / len(recent_counts)
+            older_avg = sum(older_counts) / len(older_counts)
+            if recent_avg > older_avg + 2:
+                _ranked_port.append((3, {
+                    "category": "GROWTH",
+                    "text": f"You're listing more species recently — averaging {recent_avg:.0f} per session vs {older_avg:.0f} earlier this month.",
+                }))
+            elif older_avg > recent_avg + 2:
+                _ranked_port.append((3, {
+                    "category": "WATCH",
+                    "text": f"Species count has dropped — {recent_avg:.0f} per session recently vs {older_avg:.0f} earlier. Worth checking if landings are diversifying elsewhere.",
+                }))
+
+    # --- Highest-value species this port: which species earns the most per kg? ---
+    species_avg_30d: dict[str, list[float]] = defaultdict(list)
+    for hist_date, species, _grade, _low, _high, avg in history:
+        if avg:
+            canonical = normalise_species(species)
+            species_avg_30d[canonical].append(avg)
+    if species_avg_30d:
+        top_value = max(
+            species_avg_30d.items(),
+            key=lambda x: sum(x[1]) / len(x[1]),
+        )
+        top_sp, top_prices = top_value
+        top_avg = sum(top_prices) / len(top_prices)
+        _ranked_port.append((4, {
+            "category": "STRENGTH",
+            "text": f"{top_sp} is your highest-value species — averaging £{top_avg:.2f}/kg over the last 90 days.",
+        }))
+
+    # --- Price direction: is the port's overall average trending up or down? ---
+    if len(recent_dates) >= 6:
+        first_3 = recent_dates[:3]
+        last_3 = recent_dates[3:6]
+        first_prices = [
+            avg for d, _, _, _, _, avg in history
+            if d in first_3 and avg
+        ]
+        last_prices = [
+            avg for d, _, _, _, _, avg in history
+            if d in last_3 and avg
+        ]
+        if first_prices and last_prices:
+            first_avg = sum(first_prices) / len(first_prices)
+            last_avg = sum(last_prices) / len(last_prices)
+            if last_avg > 0:
+                trend_pct = ((first_avg - last_avg) / last_avg) * 100
+                if abs(trend_pct) > 3:
+                    direction = "up" if trend_pct > 0 else "down"
+                    _ranked_port.append((5, {
+                        "category": "TREND",
+                        "text": f"Your overall average is trending {direction} — £{first_avg:.2f}/kg in the last 3 sessions vs £{last_avg:.2f} the 3 before that ({'+' if trend_pct > 0 else ''}{trend_pct:.1f}%).",
+                    }))
+
+    # ═══ MARKET INTELLIGENCE — this port vs the market ═══
+
+    # --- Best performer vs market today ---
+    best_today = None
+    best_vs = -999
+    for item in today_data:
+        if item["position"] and item["position"]["vs_pct"] > best_vs:
+            best_vs = item["position"]["vs_pct"]
+            best_today = item
+    if best_today and best_vs > 3:
+        _ranked_market.append((1, {
+            "category": "STRENGTH",
+            "text": f"{best_today['species']} outperformed the UK average by {best_vs:.1f}% today — your strongest species against the market.",
+        }))
+
+    # --- Worst performer vs market today ---
+    worst_today = None
+    worst_vs = 999
+    for item in today_data:
+        if item["position"] and item["position"]["vs_pct"] < worst_vs:
+            worst_vs = item["position"]["vs_pct"]
+            worst_today = item
+    if worst_today and worst_vs < -5:
+        _ranked_market.append((4, {
+            "category": "WATCH",
+            "text": f"{worst_today['species']} came in {abs(worst_vs):.1f}% below the UK average today — worth checking grade mix or timing.",
+        }))
+
+    # --- Consistent outperformer: species beating market 20+ of last 30 days ---
+    species_above_30d: dict[str, tuple[int, int]] = defaultdict(lambda: (0, 0))
+    last_30_dates = [d for d in recent_dates if len(recent_dates) <= 30 or d >= recent_dates[29]]
+    for hist_date in last_30_dates:
+        day_market = get_market_averages_for_date(hist_date)
+        for h_date, species, _grade, _low, _high, avg in history:
+            if h_date == hist_date and avg:
+                canonical = normalise_species(species)
+                mkt = day_market.get(canonical, {})
+                if mkt.get("avg") and mkt["avg"] > 0:
+                    above, total = species_above_30d[canonical]
+                    total += 1
+                    if avg > mkt["avg"]:
+                        above += 1
+                    species_above_30d[canonical] = (above, total)
+
+    best_consistent = None
+    best_consistency = 0
+    for sp, (above, total) in species_above_30d.items():
+        if total >= 15 and above >= 20 and above > best_consistency:
+            best_consistent = sp
+            best_consistency = above
+
+    if best_consistent:
+        above, total = species_above_30d[best_consistent]
+        _ranked_market.append((2, {
+            "category": "STRENGTH",
+            "text": f"{best_consistent} is your most reliable market-beater — above UK average on {above} of the last {total} trading days.",
+        }))
+
+    # --- Best species vs market this week ---
+    week_dates = recent_dates[:5]
+    species_week_spread: dict[str, list[float]] = defaultdict(list)
+    for hist_date in week_dates:
+        day_market = get_market_averages_for_date(hist_date)
+        for h_date, species, _grade, _low, _high, avg in history:
+            if h_date == hist_date and avg:
+                canonical = normalise_species(species)
+                mkt = day_market.get(canonical, {})
+                if mkt.get("avg") and mkt["avg"] > 0:
+                    spread = ((avg - mkt["avg"]) / mkt["avg"]) * 100
+                    species_week_spread[canonical].append(spread)
+
+    best_week_sp = None
+    best_week_avg = -999
+    for sp, spreads in species_week_spread.items():
+        if len(spreads) >= 2:
+            avg_spread = sum(spreads) / len(spreads)
+            if avg_spread > best_week_avg:
+                best_week_avg = avg_spread
+                best_week_sp = sp
+
+    if best_week_sp and best_week_avg > 3:
+        _ranked_market.append((3, {
+            "category": "STRENGTH",
+            "text": f"{best_week_sp} had the widest margin over market this week — averaging +{best_week_avg:.1f}% across {len(species_week_spread[best_week_sp])} sessions.",
+        }))
+
+    # --- Species below market for multiple days ---
+    species_below_streak: dict[str, int] = defaultdict(int)
+    for hist_date in recent_dates[:5]:
+        day_market = get_market_averages_for_date(hist_date)
+        for h_date, species, _grade, _low, _high, avg in history:
+            if h_date == hist_date and avg:
+                canonical = normalise_species(species)
+                mkt = day_market.get(canonical, {})
+                if mkt.get("avg") and avg < mkt["avg"] * 0.95:
+                    species_below_streak[canonical] += 1
+
+    for species, count in species_below_streak.items():
+        if count >= 3:
+            _ranked_market.append((5, {
+                "category": "WATCH",
+                "text": f"{species} has traded below market for {count} of the last 5 sessions — consider whether grade distribution or volumes are affecting price.",
+            }))
+            break
+
+    # --- Overall market position ---
+    all_today_prices = [info["avg"] for info in market.values() if info.get("avg")]
+    if all_today_prices:
+        market_avg_today = sum(all_today_prices) / len(all_today_prices)
+        port_avg = sum(
+            item["price_avg"] for item in today_data if item["price_avg"]
+        ) / max(1, len([i for i in today_data if i["price_avg"]]))
+        if port_avg > market_avg_today * 1.05:
+            pct_above = ((port_avg - market_avg_today) / market_avg_today) * 100
+            _ranked_market.append((6, {
+                "category": "POSITION",
+                "text": f"Your average today (£{port_avg:.2f}/kg) is {pct_above:.0f}% above the UK-wide average — a strong position for attracting landings.",
+            }))
+        elif port_avg < market_avg_today * 0.95:
+            pct_below = ((market_avg_today - port_avg) / market_avg_today) * 100
+            _ranked_market.append((6, {
+                "category": "POSITION",
+                "text": f"Your average today (£{port_avg:.2f}/kg) is {pct_below:.0f}% below the UK-wide average — worth reviewing whether grade mix or species composition is a factor.",
+            }))
+
+    # --- Missing opportunity: species in market but not at this port ---
+    port_species = {item["species"] for item in today_data}
+    for species, info in market.items():
+        canonical = normalise_species(species)
+        if canonical not in port_species and info["port_count"] >= 2 and info["avg"] > 5.0:
+            _ranked_market.append((7, {
+                "category": "OPPORTUNITY",
+                "text": f"{canonical} traded at £{info['avg']:.2f} across {info['port_count']} ports today — a gap in your listings worth investigating.",
+            }))
+
+    # --- Biggest spread in market ---
+    max_spread_species = None
+    max_spread_pct = 0
+    for species, info in market.items():
+        if info["port_count"] >= 2 and info["min"] > 0:
+            spread_pct = ((info["max"] - info["min"]) / info["min"]) * 100
+            if spread_pct > max_spread_pct:
+                max_spread_pct = spread_pct
+                max_spread_species = normalise_species(species)
+    if max_spread_species and max_spread_pct > 15:
+        _ranked_market.append((8, {
+            "category": "SPREAD",
+            "text": f"{max_spread_species} has the widest UK spread today at {max_spread_pct:.0f}% — buyers looking for value may shift to cheaper ports.",
+        }))
+
+    # Sort by priority and cap at 3 each
+    _ranked_port.sort(key=lambda x: x[0])
+    _ranked_market.sort(key=lambda x: x[0])
+
+    return {
+        "port": [item for _, item in _ranked_port[:3]],
+        "market": [item for _, item in _ranked_market[:3]],
+    }
+
+
+def _build_performance_overview(
+    port_name: str, date: str, history: list[tuple], market: dict,
+) -> dict:
+    """Build week-over-week and month-over-month performance metrics."""
+    from collections import defaultdict
+    from datetime import datetime as dt, timedelta
+
+    # Group history by date → list of avg prices
+    date_prices: dict[str, list[float]] = defaultdict(list)
+    for hist_date, species, _grade, _low, _high, avg in history:
+        if avg:
+            date_prices[hist_date].append(avg)
+
+    sorted_dates = sorted(date_prices.keys(), reverse=True)
+
+    # Split into this week (last 5 trading days) and last week (5 before that)
+    this_week_dates = sorted_dates[:5]
+    last_week_dates = sorted_dates[5:10]
+
+    def _period_avg(dates: list[str]) -> float | None:
+        prices = [p for d in dates for p in date_prices.get(d, [])]
+        return round(sum(prices) / len(prices), 2) if prices else None
+
+    this_week_avg = _period_avg(this_week_dates)
+    last_week_avg = _period_avg(last_week_dates)
+
+    week_change = None
+    if this_week_avg and last_week_avg and last_week_avg > 0:
+        week_change = round(((this_week_avg - last_week_avg) / last_week_avg) * 100, 1)
+
+    # Month-over-month: last 20 trading days vs 20 before that
+    this_month_dates = sorted_dates[:20]
+    last_month_dates = sorted_dates[20:40]
+
+    this_month_avg = _period_avg(this_month_dates)
+    last_month_avg = _period_avg(last_month_dates)
+
+    month_change = None
+    if this_month_avg and last_month_avg and last_month_avg > 0:
+        month_change = round(((this_month_avg - last_month_avg) / last_month_avg) * 100, 1)
+
+    # Market position trend: avg vs-market % this week vs last week
+    def _market_position(dates: list[str]) -> float | None:
+        vs_pcts = []
+        for d in dates:
+            day_market = get_market_averages_for_date(d)
+            for h_date, species, _grade, _low, _high, avg in history:
+                if h_date == d and avg:
+                    canonical = normalise_species(species)
+                    mkt = day_market.get(canonical, {})
+                    if mkt.get("avg") and mkt["avg"] > 0:
+                        vs_pcts.append(((avg - mkt["avg"]) / mkt["avg"]) * 100)
+        return round(sum(vs_pcts) / len(vs_pcts), 1) if vs_pcts else None
+
+    mkt_pos_this_week = _market_position(this_week_dates)
+    mkt_pos_last_week = _market_position(last_week_dates)
+
+    mkt_trend = None
+    if mkt_pos_this_week is not None and mkt_pos_last_week is not None:
+        mkt_trend = round(mkt_pos_this_week - mkt_pos_last_week, 1)
+
+    # Species count trend
+    this_week_species = set()
+    last_week_species = set()
+    for d in this_week_dates:
+        for h_date, species, *_ in history:
+            if h_date == d:
+                this_week_species.add(normalise_species(species))
+    for d in last_week_dates:
+        for h_date, species, *_ in history:
+            if h_date == d:
+                last_week_species.add(normalise_species(species))
+
+    # Trading sessions this week vs last
+    sessions_this_week = len(this_week_dates)
+    sessions_last_week = len(last_week_dates)
+
+    # Volume (boxes) from landings table if available
+    from quayside.db import get_connection
+    conn = get_connection()
+
+    def _boxes_for_dates(dates: list[str]) -> int | None:
+        if not dates:
+            return None
+        placeholders = ",".join("?" for _ in dates)
+        row = conn.execute(
+            f"""SELECT SUM(boxes) FROM landings
+                WHERE port = ? AND date IN ({placeholders})""",
+            [port_name] + dates,
+        ).fetchone()
+        return row[0] if row and row[0] else None
+
+    total_boxes = _boxes_for_dates(this_week_dates)
+    last_week_boxes = _boxes_for_dates(last_week_dates)
+    conn.close()
+
+    boxes_change = None
+    if total_boxes and last_week_boxes and last_week_boxes > 0:
+        boxes_change = round(((total_boxes - last_week_boxes) / last_week_boxes) * 100, 1)
+
+    return {
+        "this_week_avg": this_week_avg,
+        "last_week_avg": last_week_avg,
+        "week_change": week_change,
+        "this_month_avg": this_month_avg,
+        "last_month_avg": last_month_avg,
+        "month_change": month_change,
+        "mkt_pos_this_week": mkt_pos_this_week,
+        "mkt_pos_last_week": mkt_pos_last_week,
+        "mkt_trend": mkt_trend,
+        "species_this_week": len(this_week_species),
+        "species_last_week": len(last_week_species),
+        "sessions_this_week": sessions_this_week,
+        "sessions_last_week": sessions_last_week,
+        "total_boxes": total_boxes,
+        "last_week_boxes": last_week_boxes,
+        "boxes_change": boxes_change,
     }
 
 
