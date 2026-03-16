@@ -126,6 +126,12 @@
         line-height: 1.5;
         opacity: 0.75;
     }
+    .hero-stat .hero-sub-price {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 6px;
+    }
     .hero-stat.hero-primary .hero-description {
         color: rgba(255,255,255,0.45);
     }
@@ -974,17 +980,34 @@
         <div class="hero-value">&mdash;</div>
         {% endif %}
         <div class="hero-label">vs last {{ day_name }}</div>
+        {% if hero_last_week_price is not none %}
+        <div class="hero-sub-price">&pound;{{ "%.2f"|format(hero_last_week_price) }} last {{ day_name }}</div>
+        {% endif %}
         <div class="hero-description">Change vs the same weekday last week</div>
     </div>
     <div class="hero-stat">
-        <div class="hero-value">{% if perf and perf.this_week_avg %}&pound;{{ "%.2f"|format(perf.this_week_avg) }}{% else %}&mdash;{% endif %}</div>
+        {% if perf and perf.week_change is not none %}
+        <div class="hero-value {{ 'hero-value-up' if perf.week_change >= 0 else 'hero-value-down' }}">{{ "+" if perf.week_change >= 0 }}{{ "%.1f"|format(perf.week_change) }}%</div>
+        {% else %}
+        <div class="hero-value">&mdash;</div>
+        {% endif %}
         <div class="hero-label">Avg day this week</div>
-        <div class="hero-description">Average daily price per kg across all auction days so far this week</div>
+        {% if perf and perf.this_week_avg %}
+        <div class="hero-sub-price">&pound;{{ "%.2f"|format(perf.this_week_avg) }} avg this week</div>
+        {% endif %}
+        <div class="hero-description">Weekly avg vs prior week</div>
     </div>
     <div class="hero-stat">
-        <div class="hero-value">{% if perf and perf.this_month_avg %}&pound;{{ "%.2f"|format(perf.this_month_avg) }}{% else %}&mdash;{% endif %}</div>
+        {% if perf and perf.month_change is not none %}
+        <div class="hero-value {{ 'hero-value-up' if perf.month_change >= 0 else 'hero-value-down' }}">{{ "+" if perf.month_change >= 0 }}{{ "%.1f"|format(perf.month_change) }}%</div>
+        {% else %}
+        <div class="hero-value">&mdash;</div>
+        {% endif %}
         <div class="hero-label">Avg day this month</div>
-        <div class="hero-description">Average daily price per kg across all auction days so far this month</div>
+        {% if perf and perf.this_month_avg %}
+        <div class="hero-sub-price">&pound;{{ "%.2f"|format(perf.this_month_avg) }} avg this month</div>
+        {% endif %}
+        <div class="hero-description">Monthly avg vs prior month</div>
     </div>
     <div class="hero-stat">
         {% if hero_vs_market is not none %}

@@ -260,6 +260,7 @@ def create_app() -> Flask:
 
         # Today vs same day last week (aggregate delta)
         hero_vs_last_week = None
+        hero_last_week_price = None
         if last_week_prices:
             lw_avgs = [
                 v["price_avg"] for v in last_week_prices.values()
@@ -272,6 +273,7 @@ def create_app() -> Flask:
                     hero_vs_last_week = round(
                         ((today_overall - lw_overall) / lw_overall) * 100, 1
                     )
+                hero_last_week_price = round(lw_overall, 2)
 
         # Today vs UK market average (aggregate delta)
         hero_vs_market = None
@@ -344,6 +346,7 @@ def create_app() -> Flask:
             above_count=above_count,
             hero_avg_price=hero_avg_price,
             hero_vs_last_week=hero_vs_last_week,
+            hero_last_week_price=hero_last_week_price,
             hero_vs_market=hero_vs_market,
             species_grades=species_grades,
             species_gaps=species_gaps,
