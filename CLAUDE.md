@@ -79,16 +79,77 @@ For Gmail, use an App Password (not your account password). The pipeline sends t
 
 Pipeline runs weekdays at 10:15 AM via macOS launchd. Plist at `com.quayside.pipeline.plist`.
 
+## Local development server
+
+```bash
+python -m quayside.web.app   # starts Flask at http://localhost:5000
+```
+
+Claude can connect to this via preview tools to take screenshots and inspect pages directly — no need to describe what you're looking at.
+
+## Pages
+
+All routes served by `src/quayside/web/app.py`:
+
+| Route | Description |
+|---|---|
+| `/` | Homepage — port index, links to all port dashboards |
+| `/overview` | Market overview across all ports |
+| `/for-ports` | Marketing/onboarding page for port operators |
+| `/digest` | Daily price digest (latest date) |
+| `/digest/<date>` | Daily price digest for a specific date (YYYY-MM-DD) |
+| `/digest/weekly` | Weekly digest (latest) |
+| `/digest/weekly/<date>` | Weekly digest for specific week |
+| `/digest/monthly` | Monthly digest (latest) |
+| `/digest/monthly/<year_month>` | Monthly digest e.g. `/digest/monthly/2026-03` |
+| `/port/<slug>` | Individual port dashboard — prices history, species breakdown, benchmarks |
+| `/port/<slug>/upload` | Upload form for port operators to submit price data |
+| `/confirm/<token>` | HITL confirmation page — review extracted price data before approving |
+| `/confirm/<token>/approve` | Approve confirmed upload (POST) |
+| `/confirm/<token>/edit` | Edit extracted data before approving |
+| `/ops` | Internal ops dashboard — scrape status, pipeline health, upload queue |
+| `/port/<slug>/export` | Download CSV of port price data |
+| `/port/<slug>/template` | Download upload template for a port |
+| `/port/submit` or `/port/<slug>/submit` | Port signup/contact form |
+
 ## Git workflow
 
-- **Always work on a feature branch** — never commit directly to `main`. Create a branch like `feature/short-description` at the start of each session.
-- Merge to `main` only after verification passes (ruff, pytest, visual check).
+- For quick iteration sessions, committing directly to `main` is fine — GitHub Actions auto-deploys on push.
+- For larger features, use a branch like `feature/short-description` and merge after verification (ruff, pytest, visual check).
 
 ## Deployment
 
 The live site is at **https://quaysidedata.duckdns.org/**. It is deployed automatically via GitHub Actions on every push to `main`.
 
 **To deploy changes to the live site**: commit changes and push to `main` — GitHub Actions auto-deploys on push to `main`. There is no manual deploy step.
+
+### Infrastructure
+
+- **Hosting provider**: Hetzner (cloud.hetzner.com)
+- **Server IP**: `46.62.148.67`
+- **SSH user**: `root`
+- **App location on server**: `/home/quayside/app/`
+- **Deploy script**: `/home/quayside/app/deploy/update.sh`
+- **GitHub Actions secret**: `SSH_PRIVATE_KEY` — must match the public key in `/root/.ssh/authorized_keys` on the server
+
+### Fixing broken deployments
+
+If GitHub Actions SSH deployment fails with `unable to authenticate` / `no supported methods remain`:
+
+**Important:** The Hetzner browser console cannot reliably paste special characters (`>`, `|`). Do NOT try to write files via the console — use Rescue Mode instead.
+
+1. On Mac: `ssh-keygen -t ed25519 -f ~/github_deploy_key -N ""` to generate a key pair (skip if `~/github_deploy_key` already exists)
+2. Go to **cloud.hetzner.com** → your server → **Rescue** tab
+3. Paste the contents of `deploy/authorized_keys` (committed to the repo) into the SSH key field
+4. Click **"Enable Rescue & Power Cycle"** — note the rescue password shown
+5. On Mac: `ssh-keygen -R 46.62.148.67` to clear old host key, then `ssh -i ~/github_deploy_key root@46.62.148.67` (use rescue password if prompted)
+6. In rescue shell: `mount /dev/sda1 /mnt`
+7. In rescue shell: `mkdir -p /mnt/root/.ssh && echo "$(cat ~/.ssh/authorized_keys 2>/dev/null || cat /root/.ssh/authorized_keys)" > /mnt/root/.ssh/authorized_keys` — OR paste the public key manually:
+   `echo "ssh-ed25519 AAAA..." > /mnt/root/.ssh/authorized_keys && chmod 700 /mnt/root/.ssh && chmod 600 /mnt/root/.ssh/authorized_keys`
+8. `reboot` in the rescue shell
+9. On Mac: `ssh-keygen -R 46.62.148.67` again, then `ssh -i ~/github_deploy_key root@46.62.148.67` to verify access
+10. Update GitHub secret: repo → Settings → Secrets → Actions → `SSH_PRIVATE_KEY` → paste contents of `~/github_deploy_key`
+11. Push any commit to `main` to trigger a test deploy
 
 ## Key docs
 
