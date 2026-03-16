@@ -104,7 +104,7 @@
         cursor: pointer;
         text-decoration: none;
         white-space: nowrap;
-        z-index: 100;
+        z-index: 1000;
         transition: background 0.15s;
         display: block;
     }
@@ -942,6 +942,7 @@
 
         /* Reorder: hero → insights → chart → table */
         .dashboard-content { display: flex; flex-direction: column; }
+        .dashboard-content .category-pills { order: 1; }
         .dashboard-content .hero-strip { order: 1; }
         .dashboard-content .perf-card { order: 2; }
         .dashboard-content .port-insights-card { order: 3; }
