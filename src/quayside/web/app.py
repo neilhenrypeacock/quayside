@@ -276,9 +276,13 @@ def create_app() -> Flask:
                 hero_last_week_price = round(lw_overall, 2)
 
         # Today vs UK market average (aggregate delta)
+        # Only compare species this port actually sells — otherwise high-value species
+        # traded only at other ports (turbot, lobster etc.) inflate the market avg unfairly.
         hero_vs_market = None
+        port_canonical_species = {item["species"] for item in today_data}
         all_market_avgs = [
-            info["avg"] for info in market.values() if info.get("avg")
+            info["avg"] for canon, info in market.items()
+            if info.get("avg") and canon in port_canonical_species
         ]
         if all_market_avgs and avg_prices:
             market_overall = sum(all_market_avgs) / len(all_market_avgs)
