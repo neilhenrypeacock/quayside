@@ -85,6 +85,32 @@
         font-size: 14px;
     }
 
+    /* Fixed prices jump tab */
+    .prices-jump-tab {
+        position: fixed;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        background: var(--tide);
+        color: #d0e8f0;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 14px 6px;
+        border-radius: 0 2px 2px 0;
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+        z-index: 100;
+        transition: background 0.15s;
+        display: block;
+    }
+    .prices-jump-tab:hover { background: var(--catch); color: #fff; }
+    @media (max-width: 768px) { .prices-jump-tab { display: none; } }
+
     /* ═══ Hero summary strip ═══ */
     .hero-strip {
         display: flex;
@@ -167,6 +193,40 @@
     }
     .hero-value-up { color: var(--up) !important; }
     .hero-value-down { color: var(--down) !important; }
+
+    /* ═══ Category pill filter ═══ */
+    .category-pills {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+    .cat-pill {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border: 1px solid var(--rule);
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.12s;
+    }
+    .cat-pill:hover:not(:disabled) {
+        border-color: var(--ink);
+        color: var(--ink);
+    }
+    .cat-pill.active {
+        background: var(--ink);
+        color: var(--paper);
+        border-color: var(--ink);
+    }
+    .cat-pill:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
 
     /* Mini summary strip (inside trend card) */
     .mini-summary {
@@ -967,53 +1027,55 @@
     Market comparisons use the UK average across all ports contributing to Quayside — a positive
     percentage means this port is achieving above the national average for that species.
 </p>
+<div class="category-pills">
+    <button class="cat-pill active" data-cat="all">All</button>
+    <button class="cat-pill" data-cat="demersal">Demersal</button>
+    <button class="cat-pill" data-cat="flatfish">Flatfish</button>
+    <button class="cat-pill" data-cat="shellfish">Shellfish</button>
+    <button class="cat-pill" data-cat="pelagic">Pelagic</button>
+    <button class="cat-pill" data-cat="other">Other</button>
+</div>
 <div class="hero-strip">
     <div class="hero-stat">
-        <div class="hero-value">&pound;{{ "%.2f"|format(hero_avg_price) if hero_avg_price else '—' }}</div>
+        <div class="hero-value" id="hero-today-avg">&pound;{{ "%.2f"|format(hero_avg_price) if hero_avg_price else '—' }}</div>
         <div class="hero-label">Today's avg / kg</div>
         <div class="hero-description">Average price per kg across all species sold at today's auction</div>
     </div>
     <div class="hero-stat">
         {% if hero_vs_last_week is not none %}
-        <div class="hero-value" style="color:{{ '#6db88a' if hero_vs_last_week >= 0 else '#e07060' }};">{{ "+" if hero_vs_last_week >= 0 }}{{ "%.1f"|format(hero_vs_last_week) }}%</div>
+        <div class="hero-value" id="hero-vs-last-week" style="color:{{ '#6db88a' if hero_vs_last_week >= 0 else '#e07060' }};">{{ "+" if hero_vs_last_week >= 0 }}{{ "%.1f"|format(hero_vs_last_week) }}%</div>
         {% else %}
-        <div class="hero-value">&mdash;</div>
+        <div class="hero-value" id="hero-vs-last-week">&mdash;</div>
         {% endif %}
         <div class="hero-label">vs last {{ day_name }}</div>
-        {% if hero_last_week_price is not none %}
-        <div class="hero-sub-price">&pound;{{ "%.2f"|format(hero_last_week_price) }} last {{ day_name }}</div>
-        {% endif %}
+        <div class="hero-sub-price" id="hero-last-week-price">{% if hero_last_week_price is not none %}&pound;{{ "%.2f"|format(hero_last_week_price) }} last {{ day_name }}{% endif %}</div>
         <div class="hero-description">Change vs the same weekday last week</div>
     </div>
     <div class="hero-stat">
         {% if perf and perf.week_change is not none %}
-        <div class="hero-value {{ 'hero-value-up' if perf.week_change >= 0 else 'hero-value-down' }}">{{ "+" if perf.week_change >= 0 }}{{ "%.1f"|format(perf.week_change) }}%</div>
+        <div class="hero-value {{ 'hero-value-up' if perf.week_change >= 0 else 'hero-value-down' }}" id="hero-week-change">{{ "+" if perf.week_change >= 0 }}{{ "%.1f"|format(perf.week_change) }}%</div>
         {% else %}
-        <div class="hero-value">&mdash;</div>
+        <div class="hero-value" id="hero-week-change">&mdash;</div>
         {% endif %}
         <div class="hero-label">Avg day this week</div>
-        {% if perf and perf.this_week_avg %}
-        <div class="hero-sub-price">&pound;{{ "%.2f"|format(perf.this_week_avg) }} avg this week</div>
-        {% endif %}
+        <div class="hero-sub-price" id="hero-week-avg">{% if perf and perf.this_week_avg %}&pound;{{ "%.2f"|format(perf.this_week_avg) }} avg this week{% endif %}</div>
         <div class="hero-description">Weekly avg vs prior week</div>
     </div>
     <div class="hero-stat">
         {% if perf and perf.month_change is not none %}
-        <div class="hero-value {{ 'hero-value-up' if perf.month_change >= 0 else 'hero-value-down' }}">{{ "+" if perf.month_change >= 0 }}{{ "%.1f"|format(perf.month_change) }}%</div>
+        <div class="hero-value {{ 'hero-value-up' if perf.month_change >= 0 else 'hero-value-down' }}" id="hero-month-change">{{ "+" if perf.month_change >= 0 }}{{ "%.1f"|format(perf.month_change) }}%</div>
         {% else %}
-        <div class="hero-value">&mdash;</div>
+        <div class="hero-value" id="hero-month-change">&mdash;</div>
         {% endif %}
         <div class="hero-label">Avg day this month</div>
-        {% if perf and perf.this_month_avg %}
-        <div class="hero-sub-price">&pound;{{ "%.2f"|format(perf.this_month_avg) }} avg this month</div>
-        {% endif %}
+        <div class="hero-sub-price" id="hero-month-avg">{% if perf and perf.this_month_avg %}&pound;{{ "%.2f"|format(perf.this_month_avg) }} avg this month{% endif %}</div>
         <div class="hero-description">Monthly avg vs prior month</div>
     </div>
     <div class="hero-stat">
         {% if hero_vs_market is not none %}
-        <div class="hero-value {{ 'hero-value-up' if hero_vs_market >= 0 else 'hero-value-down' }}">{{ "+" if hero_vs_market >= 0 }}{{ "%.1f"|format(hero_vs_market) }}%</div>
+        <div class="hero-value {{ 'hero-value-up' if hero_vs_market >= 0 else 'hero-value-down' }}" id="hero-vs-market">{{ "+" if hero_vs_market >= 0 }}{{ "%.1f"|format(hero_vs_market) }}%</div>
         {% else %}
-        <div class="hero-value">&mdash;</div>
+        <div class="hero-value" id="hero-vs-market">&mdash;</div>
         {% endif %}
         <div class="hero-label">vs UK market avg</div>
         <div class="hero-description">Today's avg above (+) or below (−) the UK-wide average across all ports</div>
@@ -1285,6 +1347,8 @@
     <div class="chat-response" id="chatResponse">Ask a question about your prices, trends, or market position.</div>
 </div>
 
+<a href="#prices-wrapper" class="prices-jump-tab" onclick="document.getElementById('prices-wrapper').scrollIntoView({behavior:'smooth'});return false;">Prices Today</a>
+
 <div id="prices-wrapper">
 {% include 'prices_partial.html' %}
 </div>
@@ -1436,6 +1500,119 @@ initGradeExpansion();
 </script>
 
 {% if today_data %}
+<script>
+const CATEGORY_STATS = {{ category_stats|safe }};
+const DAY_NAME = {{ day_name|tojson }};
+
+(function() {
+    // Disable pills that have no data for this port/date
+    document.querySelectorAll('.cat-pill').forEach(function(pill) {
+        const cat = pill.dataset.cat;
+        const stats = CATEGORY_STATS[cat];
+        if (cat !== 'all' && (!stats || stats.today_avg === null)) {
+            pill.disabled = true;
+        }
+    });
+
+    function updateHeroStats(cat) {
+        const stats = CATEGORY_STATS[cat];
+        if (!stats) return;
+
+        // Card 1: Today's avg
+        const todayEl = document.getElementById('hero-today-avg');
+        if (todayEl) todayEl.innerHTML = stats.today_avg !== null ? '&pound;' + stats.today_avg.toFixed(2) : '&mdash;';
+
+        // Card 2: vs last week
+        const vsLwEl = document.getElementById('hero-vs-last-week');
+        const lwPriceEl = document.getElementById('hero-last-week-price');
+        if (vsLwEl) {
+            if (stats.vs_last_week !== null) {
+                const sign = stats.vs_last_week >= 0 ? '+' : '';
+                vsLwEl.innerHTML = sign + stats.vs_last_week.toFixed(1) + '%';
+                vsLwEl.style.color = stats.vs_last_week >= 0 ? '#6db88a' : '#e07060';
+            } else {
+                vsLwEl.innerHTML = '&mdash;';
+                vsLwEl.style.color = '';
+            }
+        }
+        if (lwPriceEl) {
+            lwPriceEl.textContent = stats.last_week_price !== null
+                ? '\u00a3' + stats.last_week_price.toFixed(2) + ' last ' + DAY_NAME
+                : '';
+        }
+
+        // Card 3: Avg day this week
+        const weekChangeEl = document.getElementById('hero-week-change');
+        const weekAvgEl = document.getElementById('hero-week-avg');
+        if (weekChangeEl) {
+            if (stats.week_change !== null) {
+                const sign = stats.week_change >= 0 ? '+' : '';
+                weekChangeEl.innerHTML = sign + stats.week_change.toFixed(1) + '%';
+                weekChangeEl.className = 'hero-value ' + (stats.week_change >= 0 ? 'hero-value-up' : 'hero-value-down');
+            } else {
+                weekChangeEl.innerHTML = '&mdash;';
+                weekChangeEl.className = 'hero-value';
+            }
+        }
+        if (weekAvgEl) {
+            weekAvgEl.textContent = stats.week_avg !== null
+                ? '\u00a3' + stats.week_avg.toFixed(2) + ' avg this week'
+                : '';
+        }
+
+        // Card 4: Avg day this month
+        const monthChangeEl = document.getElementById('hero-month-change');
+        const monthAvgEl = document.getElementById('hero-month-avg');
+        if (monthChangeEl) {
+            if (stats.month_change !== null) {
+                const sign = stats.month_change >= 0 ? '+' : '';
+                monthChangeEl.innerHTML = sign + stats.month_change.toFixed(1) + '%';
+                monthChangeEl.className = 'hero-value ' + (stats.month_change >= 0 ? 'hero-value-up' : 'hero-value-down');
+            } else {
+                monthChangeEl.innerHTML = '&mdash;';
+                monthChangeEl.className = 'hero-value';
+            }
+        }
+        if (monthAvgEl) {
+            monthAvgEl.textContent = stats.month_avg !== null
+                ? '\u00a3' + stats.month_avg.toFixed(2) + ' avg this month'
+                : '';
+        }
+
+        // Card 5: vs UK market
+        const mktEl = document.getElementById('hero-vs-market');
+        if (mktEl) {
+            if (stats.vs_market !== null) {
+                const sign = stats.vs_market >= 0 ? '+' : '';
+                mktEl.innerHTML = sign + stats.vs_market.toFixed(1) + '%';
+                mktEl.className = 'hero-value ' + (stats.vs_market >= 0 ? 'hero-value-up' : 'hero-value-down');
+            } else {
+                mktEl.innerHTML = '&mdash;';
+                mktEl.className = 'hero-value';
+            }
+        }
+    }
+
+    document.querySelectorAll('.cat-pill').forEach(function(pill) {
+        pill.addEventListener('click', function() {
+            if (pill.disabled) return;
+            document.querySelectorAll('.cat-pill').forEach(function(p) { p.classList.remove('active'); });
+            pill.classList.add('active');
+            updateHeroStats(pill.dataset.cat);
+            try { sessionStorage.setItem('quayside_cat_filter', pill.dataset.cat); } catch(e) {}
+        });
+    });
+
+    // Restore last selection
+    try {
+        const saved = sessionStorage.getItem('quayside_cat_filter');
+        if (saved && saved !== 'all') {
+            const pill = document.querySelector('.cat-pill[data-cat="' + saved + '"]');
+            if (pill && !pill.disabled) { pill.click(); }
+        }
+    } catch(e) {}
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
 const trendData = {{ trend_data|safe }};
