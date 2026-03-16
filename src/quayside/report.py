@@ -332,11 +332,16 @@ def build_report_data(date: str) -> dict:
             reverse=True,
         )
 
+        market_avg_bar_pct = round((market_avg / best_price) * 100) if best_price else 0
+        thirty_day_avg_bar_pct = round((thirty_avg / best_price) * 100) if (thirty_avg and best_price) else None
+
         benchmark_snapshot.append({
             "species": species,
             "best_price": best_price,
             "market_avg": market_avg,
             "thirty_day_avg": thirty_avg,
+            "market_avg_bar_pct": market_avg_bar_pct,
+            "thirty_day_avg_bar_pct": thirty_day_avg_bar_pct,
             "change": change,
             "ports": ports,
         })
