@@ -34,6 +34,19 @@ def _get_port_codes() -> dict[str, str]:
 
 PORT_CODES = _get_port_codes()
 
+# Noisy/generic species names that produce meaningless price comparisons
+_NOISE_WORDS = {"mixed", "offal", "roe", "livers", "frames", "heads", "wings", "skin"}
+_NOISE_SUBSTRINGS = ("mixed", "damaged", "bruised", "bru ", " bru", "tails")
+
+
+def _is_noisy_species(sp: str) -> bool:
+    """Return True if this species name is too generic/damaged to be meaningful."""
+    low = sp.lower().strip()
+    if low in _NOISE_WORDS:
+        return True
+    return any(n in low for n in _NOISE_SUBSTRINGS)
+
+
 # Benchmark species shown in the market snapshot — ordered by commercial importance
 BENCHMARK_SPECIES = [
     "Haddock", "Cod", "Monkfish", "Hake", "Dover Sole",
@@ -52,7 +65,7 @@ def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
     if not prev_date:
         return []
 
-    prev_rows = get_all_prices_for_date(prev_date)
+    prev_rows = get_all_prices_for_date(prev_date, exclude_demo=True)
     if not prev_rows:
         return []
 
@@ -109,7 +122,7 @@ def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
 
 def build_report_data(date: str) -> dict:
     """Query DB and assemble template context for the given date."""
-    rows = get_all_prices_for_date(date)  # (date, port, species, grade, low, high, avg)
+    rows = get_all_prices_for_date(date, exclude_demo=True)  # (date, port, species, grade, low, high, avg)
 
     if not rows:
         dt = datetime.strptime(date, "%Y-%m-%d")
@@ -176,7 +189,7 @@ def build_report_data(date: str) -> dict:
     prev_date = get_previous_date(date)
     prev_best: dict[str, float] = {}
     if prev_date:
-        prev_rows = get_all_prices_for_date(prev_date)
+        prev_rows = get_all_prices_for_date(prev_date, exclude_demo=True)
         if prev_rows:
             for r in prev_rows:
                 _, _port, raw_species, _grade, _low, _high, avg = r
@@ -188,6 +201,8 @@ def build_report_data(date: str) -> dict:
 
     key_species_summary = []
     for species in multi_port_species:
+        if _is_noisy_species(species):
+            continue
         port_prices = species_ports[species]
         best_port = max(port_prices, key=port_prices.get)
         best_price = port_prices[best_port]
@@ -261,11 +276,13 @@ def build_report_data(date: str) -> dict:
             "ports": ports,
         })
 
-    # --- Ticker: top price per port ---
+    # --- Ticker: top price per port (skip noisy/generic species) ---
     port_best: dict[str, dict] = {}
     for r in rows:
         _, port, raw_species, grade, low, high, avg = r
         species = normalise_species(raw_species)
+        if _is_noisy_species(species):
+            continue
         if avg and (port not in port_best or avg > port_best[port]["price"]):
             port_best[port] = {
                 "port": port,
@@ -292,12 +309,15 @@ def build_report_data(date: str) -> dict:
             for port, prices in port_all_prices.items()
         }
         bv_port = min(port_avgs, key=port_avgs.get)
-        # Grab 3 example species at this port (cheapest first)
+        # Grab 3 examples at this port: prefer benchmark species, sorted by price desc
         bv_examples = []
-        for sp, port_prices in sorted(species_ports.items()):
-            if bv_port in port_prices:
-                bv_examples.append({"species": sp, "price": port_prices[bv_port]})
-        bv_examples.sort(key=lambda e: e["price"])
+        for sp, port_prices in species_ports.items():
+            if bv_port not in port_prices:
+                continue
+            if _is_noisy_species(sp):
+                continue
+            bv_examples.append({"species": sp, "price": port_prices[bv_port], "is_benchmark": sp in BENCHMARK_SPECIES})
+        bv_examples.sort(key=lambda e: (not e["is_benchmark"], -e["price"]))
         best_value_port = {
             "port": bv_port,
             "avg_price": round(port_avgs[bv_port], 2),
@@ -305,10 +325,13 @@ def build_report_data(date: str) -> dict:
         }
 
     # Biggest cross-port spread: species with largest % gap between highest and lowest port
+
     biggest_spread = None
     multi_port_map = {sp: ports for sp, ports in species_ports.items() if len(ports) >= 2}
     best_spread_pct = 0
     for sp, port_prices in multi_port_map.items():
+        if _is_noisy_species(sp):
+            continue
         max_p = max(port_prices.values())
         min_p = min(port_prices.values())
         if min_p > 0:
@@ -369,7 +392,7 @@ def build_landing_data(date: str) -> dict:
     # Best price per (port, canonical_species) on the previous day
     prev_port_species: dict[tuple[str, str], float] = {}
     if prev_date:
-        prev_rows = get_all_prices_for_date(prev_date)
+        prev_rows = get_all_prices_for_date(prev_date, exclude_demo=True)
         for r in prev_rows:
             _, port, raw_species, _grade, _low, _high, avg = r
             if avg:

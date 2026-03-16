@@ -144,6 +144,11 @@ body {
 .nav-dropdown-menu a:last-child {
   border-bottom: none;
 }
+.nav-dropdown-sep {
+  height: 1px;
+  background: var(--rule);
+  margin: 4px 0;
+}
 
 /* ── Mobile nav ── */
 @media (max-width: 768px) {

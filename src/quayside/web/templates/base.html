@@ -15,22 +15,33 @@
             <span></span><span></span><span></span>
         </button>
         <div class="nav-links">
-            <a href="{{ url_for('landing') }}">Home</a>
             <div class="nav-dropdown">
-                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Reports <span class="nav-caret">&#9662;</span></button>
+                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">For Ports <span class="nav-caret">&#9662;</span></button>
                 <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
-                    <a href="{{ url_for('digest_page') }}">Daily</a>
-                    <a href="{{ url_for('weekly_digest') }}">Weekly</a>
-                    <a href="{{ url_for('monthly_digest') }}">Monthly</a>
+                    <a href="{{ url_for('for_ports') }}">For Ports</a>
+                    <div class="nav-dropdown-sep"></div>
+                    <a href="{{ url_for('port_dashboard', slug='peterhead') }}">Peterhead</a>
+                    <a href="{{ url_for('port_dashboard', slug='brixham') }}">Brixham</a>
+                    <a href="{{ url_for('port_dashboard', slug='newlyn') }}">Newlyn</a>
+                    <a href="{{ url_for('port_dashboard', slug='scrabster') }}">Scrabster</a>
+                    <a href="{{ url_for('port_dashboard', slug='lerwick') }}">Lerwick</a>
                 </div></div>
             </div>
-            <a href="{{ url_for('for_ports') }}">For Ports</a>
-            <a href="{{ url_for('port_dashboard', slug='peterhead') }}">Dashboard</a>
             <div class="nav-dropdown">
-                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Admin <span class="nav-caret">&#9662;</span></button>
+                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Buyers &amp; Sellers <span class="nav-caret">&#9662;</span></button>
+                <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
+                    <a href="{{ url_for('landing') }}">Dashboard</a>
+                    <a href="{{ url_for('digest_page') }}">Daily Digest</a>
+                    <a href="{{ url_for('weekly_digest') }}">Weekly Report</a>
+                    <a href="{{ url_for('monthly_digest') }}">Monthly Report</a>
+                </div></div>
+            </div>
+            <div class="nav-dropdown">
+                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Dev <span class="nav-caret">&#9662;</span></button>
                 <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
                     <a href="{{ url_for('index') }}">Overview</a>
                     <a href="{{ url_for('ops_dashboard') }}">Operations</a>
+                    <a href="{{ url_for('port_dashboard', slug='peterhead') }}">Demo Dashboard</a>
                 </div></div>
             </div>
             {% block nav %}{% endblock %}

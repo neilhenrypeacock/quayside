@@ -7,7 +7,7 @@ import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from quayside.models import LandingRecord, PriceRecord
+from quayside.models import PriceRecord
 
 # Allow DB path override via env var (for Railway persistent volume)
 _DEFAULT_DB = Path(__file__).resolve().parents[2] / "data" / "quayside.db"
@@ -24,19 +24,6 @@ def get_connection() -> sqlite3.Connection:
 def init_db() -> None:
     conn = get_connection()
     conn.executescript("""
-        CREATE TABLE IF NOT EXISTS landings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
-            port TEXT NOT NULL,
-            vessel_name TEXT NOT NULL,
-            vessel_code TEXT NOT NULL,
-            species TEXT NOT NULL,
-            boxes INTEGER NOT NULL,
-            boxes_msc INTEGER NOT NULL,
-            scraped_at TEXT NOT NULL,
-            UNIQUE(date, port, vessel_name, vessel_code, species)
-        );
-
         CREATE TABLE IF NOT EXISTS prices (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date TEXT NOT NULL,
@@ -92,34 +79,6 @@ def init_db() -> None:
     conn.close()
 
 
-def upsert_landings(records: list[LandingRecord]) -> int:
-    if not records:
-        return 0
-    conn = get_connection()
-    conn.executemany(
-        """INSERT OR REPLACE INTO landings
-           (date, port, vessel_name, vessel_code, species, boxes, boxes_msc, scraped_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        [
-            (
-                r.date,
-                r.port,
-                r.vessel_name,
-                r.vessel_code,
-                r.species,
-                r.boxes,
-                r.boxes_msc,
-                r.scraped_at,
-            )
-            for r in records
-        ],
-    )
-    conn.commit()
-    count = len(records)
-    conn.close()
-    return count
-
-
 def upsert_prices(records: list[PriceRecord]) -> int:
     if not records:
         return 0
@@ -148,18 +107,6 @@ def upsert_prices(records: list[PriceRecord]) -> int:
     return count
 
 
-def get_landings_by_date(date: str, port: str) -> list[tuple]:
-    conn = get_connection()
-    rows = conn.execute(
-        """SELECT date, port, vessel_name, vessel_code, species, boxes, boxes_msc
-           FROM landings WHERE date = ? AND port = ?
-           ORDER BY vessel_name, species""",
-        (date, port),
-    ).fetchall()
-    conn.close()
-    return rows
-
-
 def get_prices_by_date(date: str, port: str) -> list[tuple]:
     conn = get_connection()
     rows = conn.execute(
@@ -172,15 +119,25 @@ def get_prices_by_date(date: str, port: str) -> list[tuple]:
     return rows
 
 
-def get_all_prices_for_date(date: str) -> list[tuple]:
+def get_all_prices_for_date(date: str, exclude_demo: bool = False) -> list[tuple]:
     """All price rows for a given date, across all ports."""
     conn = get_connection()
-    rows = conn.execute(
-        """SELECT date, port, species, grade, price_low, price_high, price_avg
-           FROM prices WHERE date = ?
-           ORDER BY species, port, grade""",
-        (date,),
-    ).fetchall()
+    if exclude_demo:
+        rows = conn.execute(
+            """SELECT p.date, p.port, p.species, p.grade, p.price_low, p.price_high, p.price_avg
+               FROM prices p
+               LEFT JOIN ports po ON po.name = p.port
+               WHERE p.date = ? AND (po.data_method IS NULL OR po.data_method != 'demo')
+               ORDER BY p.species, p.port, p.grade""",
+            (date,),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            """SELECT date, port, species, grade, price_low, price_high, price_avg
+               FROM prices WHERE date = ?
+               ORDER BY species, port, grade""",
+            (date,),
+        ).fetchall()
     conn.close()
     return rows
 
@@ -243,6 +200,20 @@ def get_trading_dates(start_date: str, end_date: str) -> list[str]:
            WHERE date >= ? AND date <= ?
            ORDER BY date""",
         (start_date, end_date),
+    ).fetchall()
+    conn.close()
+    return [r[0] for r in rows]
+
+
+def get_port_auction_dates(port: str, limit: int = 20) -> list[str]:
+    """Most recent auction dates for a specific port, newest first."""
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT DISTINCT date FROM prices
+           WHERE port = ?
+           ORDER BY date DESC
+           LIMIT ?""",
+        (port, limit),
     ).fetchall()
     conn.close()
     return [r[0] for r in rows]
@@ -548,6 +519,65 @@ def seed_demo_data() -> None:
                         price_avg=price_avg,
                         scraped_at=date.isoformat(),
                     ))
+
+    upsert_prices(records)
+
+
+def get_latest_scraped_at(port: str, date: str) -> str | None:
+    """Return the most recent scraped_at timestamp for a port on a given date."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT MAX(scraped_at) FROM prices WHERE port = ? AND date = ?",
+        (port, date),
+    ).fetchone()
+    conn.close()
+    return row[0] if row else None
+
+
+def seed_demo_port_data() -> None:
+    """Seed 30 days of realistic price data for the Demo Port.
+
+    Always runs — refreshes demo data so the dashboard always looks current.
+    Uses a fixed species/grade set matching a typical Scottish demersal port.
+    """
+    PORT_NAME = "Demo Port"
+    species_list: list[tuple[str, float]] = [
+        ("Haddock", 2.35), ("Cod", 3.20), ("Monks", 7.80), ("Whiting", 1.45),
+        ("Saithe", 1.60), ("Megrim", 4.50), ("Lemons", 5.20), ("Plaice", 3.10),
+        ("Ling", 2.80), ("Hake", 4.90), ("Witches", 2.60), ("Turbot", 9.50),
+        ("Halibut", 12.00), ("Brill", 8.20), ("Skate", 2.40), ("Mackerel", 1.20),
+    ]
+    grades = ["A1", "A2"]
+
+    today = datetime.now()
+    records: list[PriceRecord] = []
+
+    for day_offset in range(30):
+        date = today - timedelta(days=day_offset)
+        if date.weekday() >= 5:
+            continue
+        date_str = date.strftime("%Y-%m-%d")
+
+        for species_name, base_price in species_list:
+            for g_idx, grade in enumerate(grades):
+                seed_str = f"{date_str}:{PORT_NAME}:{species_name}:{grade}"
+                h = int(hashlib.md5(seed_str.encode()).hexdigest()[:8], 16)
+                variation = ((h % 200) - 100) / 1000
+                trend = day_offset * 0.002
+                price_avg = round(base_price * (1 + variation - trend), 2)
+                if g_idx > 0:
+                    price_avg = round(price_avg * 0.85, 2)
+                spread = round(price_avg * 0.08, 2)
+                records.append(PriceRecord(
+                    date=date_str,
+                    port=PORT_NAME,
+                    species=species_name,
+                    grade=grade,
+                    price_low=round(price_avg - spread, 2),
+                    price_high=round(price_avg + spread, 2),
+                    price_avg=price_avg,
+                    scraped_at=date.isoformat(),
+                ))
 
     upsert_prices(records)
 

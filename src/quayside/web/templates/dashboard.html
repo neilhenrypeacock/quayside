@@ -39,6 +39,17 @@
     }
     .port-status.live { color: var(--up); }
     .port-status.empty { color: var(--muted); }
+    .freshness-tag {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.05em;
+        padding: 2px 8px;
+        border-radius: 2px;
+        cursor: default;
+    }
+    .freshness-live { background: rgba(109,184,138,0.15); color: #3a7a5a; }
+    .freshness-recent { background: rgba(200,184,140,0.2); color: #8a7a3a; }
+    .freshness-stale { background: rgba(224,112,96,0.12); color: var(--down); }
 
     /* Welcome banner */
     .welcome-banner {
@@ -105,6 +116,39 @@
         text-transform: uppercase;
         color: var(--muted);
         margin-top: 6px;
+    }
+    .hero-stat .hero-description {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        color: var(--muted);
+        margin-top: 4px;
+        letter-spacing: 0.02em;
+        line-height: 1.4;
+        opacity: 0.75;
+    }
+    .hero-stat.hero-primary .hero-description {
+        color: rgba(255,255,255,0.45);
+    }
+    .section-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 8px;
+        padding: 0 2px;
+    }
+    .section-bar-title {
+        font-family: var(--font-serif);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+    }
+    .section-bar-sub {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        text-transform: uppercase;
     }
     .hero-stat.hero-primary {
         background: var(--tide);
@@ -706,6 +750,68 @@
         color: var(--ink);
     }
 
+    /* Date tab bar */
+    .date-tabs {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: 0;
+    }
+    .date-tabs::-webkit-scrollbar { display: none; }
+    .date-tab {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        padding: 8px 14px;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        color: var(--muted);
+        text-decoration: none;
+        transition: color 0.15s, border-color 0.15s;
+        flex-shrink: 0;
+    }
+    .date-tab:hover { color: var(--tide); }
+    .date-tab.active {
+        color: var(--tide);
+        border-bottom-color: var(--tide);
+        font-weight: 600;
+    }
+    .prices-table-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .prices-table-header h2 { margin: 0; }
+    .compare-select-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .compare-label-text {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+    .compare-select {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        padding: 5px 10px;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        background: var(--foam);
+        color: var(--tide);
+        cursor: pointer;
+    }
+
     /* Grade expansion rows */
     .grade-row td {
         padding-left: 32px;
@@ -808,16 +914,21 @@
     <div>
         <h1>{{ port.name }}</h1>
         <div class="port-meta">
-            {{ port.region }} &middot; {{ date }}
+            {{ port.region }} &middot; {{ latest_date_display }}
             &middot; <a href="{{ url_for('port_upload', slug=port.slug) }}">Add prices</a>
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
         <a href="{{ url_for('export_port_data', slug=port.slug) }}" class="btn-export">&#x2913; Export all data</a>
         {% if today_data %}
-        <div>
-            <span class="status-dot status-confirmed"></span>
-            <span class="port-status live">{{ total_species }} species today</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <div>
+                <span class="status-dot status-confirmed"></span>
+                <span class="port-status live">{{ total_species }} species</span>
+            </div>
+            {% if data_freshness %}
+            <span class="freshness-tag freshness-{{ data_freshness.status }}" title="{{ data_freshness.tooltip }}">{{ data_freshness.label }}</span>
+            {% endif %}
         </div>
         {% else %}
         <div>
@@ -841,14 +952,20 @@
 <div class="dashboard-content">
 
 <!-- ═══ HERO SUMMARY STRIP ═══ -->
+<div class="section-bar">
+    <span class="section-bar-title">Today's Auction — {{ latest_date_display }}</span>
+    <span class="section-bar-sub">All prices per kg · {{ port.name }}</span>
+</div>
 <div class="hero-strip">
     <div class="hero-stat">
         <div class="hero-value">&pound;{{ "%.2f"|format(hero_avg_price) if hero_avg_price else '—' }}</div>
         <div class="hero-label">Avg price / kg</div>
+        <div class="hero-description">Average across all species sold at today's auction</div>
     </div>
     <div class="hero-stat">
         <div class="hero-value">{{ total_species }}</div>
-        <div class="hero-label">Species landed</div>
+        <div class="hero-label">Species sold today</div>
+        <div class="hero-description">Number of different species that sold at today's auction</div>
     </div>
     <div class="hero-stat hero-primary">
         {% if hero_vs_last_week is not none %}
@@ -857,6 +974,7 @@
         <div class="hero-value">&mdash;</div>
         {% endif %}
         <div class="hero-label">vs last {{ day_name }}</div>
+        <div class="hero-description">Change in today's average £/kg compared to last {{ day_name }}'s auction</div>
     </div>
     <div class="hero-stat">
         {% if hero_vs_market is not none %}
@@ -864,11 +982,13 @@
         {% else %}
         <div class="hero-value">&mdash;</div>
         {% endif %}
-        <div class="hero-label">vs UK market avg</div>
+        <div class="hero-label">vs UK market average</div>
+        <div class="hero-description">This port's today avg price above (+) or below (−) the UK-wide average across all ports</div>
     </div>
     <div class="hero-stat">
         <div class="hero-value">{{ above_count }}/{{ total_species }}</div>
-        <div class="hero-label">Above market</div>
+        <div class="hero-label">Species above UK average</div>
+        <div class="hero-description">Species where this port's price beat the UK market average price today</div>
     </div>
 </div>
 
@@ -877,8 +997,8 @@
 <div class="perf-card">
     <div class="perf-header">
         <div>
-            <div class="perf-title">Performance Overview</div>
-            <div class="perf-subtitle">How you're trending</div>
+            <div class="perf-title">Price History & Market Position</div>
+            <div class="perf-subtitle">Rolling averages and how this port compares to the UK market — updated each auction day</div>
         </div>
     </div>
     <div class="perf-grid">
@@ -886,11 +1006,11 @@
             <div class="perf-metric-value">
                 {% if perf.this_week_avg %}&pound;{{ "%.2f"|format(perf.this_week_avg) }}<span class="perf-unit">/kg</span>{% else %}&mdash;{% endif %}
             </div>
-            <div class="perf-metric-label">This week avg</div>
+            <div class="perf-metric-label">This week's avg price / kg</div>
             {% if perf.week_change is not none %}
             <div class="perf-metric-detail">
                 <span class="{{ 'perf-up' if perf.week_change >= 0 else 'perf-down' }}">{{ "+" if perf.week_change >= 0 }}{{ "%.1f"|format(perf.week_change) }}%</span> vs last week
-                {% if perf.last_week_avg %}(&pound;{{ "%.2f"|format(perf.last_week_avg) }}/kg){% endif %}
+                {% if perf.last_week_avg %}(&pound;{{ "%.2f"|format(perf.last_week_avg) }}/kg last week){% endif %}
             </div>
             {% endif %}
         </div>
@@ -898,10 +1018,10 @@
             <div class="perf-metric-value">
                 {% if perf.this_month_avg %}&pound;{{ "%.2f"|format(perf.this_month_avg) }}<span class="perf-unit">/kg</span>{% else %}&mdash;{% endif %}
             </div>
-            <div class="perf-metric-label">30-day avg</div>
+            <div class="perf-metric-label">30-day rolling avg price / kg</div>
             {% if perf.month_change is not none %}
             <div class="perf-metric-detail">
-                <span class="{{ 'perf-up' if perf.month_change >= 0 else 'perf-down' }}">{{ "+" if perf.month_change >= 0 }}{{ "%.1f"|format(perf.month_change) }}%</span> vs prior 30 days
+                <span class="{{ 'perf-up' if perf.month_change >= 0 else 'perf-down' }}">{{ "+" if perf.month_change >= 0 }}{{ "%.1f"|format(perf.month_change) }}%</span> vs the previous 30-day period
             </div>
             {% endif %}
         </div>
@@ -911,16 +1031,17 @@
                 <span class="{{ 'perf-up' if perf.mkt_pos_this_week >= 0 else 'perf-down' }}">{{ "+" if perf.mkt_pos_this_week >= 0 }}{{ "%.1f"|format(perf.mkt_pos_this_week) }}%</span>
                 {% else %}&mdash;{% endif %}
             </div>
-            <div class="perf-metric-label">vs UK market</div>
+            <div class="perf-metric-label">This port vs UK market this week</div>
+            <div class="perf-metric-detail" style="opacity:0.7;">Positive = above UK average price; negative = below</div>
             {% if perf.mkt_trend is not none %}
             <div class="perf-metric-detail">
-                <span class="{{ 'perf-up' if perf.mkt_trend >= 0 else 'perf-down' }}">{{ "+" if perf.mkt_trend >= 0 }}{{ "%.1f"|format(perf.mkt_trend) }}pp</span> vs last week's position
+                <span class="{{ 'perf-up' if perf.mkt_trend >= 0 else 'perf-down' }}">{{ "+" if perf.mkt_trend >= 0 }}{{ "%.1f"|format(perf.mkt_trend) }} percentage points</span> vs last week's market position
             </div>
             {% endif %}
         </div>
         <div class="perf-metric">
             <div class="perf-metric-value">{{ perf.species_this_week }}</div>
-            <div class="perf-metric-label">Species this week</div>
+            <div class="perf-metric-label">Different species sold this week</div>
             {% if perf.species_last_week %}
             <div class="perf-metric-detail">
                 {% if perf.species_this_week > perf.species_last_week %}
@@ -936,7 +1057,7 @@
         <div class="perf-metric">
             {% if perf.total_boxes %}
             <div class="perf-metric-value">{{ "{:,}".format(perf.total_boxes) }}</div>
-            <div class="perf-metric-label">Boxes this week</div>
+            <div class="perf-metric-label">Total boxes landed this week</div>
             {% if perf.boxes_change is not none %}
             <div class="perf-metric-detail">
                 <span class="{{ 'perf-up' if perf.boxes_change >= 0 else 'perf-down' }}">{{ "+" if perf.boxes_change >= 0 }}{{ "%.1f"|format(perf.boxes_change) }}%</span> vs last week
@@ -944,8 +1065,8 @@
             {% endif %}
             {% else %}
             <div class="perf-metric-value">&mdash;</div>
-            <div class="perf-metric-label">Volume</div>
-            <div class="perf-metric-detail"><span class="perf-coming-soon">Available when landings data is shared</span></div>
+            <div class="perf-metric-label">Total boxes landed this week</div>
+            <div class="perf-metric-detail"><span class="perf-coming-soon">Available when your port shares landings data</span></div>
             {% endif %}
         </div>
     </div>
@@ -1016,10 +1137,11 @@
             <div class="control-group">
                 <span class="control-label">Range</span>
                 <div class="toggle-group" id="rangeToggle">
-                    <button class="toggle-btn" data-range="7">7d</button>
-                    <button class="toggle-btn active" data-range="30">30d</button>
-                    <button class="toggle-btn" data-range="90">90d</button>
+                    <button class="toggle-btn{% if history_days < 14 %} active{% endif %}" data-range="7">7d</button>
+                    <button class="toggle-btn{% if history_days >= 14 %} active{% endif %}" data-range="30">30d</button>
+                    {% if history_days >= 45 %}<button class="toggle-btn" data-range="90">90d</button>{% endif %}
                 </div>
+                <span class="control-label">{{ history_days }}d available</span>
             </div>
             <div class="control-group">
                 <span class="control-label">Species</span>
@@ -1135,8 +1257,35 @@
 </div>
 
 <!-- ═══ SECTION: Today's Prices (with grade expansion, vs last week, seasonal) ═══ -->
-<div class="card card-prices">
-    <h2>Today's Prices</h2>
+<div class="card card-prices" id="prices-section">
+
+    {% if available_dates and available_dates | length > 1 %}
+    <div class="date-tabs" id="dateTabs">
+        {% for d in available_dates %}
+        {% set is_active = (d == date) %}
+        <a class="date-tab {{ 'active' if is_active }}"
+           href="{{ url_for('port_dashboard', slug=port.slug, date=d) }}">
+            {% if loop.index == 1 %}Latest ({{ d }}){% else %}{{ d }}{% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="prices-table-header">
+        <h2>Prices — {{ latest_date_display }}</h2>
+        <div class="compare-select-wrap">
+            <span class="compare-label-text">Compare vs:</span>
+            <select class="compare-select" id="compareSelect" onchange="applyCompare(this.value)">
+                <option value="" {{ 'selected' if not compare_date_display }}>Last {{ day_name }} (default)</option>
+                {% for d in available_dates %}
+                {% if d != date %}
+                <option value="{{ d }}" {{ 'selected' if d == compare_date_display }}>{{ d }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -1144,9 +1293,9 @@
                 <th>Grade</th>
                 <th class="text-right hide-mobile">Low</th>
                 <th class="text-right hide-mobile">High</th>
-                <th class="text-right">Avg</th>
-                <th class="text-right">vs last {{ day_name }}</th>
-                <th class="text-right">vs Market</th>
+                <th class="text-right">Avg £/kg</th>
+                <th class="text-right">vs {{ compare_label }}</th>
+                <th class="text-right">vs UK Market</th>
                 {% if has_seasonal %}
                 <th class="text-right hide-mobile">Last year</th>
                 {% endif %}
@@ -1633,4 +1782,24 @@ renderChart();
 updateSummaryStats();
 </script>
 {% endif %}
+
+<script>
+// Compare date dropdown — navigates to ?date=X&compare=Y, anchored back to prices table
+function applyCompare(compareVal) {
+    const url = new URL(window.location.href);
+    if (compareVal) {
+        url.searchParams.set('compare', compareVal);
+    } else {
+        url.searchParams.delete('compare');
+    }
+    url.hash = 'prices-section';
+    window.location.href = url.toString();
+}
+
+// Scroll active date tab into view
+document.addEventListener('DOMContentLoaded', function() {
+    const activeTab = document.querySelector('.date-tab.active');
+    if (activeTab) activeTab.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+});
+</script>
 {% endblock %}

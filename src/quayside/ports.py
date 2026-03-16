@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 # Master list: (slug, name, code, region, data_method, status)
 _SEED_PORTS = [
+    # ── Demo port — populated with synthetic data for showcasing ──
+    ("demo", "Demo Port", "DEM", "Scotland — North East", "demo", "active"),
     # ── Live ports ──
     # Scotland — North & Islands
     ("lerwick", "Lerwick", "LWK", "Scotland — North & Islands", "scraper", "active"),

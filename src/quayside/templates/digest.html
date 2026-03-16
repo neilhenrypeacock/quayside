@@ -36,15 +36,14 @@
     border-bottom: 3px solid #c8401a;
   }
   .header-top {
-    padding: 20px 32px 16px;
+    padding: 20px 32px 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
   }
   .logo {
     font-family: Georgia, 'Times New Roman', serif;
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     color: #f5f0e8;
     letter-spacing: -0.02em;
@@ -55,36 +54,61 @@
     text-align: right;
   }
   .header-date {
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: #7ab0c8;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #f5f0e8;
     display: block;
+    margin-bottom: 3px;
   }
   .header-edition {
     font-family: 'Courier New', monospace;
     font-size: 9px;
     color: #4a7a8a;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
+    text-align: right;
+    display: block;
   }
-  .header-ticker {
-    padding: 10px 32px;
+
+  /* PORT SNAPSHOT CARDS */
+  .port-cards {
+    padding: 0 32px 16px;
     display: flex;
-    gap: 24px;
-    overflow: hidden;
+    gap: 12px;
     flex-wrap: wrap;
   }
-  .ticker-item {
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    color: #a8c8d8;
-    white-space: nowrap;
+  .port-card {
+    flex: 1;
+    min-width: 120px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 3px;
+    padding: 10px 14px;
   }
-  .ticker-item .port { color: #4a7a8a; margin-right: 4px; }
-  .ticker-item .up { color: #6db88a; }
-  .ticker-item .down { color: #e07060; }
+  .port-card-name {
+    font-family: Georgia, serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #f5f0e8;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .port-card-species {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #7ab0c8;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .port-card-price {
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: #6db88a;
+    display: block;
+  }
 
   /* ALERT BAND */
   .alert-band {
@@ -103,10 +127,9 @@
     white-space: nowrap;
   }
   .alert-text {
-    font-family: 'Courier New', monospace;
-    font-size: 11px;
+    font-size: 13px;
     color: white;
-    letter-spacing: 0.04em;
+    font-weight: 300;
   }
   .alert-text strong { font-weight: 700; }
 
@@ -115,22 +138,27 @@
 
   /* SECTION LABEL */
   .section-label {
-    padding: 24px 32px 12px;
-    font-family: 'Courier New', monospace;
-    font-size: 9px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: #7a7060;
+    padding: 20px 32px 12px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #1a3a4a;
     border-bottom: 1px solid #c8bfaa;
+    border-top: 2px solid #1a3a4a;
     display: flex;
     align-items: center;
     gap: 12px;
+    background: #f0ebe0;
   }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #c8bfaa;
+  .section-label .section-sub {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7a7060;
+    font-weight: 400;
+    margin-left: 8px;
   }
 
   /* LEAD STORY */
@@ -202,8 +230,8 @@
   }
   .species-name {
     display: block;
-    font-weight: 500;
-    font-size: 12px;
+    font-weight: 600;
+    font-size: 14px;
     color: #0f0e0c;
   }
   .best-label {
@@ -239,7 +267,7 @@
   }
   .price-val {
     font-family: 'Courier New', monospace;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     color: #0f0e0c;
     text-align: right;
@@ -254,16 +282,16 @@
   }
   .bar-port {
     font-family: 'Courier New', monospace;
-    font-size: 10px;
-    color: #5a5040;
-    width: 85px;
+    font-size: 11px;
+    color: #3a3428;
+    width: 90px;
     flex-shrink: 0;
     text-align: right;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.02em;
   }
   .bar-track {
     flex: 1;
-    height: 18px;
+    height: 20px;
     background: #e8e0d0;
     border-radius: 2px;
     overflow: hidden;
@@ -279,10 +307,10 @@
   }
   .bar-price {
     font-family: 'Courier New', monospace;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     color: #0f0e0c;
-    width: 50px;
+    width: 55px;
     text-align: right;
   }
 
@@ -317,7 +345,7 @@
   }
   .mover-species {
     font-family: Georgia, serif;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: #0f0e0c;
     overflow: hidden;
@@ -326,16 +354,16 @@
   }
   .mover-pct {
     font-family: 'Courier New', monospace;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
   }
   .mover-pct.up { color: #4a8a5a; }
   .mover-pct.down { color: #c8401a; }
   .mover-detail {
     font-family: 'Courier New', monospace;
-    font-size: 10px;
-    color: #5a5040;
-    line-height: 1.7;
+    font-size: 11px;
+    color: #3a3428;
+    line-height: 1.8;
     letter-spacing: 0.02em;
   }
 
@@ -547,24 +575,24 @@
 
   /* BENCHMARK SNAPSHOT */
   .snapshot-block {
-    padding: 16px 32px;
+    padding: 18px 32px;
     border-bottom: 1px solid #c8bfaa;
   }
   .snapshot-header {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
   .snapshot-species {
     font-family: Georgia, serif;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 700;
     color: #0f0e0c;
   }
   .snapshot-change {
     font-family: 'Courier New', monospace;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
   }
 
@@ -590,32 +618,32 @@
   }
   .highlight-cell {
     flex: 1;
-    padding: 20px 32px;
+    padding: 24px 32px;
   }
   .highlight-cell:first-child {
     border-right: 1px solid #c8bfaa;
   }
   .hl-eyebrow {
     font-family: 'Courier New', monospace;
-    font-size: 8px;
-    letter-spacing: 0.15em;
+    font-size: 9px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: #7a7060;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .hl-value {
     font-family: Georgia, serif;
-    font-size: 20px;
+    font-size: 26px;
     font-weight: 700;
     color: #0f0e0c;
-    line-height: 1.2;
-    margin-bottom: 8px;
+    line-height: 1.1;
+    margin-bottom: 10px;
   }
   .hl-detail {
     font-family: 'Courier New', monospace;
-    font-size: 10px;
-    color: #5a5040;
-    line-height: 1.8;
+    font-size: 11px;
+    color: #3a3428;
+    line-height: 1.9;
     letter-spacing: 0.02em;
   }
   .hl-detail strong {
@@ -624,10 +652,10 @@
   }
   .hl-footer {
     font-family: 'Courier New', monospace;
-    font-size: 10px;
+    font-size: 11px;
     color: #c8401a;
     font-weight: 700;
-    margin-top: 8px;
+    margin-top: 10px;
     letter-spacing: 0.02em;
   }
 
@@ -660,14 +688,15 @@
         <span class="header-edition">Daily Market Digest</span>
       </div>
     </div>
-    {% if ticker_items or fx_rate %}
-    <div class="header-ticker">
+    {% if ticker_items %}
+    <div class="port-cards">
       {% for t in ticker_items %}
-      <span class="ticker-item"><span class="port">{{ t.port_code }}</span> {{ t.species }} <span class="up">&pound;{{ "%.2f"|format(t.price) }}</span></span>
+      <div class="port-card">
+        <span class="port-card-name">{{ t.port }}</span>
+        <span class="port-card-species">Top price today</span>
+        <span class="port-card-price">&pound;{{ "%.2f"|format(t.price) }} <span style="font-size:11px;color:#7ab0c8;font-weight:400">{{ t.species }}</span></span>
+      </div>
       {% endfor %}
-      {% if fx_rate %}
-      <span class="ticker-item"><span class="port">FX</span> GBP/EUR {{ fx_rate.rate }}</span>
-      {% endif %}
     </div>
     {% endif %}
   </div>
@@ -676,15 +705,14 @@
 
   <!-- ALERT BAND -->
   <div class="alert-band">
-    <span class="alert-label">&#9873; Today</span>
-    <span class="alert-text"><strong>{{ ports_reporting|length }} ports reporting</strong> &middot; {{ total_species }} species tracked &middot; {{ total_rows }} price points{% if fx_rate %} &middot; GBP/EUR {{ fx_rate.rate }}{% endif %}</span>
+    <span class="alert-text"><strong>{{ ports_reporting|length }} ports</strong> reporting today &mdash; {{ total_species }} species tracked{% if fx_rate %} &middot; GBP/EUR {{ fx_rate.rate }}{% endif %}</span>
   </div>
 
   <div class="email-body">
 
     <!-- 3. TODAY'S HIGHLIGHTS -->
     {% if best_value_port or biggest_spread %}
-    <div class="section-label">Today's highlights</div>
+    <div class="section-label">Today's Highlights</div>
     <div class="highlights-row">
       {% if best_value_port %}
       <div class="highlight-cell">
@@ -692,21 +720,21 @@
         <div class="hl-value">{{ best_value_port.port }}</div>
         <div class="hl-detail">
           {% for ex in best_value_port.examples %}
-          {{ ex.species }} &pound;{{ "%.2f"|format(ex.price) }}{% if not loop.last %}<br>{% endif %}
+          {{ ex.species }} &nbsp;<strong>&pound;{{ "%.2f"|format(ex.price) }}</strong>{% if not loop.last %}<br>{% endif %}
           {% endfor %}
         </div>
       </div>
       {% endif %}
       {% if biggest_spread %}
       <div class="highlight-cell">
-        <div class="hl-eyebrow">Biggest cross-port spread</div>
+        <div class="hl-eyebrow">Biggest port spread</div>
         <div class="hl-value">{{ biggest_spread.species }}</div>
         <div class="hl-detail">
           {% for p in biggest_spread.ports %}
-          {{ p.port }} <strong>&pound;{{ "%.2f"|format(p.price) }}</strong>{% if not loop.last %}<br>{% endif %}
+          {{ p.port }} &nbsp;<strong>&pound;{{ "%.2f"|format(p.price) }}</strong>{% if not loop.last %}<br>{% endif %}
           {% endfor %}
         </div>
-        <div class="hl-footer">{{ biggest_spread.spread_pct }}% gap &mdash; {{ biggest_spread.high_port }} vs {{ biggest_spread.low_port }}</div>
+        <div class="hl-footer">{{ biggest_spread.spread_pct }}% price gap</div>
       </div>
       {% endif %}
     </div>
@@ -714,7 +742,7 @@
 
     <!-- 4. BIGGEST MOVERS -->
     {% if movers %}
-    <div class="section-label">Biggest movers</div>
+    <div class="section-label">Biggest Movers <span class="section-sub">day-over-day price change</span></div>
     <div class="movers-grid">
       {% for m in movers %}
       <div class="mover-card{% if m.direction == 'down' %} down-card{% endif %}">
@@ -734,7 +762,7 @@
 
     <!-- 5. KEY SPECIES BAR CHARTS (10 benchmark species) -->
     {% if benchmark_snapshot %}
-    <div class="section-label">Key species — {{ benchmark_snapshot|length }} benchmarks</div>
+    <div class="section-label">Key Species <span class="section-sub">best £/kg across ports today</span></div>
     {% for b in benchmark_snapshot %}
     <div class="snapshot-block">
       <div class="snapshot-header">
@@ -754,7 +782,7 @@
 
     <!-- 6. ALL MULTI-PORT SPECIES SUMMARY TABLE -->
     {% if key_species_summary %}
-    <div class="section-label">All multi-port species — {{ key_species_summary|length }} tracked</div>
+    <div class="section-label">All Species <span class="section-sub">{{ key_species_summary|length }} tracked across 2+ ports</span></div>
     <div class="price-table-wrap">
       <table class="price-table summary-table">
         <thead>

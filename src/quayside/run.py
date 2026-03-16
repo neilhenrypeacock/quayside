@@ -6,12 +6,11 @@ import logging
 import sys
 import traceback
 
-from quayside.db import init_db, upsert_landings, upsert_prices
-from quayside.export import export_landings_csv, export_prices_csv
+from quayside.db import init_db, upsert_prices
+from quayside.export import export_prices_csv
 from quayside.ports import seed_ports
 from quayside.report import generate_report
 from quayside.scrapers import brixham, cfpo, fraserburgh, lerwick, newlyn, scrabster
-from quayside.scrapers.peterhead import scrape_landings as peterhead_landings
 from quayside.scrapers.swfpa import get_swfpa_event_links
 from quayside.scrapers.swfpa import scrape_prices as peterhead_prices
 
@@ -43,7 +42,6 @@ def main() -> int:
     init_db()
     seed_ports()
 
-    all_landings = []
     all_prices = []
     # Track scraper health: {name: {records: N, error: str|None, source: str}}
     scraper_status = {}
@@ -66,10 +64,6 @@ def main() -> int:
     event_date = swfpa_links.get("event_date")
 
     # --- Peterhead ---
-    landings, err = _run_scraper("Peterhead landings", peterhead_landings)
-    scraper_status["Peterhead landings"] = {
-        "records": len(landings), "error": err, "source": "peterheadport.co.uk",
-    }
     prices, err = _run_scraper(
         "Peterhead prices",
         lambda: peterhead_prices(xls_url=swfpa_links.get("peterhead_xls")),
@@ -77,7 +71,6 @@ def main() -> int:
     scraper_status["Peterhead prices"] = {
         "records": len(prices), "error": err, "source": "SWFPA XLS",
     }
-    all_landings += landings
     all_prices += prices
 
     # --- Lerwick (prices from SSA portal XLSX) ---
@@ -164,27 +157,17 @@ def main() -> int:
         logger.info("Empty scrapers (no data today): %s", ", ".join(empty))
 
     # Store
-    if all_landings:
-        count = upsert_landings(all_landings)
-        logger.info("Stored %d landing records total", count)
-    else:
-        logger.warning("No landing records scraped")
-
     if all_prices:
         count = upsert_prices(all_prices)
         logger.info("Stored %d price records total", count)
     else:
         logger.warning("No price records scraped")
 
-    if not all_landings and not all_prices:
+    if not all_prices:
         logger.error("All scrapers returned zero records")
         return 1
 
     # Export CSVs per port
-    for port, records in [("Peterhead", landings)]:
-        if records:
-            export_landings_csv(records[0].date, port)
-
     for port, records in [
         ("Peterhead", prices),
         ("Lerwick", lerwick_prices),

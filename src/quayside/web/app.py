@@ -31,6 +31,7 @@ from quayside.db import (
     get_all_ports,
     get_latest_date,
     get_latest_rich_date,
+    get_latest_scraped_at,
     get_market_averages_for_date,
     get_market_averages_for_range,
     get_port,
@@ -46,6 +47,7 @@ from quayside.db import (
     init_db,
     log_correction,
     seed_demo_data,
+    seed_demo_port_data,
     upsert_prices_with_upload,
 )
 from quayside.extractors import extract_from_file
@@ -77,11 +79,12 @@ def create_app() -> Flask:
         init_db()
         seed_ports()
         seed_demo_data()
+        seed_demo_port_data()
 
     @app.context_processor
     def inject_ticker():
         """Make ticker data available to all templates via base.html."""
-        date = get_latest_date()
+        date = get_latest_rich_date()  # exclude sparse/demo-only dates
         if date:
             ld = build_landing_data(date)
             return {"_ticker_items": ld.get("ticker_items", []) if ld else []}
@@ -223,10 +226,20 @@ def create_app() -> Flask:
         # Get 90-day history for trend chart (supports 7d/30d/90d toggles)
         history = get_port_prices_history(port["name"], days=90)
         trend_data = _build_trend_data(history)
+        history_days = len({h[0] for h in history})  # distinct auction dates in history
 
         # Build best performers and insights
         best_performers = _build_best_performers(port["name"], date, days=30)
         all_insights = _build_insights(port["name"], date, today_data, history)
+
+        # ── Grade mix: group rows by species for expandable view ──
+        from collections import OrderedDict
+        species_grades = OrderedDict()
+        for item in today_data:
+            sp = item["species"]
+            if sp not in species_grades:
+                species_grades[sp] = []
+            species_grades[sp].append(item)
 
         # ── Hero summary stats ──
         avg_prices = [
@@ -236,11 +249,13 @@ def create_app() -> Flask:
             sum(avg_prices) / len(avg_prices), 2
         ) if avg_prices else None
 
-        hero_species_count = len(today_data)
+        # Count unique canonical species (not species×grade rows)
+        hero_species_count = len(species_grades)
 
+        # Count species (not grades) that beat the UK average
         above_count = sum(
-            1 for item in today_data
-            if item["position"] and item["position"]["vs_pct"] > 0
+            1 for items in species_grades.values()
+            if items[0]["position"] and items[0]["position"]["vs_pct"] > 0
         )
 
         # Today vs same day last week (aggregate delta)
@@ -270,15 +285,6 @@ def create_app() -> Flask:
                 hero_vs_market = round(
                     ((port_overall - market_overall) / market_overall) * 100, 1
                 )
-
-        # ── Grade mix: group rows by species for expandable view ──
-        from collections import OrderedDict
-        species_grades = OrderedDict()
-        for item in today_data:
-            sp = item["species"]
-            if sp not in species_grades:
-                species_grades[sp] = []
-            species_grades[sp].append(item)
 
         # ── Species availability gaps ──
         species_gaps = [
@@ -316,6 +322,10 @@ def create_app() -> Flask:
             compare_label = f"last {day_name}"
             compare_date_display = None
 
+        # ── Data freshness: when was this date's data last scraped? ──
+        scraped_at_raw = get_latest_scraped_at(port["name"], date)
+        data_freshness = _format_data_freshness(scraped_at_raw, date)
+
         # ── Performance overview: week-over-week & month-over-month ──
         perf = _build_performance_overview(port["name"], date, history, market)
 
@@ -323,8 +333,10 @@ def create_app() -> Flask:
             "dashboard.html",
             port=port,
             date=date,
+            data_freshness=data_freshness,
             today_data=today_data,
             trend_data=json.dumps(trend_data),
+            history_days=history_days,
             total_species=hero_species_count,
             best_performers=best_performers,
             port_insights=all_insights["port"],
@@ -1564,6 +1576,54 @@ def _build_performance_overview(
         "last_week_boxes": last_week_boxes,
         "boxes_change": boxes_change,
     }
+
+
+def _format_data_freshness(scraped_at: str | None, auction_date: str) -> dict:
+    """Return a dict describing how fresh the data is for display in the header.
+
+    Returns: {label: str, status: 'live'|'recent'|'stale', tooltip: str}
+    """
+    from datetime import datetime as dt, timezone
+
+    now = dt.now()
+    today_str = now.strftime("%Y-%m-%d")
+
+    if not scraped_at:
+        return {"label": "No data", "status": "stale", "tooltip": "No data available"}
+
+    try:
+        # scraped_at may be a full ISO datetime or just a date
+        if "T" in scraped_at:
+            scraped_dt = dt.fromisoformat(scraped_at)
+        else:
+            scraped_dt = dt.strptime(scraped_at, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        return {"label": "Data available", "status": "recent", "tooltip": scraped_at}
+
+    hours_ago = (now - scraped_dt).total_seconds() / 3600
+
+    if auction_date == today_str:
+        if hours_ago < 1:
+            label = f"Updated {int((now - scraped_dt).total_seconds() / 60)}m ago"
+            status = "live"
+        elif hours_ago < 12:
+            label = f"Updated {scraped_dt.strftime('%H:%M')} today"
+            status = "live"
+        else:
+            label = f"Today's data · scraped {scraped_dt.strftime('%H:%M')}"
+            status = "live"
+        tooltip = f"Data last updated {scraped_dt.strftime('%-d %b %Y at %H:%M')}"
+    elif hours_ago < 48:
+        label = f"Yesterday's auction · {scraped_dt.strftime('%H:%M')}"
+        status = "recent"
+        tooltip = f"Last updated {scraped_dt.strftime('%-d %b %Y at %H:%M')}"
+    else:
+        days_ago = int(hours_ago / 24)
+        label = f"{days_ago}d old · {auction_date}"
+        status = "stale"
+        tooltip = f"Data from {auction_date}, last updated {scraped_dt.strftime('%-d %b %Y at %H:%M')}"
+
+    return {"label": label, "status": status, "tooltip": tooltip}
 
 
 def _parse_form_prices(form, port_name: str, date: str) -> list[PriceRecord]:
