@@ -334,24 +334,34 @@
     margin-bottom: 16px;
   }
 
-  /* FAQ */
-  .faq-list { max-width: 640px; }
-  .faq-item {
-    padding: 24px 0;
-    border-bottom: 1px solid var(--rule);
+  /* STRAIGHT TALK */
+  .talk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: #2a2820;
+    border: 1px solid #2a2820;
   }
-  .faq-item dt {
+  .talk-card {
+    background: #161410;
+    padding: 40px 32px;
+  }
+  .talk-card h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
-    color: var(--ink);
-    margin-bottom: 8px;
+    color: var(--paper);
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
   }
-  .faq-item dd {
+  .talk-card p {
     font-size: 14px;
-    color: #5a5448;
-    line-height: 1.7;
+    color: #7a7060;
+    line-height: 1.8;
   }
+  .talk-card strong { color: #a8c8d8; font-weight: 500; }
+  @media (max-width: 900px) { .talk-grid { grid-template-columns: 1fr; } }
 
   /* FINAL CTA */
   .final-cta {
@@ -592,32 +602,24 @@
   </div>
 </section>
 
-<!-- FAQ -->
-<section class="section" style="background:var(--foam);">
+<!-- STRAIGHT TALK -->
+<section style="background:var(--ink);padding:96px 48px;border-bottom:1px solid #2a2820;">
   <div class="section-inner">
-    <div class="section-label">Common questions</div>
-    <dl class="faq-list fade-up">
-      <div class="faq-item">
-        <dt>What format do you need?</dt>
-        <dd>We provide you with a shared online spreadsheet (Excel or Google Sheet) pre-filled with your data. Just review, correct anything that needs updating, and click "Confirmed". No special software or file formats required &mdash; it works from any browser.</dd>
+    <div class="section-label" style="color:#3a3428;">Good to know</div>
+    <div class="talk-grid fade-up">
+      <div class="talk-card">
+        <h3>It costs you nothing.<br><em style="font-style:italic;color:#7ab0c8;">Ever.</em></h3>
+        <p>Quayside is funded by trade subscribers &mdash; buyers, merchants and processors who pay for the aggregated view. <strong>Ports never pay.</strong> The dashboard, the benchmarks, the marketing exposure &mdash; all free, permanently.</p>
       </div>
-      <div class="faq-item">
-        <dt>What do other ports see?</dt>
-        <dd>Aggregated market ranges only &mdash; minimum, average, and maximum across all ports. No one sees your raw data, grades, or individual prices. When only two ports report a species, neither port is named.</dd>
+      <div class="talk-card">
+        <h3>Other ports see<br><em style="font-style:italic;color:#7ab0c8;">ranges, not rates.</em></h3>
+        <p>Subscribers see market-wide benchmarks: min, average, max across all ports. <strong>Nobody sees your raw data or individual prices.</strong> When fewer than three ports report a species, no port is named at all.</p>
       </div>
-      <div class="faq-item">
-        <dt>What does it cost?</dt>
-        <dd>Nothing. Completely free. Quayside makes money from subscribers (buyers, sellers, processors) who pay for the aggregated data. Ports never pay.</dd>
+      <div class="talk-card">
+        <h3>If we get something<br><em style="font-style:italic;color:#7ab0c8;">wrong, you fix it.</em></h3>
+        <p>Every daily data pull gets a confirmation step before it goes live. <strong>One click to approve, one click to edit.</strong> You stay in control. We learn from every correction and improve automatically.</p>
       </div>
-      <div class="faq-item">
-        <dt>Who else is on the platform?</dt>
-        <dd>Quayside launches in April 2026 with the goal of bringing the 20 most commercially active ports in the UK and Ireland onto the platform. More ports means better price transparency, fairer markets, and stronger benchmarks for everyone in the supply chain. Specific port partnerships will be announced closer to launch.</dd>
-      </div>
-      <div class="faq-item">
-        <dt>What if the extraction gets something wrong?</dt>
-        <dd>Every upload gets a confirmation email. One click to approve, or click to edit. We log corrections and improve our extraction automatically.</dd>
-      </div>
-    </dl>
+    </div>
   </div>
 </section>
 
