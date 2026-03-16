@@ -691,6 +691,28 @@ def get_market_averages_for_range(
     return dict(result)
 
 
+def get_30day_species_averages(date: str) -> dict[str, float]:
+    """Rolling 30-trading-day average best price per raw species, ending the day before date.
+
+    Uses ~45 calendar days to capture ~30 trading days.
+    Returns {raw_species_name: avg_price}.
+    """
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT species, AVG(day_best) as thirty_day_avg
+           FROM (
+               SELECT date, species, MAX(price_avg) as day_best
+               FROM prices
+               WHERE date < ? AND date >= date(?, '-45 days') AND price_avg IS NOT NULL
+               GROUP BY date, species
+           )
+           GROUP BY species""",
+        (date, date),
+    ).fetchall()
+    conn.close()
+    return {species: round(avg, 2) for species, avg in rows if avg}
+
+
 def get_market_averages_for_date(date: str) -> dict[str, dict]:
     """Per-species market stats across all ports for a given date.
 

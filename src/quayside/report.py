@@ -9,7 +9,7 @@ from pathlib import Path
 
 import jinja2
 
-from quayside.db import get_all_prices_for_date, get_latest_date, get_latest_rich_date, get_previous_date
+from quayside.db import get_30day_species_averages, get_all_prices_for_date, get_latest_date, get_latest_rich_date, get_previous_date
 from quayside.fx import get_rate
 from quayside.ports import get_port_code_map
 from quayside.species import normalise_species
@@ -120,6 +120,55 @@ def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
     return changes[:6]
 
 
+def _build_port_highlights(rows: list[tuple], thirty_day_raw: dict[str, float]) -> list[dict]:
+    """Per-port highlight: species with biggest % deviation from its 30-day average today.
+
+    Falls back to best price if no 30-day data is available for any species at that port.
+    """
+    from collections import defaultdict
+
+    # Build per-port candidates: find the species with biggest deviation at each port
+    port_best: dict[str, dict] = {}
+    port_fallback: dict[str, dict] = {}  # best price if no 30d avg available
+
+    for r in rows:
+        _, port, raw_species, grade, low, high, avg = r
+        if not avg:
+            continue
+        species = normalise_species(raw_species)
+        if _is_noisy_species(species):
+            continue
+
+        # Track fallback (highest price per port)
+        if port not in port_fallback or avg > port_fallback[port]["price"]:
+            port_fallback[port] = {"port": port, "species": species, "price": avg, "has_deviation": False}
+
+        thirty_avg = thirty_day_raw.get(raw_species)
+        if not thirty_avg or thirty_avg == 0:
+            continue
+
+        pct = ((avg - thirty_avg) / thirty_avg) * 100
+        if port not in port_best or abs(pct) > abs(port_best[port]["pct"]):
+            direction = "up" if pct > 0 else "down"
+            sign = "+" if pct > 0 else ""
+            port_best[port] = {
+                "port": port,
+                "species": species,
+                "price": avg,
+                "thirty_avg": thirty_avg,
+                "pct": pct,
+                "pct_str": f"{sign}{round(pct)}%",
+                "direction": direction,
+                "arrow": "▲" if pct > 0 else "▼",
+                "has_deviation": True,
+            }
+
+    result = []
+    for port in sorted(port_best.keys() | port_fallback.keys()):
+        result.append(port_best.get(port) or port_fallback[port])
+    return result
+
+
 def build_report_data(date: str) -> dict:
     """Query DB and assemble template context for the given date."""
     rows = get_all_prices_for_date(date, exclude_demo=True)  # (date, port, species, grade, low, high, avg)
@@ -134,6 +183,7 @@ def build_report_data(date: str) -> dict:
             "total_species": 0,
             "total_rows": 0,
             "ticker_items": [],
+            "port_highlights": [],
             "prices_by_species": [],
             "benchmark_snapshot": [],
             "key_species_summary": [],
@@ -234,6 +284,16 @@ def build_report_data(date: str) -> dict:
     # Sort: port count desc, then best price desc
     key_species_summary.sort(key=lambda s: (-s["port_count"], -s["best_price"]))
 
+    # --- 30-day rolling averages (raw species names, then normalise) ---
+    thirty_day_raw = get_30day_species_averages(date)
+    # Aggregate raw names → canonical (average of raw averages)
+    _thirty_accum: dict[str, list[float]] = defaultdict(list)
+    for raw_sp, avg in thirty_day_raw.items():
+        _thirty_accum[normalise_species(raw_sp)].append(avg)
+    thirty_day_avgs: dict[str, float] = {
+        sp: round(sum(vals) / len(vals), 2) for sp, vals in _thirty_accum.items()
+    }
+
     # --- Benchmark snapshot (top commercial species) ---
     benchmark_snapshot = []
     for species in BENCHMARK_SPECIES:
@@ -241,6 +301,7 @@ def build_report_data(date: str) -> dict:
             continue
         port_prices = species_ports[species]
         best_price = max(port_prices.values())
+        market_avg = round(sum(port_prices.values()) / len(port_prices), 2)
 
         prev_price = prev_best.get(species)
         change = {}
@@ -254,6 +315,8 @@ def build_report_data(date: str) -> dict:
                     "arrow": "▲" if pct > 0 else "▼",
                     "direction": "up" if pct > 0 else "down",
                 }
+
+        thirty_avg = thirty_day_avgs.get(species)
 
         # Per-port breakdown with bar widths (same pattern as cross-port comparisons)
         ports = sorted(
@@ -272,6 +335,8 @@ def build_report_data(date: str) -> dict:
         benchmark_snapshot.append({
             "species": species,
             "best_price": best_price,
+            "market_avg": market_avg,
+            "thirty_day_avg": thirty_avg,
             "change": change,
             "ports": ports,
         })
@@ -294,6 +359,9 @@ def build_report_data(date: str) -> dict:
 
     # --- Biggest movers (day-over-day) ---
     movers = _build_movers(date, rows)
+
+    # --- Port highlights (biggest % deviation from 30-day avg per port) ---
+    port_highlights = _build_port_highlights(rows, thirty_day_raw)
 
     # --- Today's Highlights ---
     # Best value port: port with lowest average of best-grade prices across species
@@ -366,6 +434,7 @@ def build_report_data(date: str) -> dict:
         "total_species": len(species_seen),
         "total_rows": len(rows),
         "ticker_items": ticker_items,
+        "port_highlights": port_highlights,
         "prices_by_species": prices_by_species,
         "benchmark_snapshot": benchmark_snapshot,
         "key_species_summary": key_species_summary,

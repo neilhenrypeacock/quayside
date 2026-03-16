@@ -76,3 +76,64 @@ def normalise_species(raw_name: str) -> str:
 def get_all_canonical_names() -> list[str]:
     """Return sorted list of all canonical species names."""
     return sorted(_CANONICAL_MAP.keys())
+
+
+# Category groupings for canonical species names.
+# Categories: "demersal", "flatfish", "shellfish", "pelagic", "other"
+_CATEGORY_MAP: dict[str, str] = {
+    "Black Bream": "other",
+    "Brill": "flatfish",
+    "Catfish": "demersal",
+    "Cod": "demersal",
+    "Coley (Saithe)": "demersal",
+    "Conger Eel": "demersal",
+    "Cuttlefish": "other",
+    "Dab": "flatfish",
+    "Dogfish": "other",
+    "Dover Sole": "flatfish",
+    "Flounder": "flatfish",
+    "Gurnard": "demersal",
+    "Haddock": "demersal",
+    "Hake": "demersal",
+    "Halibut": "flatfish",
+    "John Dory": "other",
+    "Lemon Sole": "flatfish",
+    "Ling": "demersal",
+    "Lobster": "shellfish",
+    "Mackerel": "pelagic",
+    "Megrim": "flatfish",
+    "Monkfish": "other",
+    "Octopus": "other",
+    "Plaice": "flatfish",
+    "Pollack": "demersal",
+    "Prawns": "shellfish",
+    "Red Mullet": "other",
+    "Sand Sole": "flatfish",
+    "Scad": "pelagic",
+    "Skate": "flatfish",
+    "Smoothhound": "other",
+    "Spurdog": "other",
+    "Squid": "other",
+    "Turbot": "flatfish",
+    "Weaver": "other",
+    "Whiting": "demersal",
+    "Witch": "flatfish",
+}
+
+CATEGORY_LABELS: dict[str, str] = {
+    "all": "All",
+    "demersal": "Demersal",
+    "flatfish": "Flatfish",
+    "shellfish": "Shellfish",
+    "pelagic": "Pelagic",
+    "other": "Other",
+}
+
+
+def get_species_category(canonical: str) -> str:
+    """Return the fishing category for a canonical species name.
+
+    Categories: 'demersal', 'flatfish', 'shellfish', 'pelagic', 'other'
+    Unmapped species default to 'other'.
+    """
+    return _CATEGORY_MAP.get(canonical, "other")

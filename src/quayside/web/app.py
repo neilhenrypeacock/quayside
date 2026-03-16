@@ -55,7 +55,7 @@ from quayside.review import build_monthly_data, build_weekly_data
 from quayside.models import PriceRecord
 from quayside.ports import seed_ports
 from quayside.report import build_landing_data, build_report_data
-from quayside.species import get_all_canonical_names, normalise_species
+from quayside.species import get_all_canonical_names, get_species_category, normalise_species
 
 logger = logging.getLogger(__name__)
 
@@ -221,6 +221,7 @@ def create_app() -> Flask:
                 "price_avg": avg,
                 "position": position,
                 "vs_last_week": vs_last_week,
+                "category": get_species_category(canonical),
             })
 
         # Get 90-day history for trend chart (supports 7d/30d/90d toggles)
@@ -335,6 +336,9 @@ def create_app() -> Flask:
         # ── Performance overview: week-over-week & month-over-month ──
         perf = _build_performance_overview(port["name"], date, history, market)
 
+        # ── Per-category hero stats (for the category pill filter) ──
+        category_stats = _build_category_stats(today_data, last_week_prices, market, history)
+
         response = app.make_response(render_template(
             "dashboard.html",
             port=port,
@@ -362,6 +366,7 @@ def create_app() -> Flask:
             compare_label=compare_label,
             compare_date_display=compare_date_display,
             perf=perf,
+            category_stats=json.dumps(category_stats),
         ))
 
         # Set auth cookie if token in query string
@@ -437,6 +442,7 @@ def create_app() -> Flask:
                 "price_avg": avg,
                 "position": position,
                 "vs_last_week": vs_last_week,
+                "category": get_species_category(canonical),
             })
 
         from collections import OrderedDict
@@ -1627,6 +1633,110 @@ def _build_insights(
         "port": [item for _, item in _ranked_port[:3]],
         "market": [item for _, item in _ranked_market[:3]],
     }
+
+
+def _build_category_stats(
+    today_data: list[dict],
+    last_week_prices: dict,
+    market: dict,
+    history: list[tuple],
+) -> dict:
+    """Compute per-category hero stats for the category pill filter.
+
+    Returns a dict keyed by category slug ('all', 'demersal', etc.) with:
+    today_avg, vs_last_week, last_week_price, vs_market,
+    week_avg, week_change, month_avg, month_change.
+    """
+    from collections import defaultdict
+
+    _CATEGORIES = ["all", "demersal", "flatfish", "shellfish", "pelagic", "other"]
+
+    # Build history date buckets for week/month rolling windows
+    date_cat_prices: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
+    for hist_date, species, _grade, _low, _high, avg in history:
+        if avg:
+            canonical = normalise_species(species)
+            cat = get_species_category(canonical)
+            date_cat_prices[hist_date]["all"].append(avg)
+            date_cat_prices[hist_date][cat].append(avg)
+
+    sorted_dates = sorted(date_cat_prices.keys(), reverse=True)
+    this_week_dates = sorted_dates[:5]
+    last_week_dates = sorted_dates[5:10]
+    this_month_dates = sorted_dates[:20]
+    last_month_dates = sorted_dates[20:40]
+
+    def _period_avg(dates: list[str], cat: str) -> float | None:
+        prices = [p for d in dates for p in date_cat_prices.get(d, {}).get(cat, [])]
+        return round(sum(prices) / len(prices), 2) if prices else None
+
+    # Build last_week raw-species → category mapping from today_data
+    raw_to_cat = {item["raw_species"]: item["category"] for item in today_data}
+
+    result = {}
+    for cat in _CATEGORIES:
+        # Today's avg for this category
+        today_prices = [
+            item["price_avg"] for item in today_data
+            if item["price_avg"] and (cat == "all" or item["category"] == cat)
+        ]
+        today_avg = round(sum(today_prices) / len(today_prices), 2) if today_prices else None
+
+        # vs last week: match last-week species to category using raw_to_cat
+        lw_prices_cat = [
+            v["price_avg"] for (sp, _gr), v in last_week_prices.items()
+            if v["price_avg"] and (
+                cat == "all" or
+                raw_to_cat.get(sp, get_species_category(normalise_species(sp))) == cat
+            )
+        ]
+        vs_last_week = None
+        last_week_price = None
+        if lw_prices_cat and today_prices:
+            lw_avg = sum(lw_prices_cat) / len(lw_prices_cat)
+            td_avg = sum(today_prices) / len(today_prices)
+            if lw_avg > 0:
+                vs_last_week = round(((td_avg - lw_avg) / lw_avg) * 100, 1)
+            last_week_price = round(lw_avg, 2)
+
+        # vs UK market: filter market to species in this category
+        port_species_in_cat = {item["species"] for item in today_data if cat == "all" or item["category"] == cat}
+        mkt_avgs = [
+            info["avg"] for sp, info in market.items()
+            if info.get("avg") and sp in port_species_in_cat
+        ]
+        vs_market = None
+        if mkt_avgs and today_prices:
+            mkt_overall = sum(mkt_avgs) / len(mkt_avgs)
+            port_overall = sum(today_prices) / len(today_prices)
+            if mkt_overall > 0:
+                vs_market = round(((port_overall - mkt_overall) / mkt_overall) * 100, 1)
+
+        # Rolling week/month averages from history
+        this_week_avg = _period_avg(this_week_dates, cat)
+        prev_week_avg = _period_avg(last_week_dates, cat)
+        week_change = None
+        if this_week_avg and prev_week_avg and prev_week_avg > 0:
+            week_change = round(((this_week_avg - prev_week_avg) / prev_week_avg) * 100, 1)
+
+        this_month_avg = _period_avg(this_month_dates, cat)
+        prev_month_avg = _period_avg(last_month_dates, cat)
+        month_change = None
+        if this_month_avg and prev_month_avg and prev_month_avg > 0:
+            month_change = round(((this_month_avg - prev_month_avg) / prev_month_avg) * 100, 1)
+
+        result[cat] = {
+            "today_avg": today_avg,
+            "vs_last_week": vs_last_week,
+            "last_week_price": last_week_price,
+            "vs_market": vs_market,
+            "week_avg": this_week_avg,
+            "week_change": week_change,
+            "month_avg": this_month_avg,
+            "month_change": month_change,
+        }
+
+    return result
 
 
 def _build_performance_overview(
