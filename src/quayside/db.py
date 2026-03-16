@@ -90,7 +90,7 @@ def _migrate(conn: sqlite3.Connection) -> None:
     if "upload_id" not in existing:
         conn.execute("ALTER TABLE prices ADD COLUMN upload_id INTEGER")
     existing_landings = {row[1] for row in conn.execute("PRAGMA table_info(landings)").fetchall()}
-    if "scraped_at" not in existing_landings:
+    if existing_landings and "scraped_at" not in existing_landings:
         conn.execute("ALTER TABLE landings ADD COLUMN scraped_at TEXT NOT NULL DEFAULT ''")
     conn.commit()
 
