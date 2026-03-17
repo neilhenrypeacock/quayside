@@ -690,6 +690,29 @@ def create_app() -> Flask:
                 "scraped_at": row["first_scraped"],
             }
 
+        # Compute per-port data publishing times from scraped_at timestamps
+        port_data_timing: dict[str, dict] = {}
+        for _pt_port, _pt_date_map in port_coverage.items():
+            _pt_minutes: list[int] = []
+            for _pt_info in _pt_date_map.values():
+                _raw = _pt_info.get("scraped_at")
+                if not _raw:
+                    continue
+                try:
+                    _ts = dt.fromisoformat(_raw)
+                    _pt_minutes.append(_ts.hour * 60 + _ts.minute)
+                except Exception:
+                    pass
+            if len(_pt_minutes) >= 3:
+                _pt_minutes.sort()
+                _mid = len(_pt_minutes) // 2
+                port_data_timing[_pt_port] = {
+                    "median": f"{_pt_minutes[_mid] // 60:02d}:{_pt_minutes[_mid] % 60:02d}",
+                    "earliest": f"{min(_pt_minutes) // 60:02d}:{min(_pt_minutes) % 60:02d}",
+                    "latest": f"{max(_pt_minutes) // 60:02d}:{max(_pt_minutes) % 60:02d}",
+                    "sample_days": len(_pt_minutes),
+                }
+
         # Build week-structured dates: current week (Mon-Sun) + 2 previous weeks
         today = dt.now()
         # Find Monday of current week
@@ -810,6 +833,9 @@ def create_app() -> Flask:
                     continue  # skip weekends — no auctions expected
 
                 if not has_data and dow in expected_days:
+                    # Skip dates before this port started scraping — not a gap
+                    if date_str < first_data_per_port.get(port_name, "0000-00-00"):
+                        continue
                     # Determine reason
                     if is_today:
                         # Check if any port has data today
@@ -1007,10 +1033,26 @@ def create_app() -> Flask:
             except Exception:
                 pass
 
+        # Detect stale scrapes: ran today and returned records, but data date is not today
+        latest_data_date_rows = conn.execute(
+            "SELECT port, MAX(date) as last_data_date FROM prices GROUP BY port"
+        ).fetchall()
+        latest_data_date = {row["port"]: row["last_data_date"] for row in latest_data_date_rows}
+
         conn.close()
 
         today_str = today.strftime("%Y-%m-%d")
         today_is_weekday = today.weekday() < 5
+
+        # Mark stale: scraper ran and "succeeded" but the newest data in DB is not today
+        for port_name, summary in today_scrape_summary.items():
+            if summary["status"] == "success":
+                last_date = latest_data_date.get(port_name)
+                if last_date and last_date < today_str:
+                    from datetime import datetime as _dt6
+                    summary["status"] = "stale"
+                    summary["last_data_date"] = last_date
+                    summary["last_data_date_display"] = _dt6.strptime(last_date, "%Y-%m-%d").strftime("%-d %b")
 
         # Summary counts for the pipeline banner
         today_succeeded = [p for p in today_scrape_summary.values() if p["status"] == "success"]

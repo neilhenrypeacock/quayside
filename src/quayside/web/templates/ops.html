@@ -254,6 +254,7 @@
     .status-badge.active { background: rgba(109,184,138,0.15); color: var(--up); }
     .status-badge.outreach { background: rgba(200,64,26,0.12); color: var(--catch); }
     .status-badge.future { background: var(--salt); color: var(--muted); }
+    .status-badge.stale { background: rgba(200,140,26,0.15); color: #a06010; }
 
     /* Coverage heatmap */
     .coverage-table {
@@ -544,6 +545,8 @@
                     {% if s %}
                         {% if s.status == 'success' %}
                         <span class="status-badge active">Success</span>
+                        {% elif s.status == 'stale' %}
+                        <span class="status-badge stale">No new data</span>
                         {% else %}
                         <span class="status-badge outreach">Failed</span>
                         {% endif %}
@@ -560,6 +563,8 @@
                 <td style="font-family:var(--font-mono);font-size:12px;">
                     {% if s and s.status == 'success' %}
                         <span style="color:var(--up);">{{ s.record_count }} records</span>
+                    {% elif s and s.status == 'stale' %}
+                        <span style="color:#a06010;">No data since {{ s.last_data_date_display }}</span>
                     {% elif s and s.error_type %}
                         <span style="color:var(--down);">{{ s.error_type }}</span>
                     {% elif s %}
