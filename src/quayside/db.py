@@ -416,6 +416,16 @@ def get_all_ports(status: str | None = None) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def get_total_port_count() -> int:
+    """Return count of all registered ports, excluding the demo port."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT COUNT(*) FROM ports WHERE slug != 'demo'"
+    ).fetchone()
+    conn.close()
+    return row[0] if row else 0
+
+
 def get_port_codes() -> dict[str, str]:
     """Return {port_name: port_code} mapping from the ports table.
 

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import jinja2
 
-from quayside.db import get_30day_species_averages, get_all_prices_for_date, get_latest_date, get_latest_rich_date, get_previous_date
+from quayside.db import get_30day_species_averages, get_all_prices_for_date, get_latest_date, get_latest_rich_date, get_previous_date, get_total_port_count
 from quayside.fx import get_rate
 from quayside.ports import get_port_code_map
 from quayside.species import normalise_species
@@ -224,6 +224,7 @@ def build_report_data(date: str) -> dict:
             "key_species_summary": [],
             "movers": [],
             "market_summary": [],
+            "total_ports": get_total_port_count(),
             "best_value_port": None,
             "biggest_spread": None,
             "highest_price": None,
@@ -429,6 +430,7 @@ def build_report_data(date: str) -> dict:
         "key_species_summary": key_species_summary,
         "movers": movers,
         "market_summary": market_summary,
+        "total_ports": get_total_port_count(),
         "best_value_port": None,
         "biggest_spread": None,
         "highest_price": highest,

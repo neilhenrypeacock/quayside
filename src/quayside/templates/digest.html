@@ -132,48 +132,66 @@
 
   /* INTRO BLOCK */
   .intro-block {
-    padding: 28px 32px 24px;
-    background: #f5f0e8;
-    border-top: 2px solid #c8401a;
-    border-bottom: 1px solid #c8bfaa;
+    padding: 32px 32px 28px;
+    background: #1a3a4a;
+    border-top: none;
+    border-bottom: none;
   }
   .intro-headline {
-    font-family: 'Courier New', monospace;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #c8401a;
+    font-family: Georgia, serif;
+    font-size: 22px;
     font-weight: 700;
-    margin-bottom: 12px;
+    color: #ffffff;
+    margin-bottom: 10px;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
   }
   .intro-body {
     font-size: 14px;
-    line-height: 1.75;
-    color: #3a3428;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.75);
     font-weight: 300;
     max-width: 520px;
+    margin-bottom: 0;
   }
-  .intro-body strong { font-weight: 600; color: #0f0e0c; }
+  .intro-body strong { font-weight: 600; color: #ffffff; }
   .intro-stats {
-    margin-top: 14px;
+    margin-top: 20px;
     display: flex;
-    gap: 24px;
+    gap: 0;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 16px;
+    flex-wrap: wrap;
   }
   .intro-stat {
     font-family: 'Courier New', monospace;
     font-size: 9px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #7a7060;
+    color: rgba(255,255,255,0.5);
+    padding-right: 24px;
+    margin-right: 24px;
+    border-right: 1px solid rgba(255,255,255,0.15);
   }
+  .intro-stat:last-child { border-right: none; margin-right: 0; }
   .intro-stat strong {
     display: block;
     font-family: Georgia, serif;
-    font-size: 22px;
+    font-size: 26px;
     font-weight: 700;
-    color: #1a3a4a;
+    color: #ffffff;
     letter-spacing: -0.02em;
     text-transform: none;
+    margin-bottom: 2px;
+  }
+  .intro-stat-sub {
+    display: block;
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-top: 1px;
   }
 
   /* TRADE ADVERT BAND */
@@ -927,25 +945,51 @@
 
   /* MARKET SUMMARY */
   .market-summary {
-    padding: 18px 24px;
-    background: #f4f8f5;
-    border-left: 4px solid #2e6b3e;
-    margin-bottom: 20px;
-    border-radius: 0 4px 4px 0;
+    padding: 20px 32px;
+    background: #f0f6f2;
+    border-top: 2px solid #2e6b3e;
+    border-bottom: 1px solid #c8d8cc;
+    margin-bottom: 0;
+    border-radius: 0;
+    border-left: none;
   }
   .market-summary-line {
-    font-size: 16px;
-    font-weight: 600;
+    font-family: Georgia, serif;
+    font-size: 17px;
+    font-weight: 400;
     color: #1a1a1a;
-    margin: 0 0 8px;
-    line-height: 1.45;
+    margin: 0 0 6px;
+    line-height: 1.5;
   }
   .market-summary-line:last-child {
     margin-bottom: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
     font-weight: 400;
-    color: #666;
-    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #5a7a5a;
   }
+
+  /* LOCKED PREMIUM TEASERS */
+  .locked-row td { background: #f8f8f8; }
+  .locked-placeholder { color: #ccc; font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 0.05em; }
+  .lock-cta { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: #f0f4ff; border: 1px solid #c0cce8; border-radius: 0 0 4px 4px; margin-bottom: 20px; }
+  .lock-icon { font-size: 15px; flex-shrink: 0; }
+  .lock-text { flex: 1; font-size: 12px; color: #3a4a6a; line-height: 1.4; }
+  .lock-btn { font-size: 10px; font-family: 'Courier New', monospace; letter-spacing: 0.06em; background: #1a3a6a; color: white; padding: 7px 14px; border-radius: 2px; text-decoration: none; white-space: nowrap; }
+  .locked-section { position: relative; border-radius: 4px; overflow: hidden; margin-bottom: 20px; border: 1px solid #e0e8e4; }
+  .locked-chart-preview { padding: 20px 20px 14px; background: #f8faf9; filter: blur(1.5px); opacity: 0.2; pointer-events: none; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 3px; height: 90px; }
+  .chart-bar { flex: 1; background: #2e6b3e; border-radius: 2px 2px 0 0; }
+  .chart-legend-fake { display: flex; gap: 16px; margin-top: 10px; }
+  .chart-legend-fake span { font-size: 10px; color: #888; font-family: 'Courier New', monospace; }
+  .locked-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(248,250,249,0.88); }
+  .locked-overlay-inner { text-align: center; padding: 20px; }
+  .locked-overlay-icon { font-size: 22px; margin-bottom: 8px; }
+  .locked-overlay-title { font-family: Georgia, serif; font-size: 15px; color: #1a3a4a; margin-bottom: 6px; font-weight: 700; }
+  .locked-overlay-body { font-size: 12px; color: #5a6a7a; max-width: 260px; margin: 0 auto 12px; line-height: 1.5; }
+  .locked-overlay-btn { display: inline-block; font-size: 10px; font-family: 'Courier New', monospace; letter-spacing: 0.06em; background: #1a3a4a; color: white; padding: 8px 18px; border-radius: 2px; text-decoration: none; }
 
   /* EMPTY STATE */
   .empty-state {
@@ -997,12 +1041,13 @@
 
   <!-- INTRO BLOCK -->
   <div class="intro-block">
-    <div class="intro-headline">The UK fish market, in your inbox every morning.</div>
-    <p class="intro-body">Quayside pulls daily auction prices from every major UK fish port &mdash; <strong>Peterhead, Brixham, Newlyn, Scrabster, Lerwick</strong> &mdash; normalises them into a single digest, and delivers it before you start your day. We launched with two ports. <strong>We&rsquo;re at {{ ports_reporting|length }} and growing.</strong> The UK fish trade finally has a price benchmark worth trusting.</p>
+    <div class="intro-headline">The UK fish market.<br>Every morning. One digest.</div>
+    <p class="intro-body">Every major UK fish auction, normalised into a single benchmark and delivered before you start trading. <strong>{{ total_ports }} ports on the platform</strong> &mdash; {{ ports_reporting|length }} published data today. The UK fish trade finally has a price benchmark worth trusting.</p>
     <div class="intro-stats">
-      <span class="intro-stat"><strong>{{ ports_reporting|length }}</strong>Ports live</span>
-      <span class="intro-stat"><strong>{{ total_species }}</strong>Species today</span>
-      <span class="intro-stat"><strong>{{ total_rows }}</strong>Prices tracked</span>
+      <span class="intro-stat"><strong>{{ total_ports }}</strong>Ports on Quayside<span class="intro-stat-sub">and growing</span></span>
+      <span class="intro-stat"><strong>{{ ports_reporting|length }}</strong>Publishing today</span>
+      <span class="intro-stat"><strong>{{ total_species }}</strong>Species tracked</span>
+      <span class="intro-stat"><strong>{{ total_rows }}</strong>Prices today</span>
     </div>
   </div>
 
@@ -1100,10 +1145,87 @@
             <td class="price-val">{% if s.change %}<span class="change-{{ s.change.direction }}">{{ s.change.arrow }} {{ s.change.pct_str }}</span>{% else %}&mdash;{% endif %}</td>
           </tr>
           {% endfor %}
+          <!-- Locked placeholder rows -->
+          <tr class="locked-row">
+            <td><span class="locked-placeholder">— — — — — — — —</span></td>
+            <td class="price-val"><span class="locked-placeholder">— — —</span></td>
+            <td><span class="locked-placeholder">— — —</span></td>
+            <td class="price-val"><span class="locked-placeholder">—</span></td>
+            <td class="price-val"><span class="locked-placeholder">— — —</span></td>
+          </tr>
+          <tr class="locked-row">
+            <td><span class="locked-placeholder">— — — — — — — —</span></td>
+            <td class="price-val"><span class="locked-placeholder">— — —</span></td>
+            <td><span class="locked-placeholder">— — —</span></td>
+            <td class="price-val"><span class="locked-placeholder">—</span></td>
+            <td class="price-val"><span class="locked-placeholder">— — —</span></td>
+          </tr>
+          <tr class="locked-row">
+            <td><span class="locked-placeholder">— — — — — — — —</span></td>
+            <td class="price-val"><span class="locked-placeholder">— — —</span></td>
+            <td><span class="locked-placeholder">— — —</span></td>
+            <td class="price-val"><span class="locked-placeholder">—</span></td>
+            <td class="price-val"><span class="locked-placeholder">— — —</span></td>
+          </tr>
         </tbody>
       </table>
     </div>
+    <div class="lock-cta">
+      <span class="lock-icon">🔒</span>
+      <span class="lock-text">Trade subscribers get full 30-day price history and port-by-port comparisons for every species</span>
+      <a href="#" class="lock-btn">Start free trial &rarr;</a>
+    </div>
     {% endif %}
+
+    <!-- 9. PRICE TRENDS LOCKED TEASER -->
+    <div class="section-label">Price Trends <span class="section-sub">30-day history across ports</span></div>
+    <div class="locked-section">
+      <div class="locked-chart-preview">
+        <div class="chart-bars">
+          <div class="chart-bar" style="height:48%"></div>
+          <div class="chart-bar" style="height:52%"></div>
+          <div class="chart-bar" style="height:44%"></div>
+          <div class="chart-bar" style="height:58%"></div>
+          <div class="chart-bar" style="height:61%"></div>
+          <div class="chart-bar" style="height:55%"></div>
+          <div class="chart-bar" style="height:49%"></div>
+          <div class="chart-bar" style="height:63%"></div>
+          <div class="chart-bar" style="height:70%"></div>
+          <div class="chart-bar" style="height:66%"></div>
+          <div class="chart-bar" style="height:72%"></div>
+          <div class="chart-bar" style="height:68%"></div>
+          <div class="chart-bar" style="height:75%"></div>
+          <div class="chart-bar" style="height:80%"></div>
+          <div class="chart-bar" style="height:74%"></div>
+          <div class="chart-bar" style="height:78%"></div>
+          <div class="chart-bar" style="height:82%"></div>
+          <div class="chart-bar" style="height:77%"></div>
+          <div class="chart-bar" style="height:85%"></div>
+          <div class="chart-bar" style="height:90%"></div>
+          <div class="chart-bar" style="height:87%"></div>
+          <div class="chart-bar" style="height:92%"></div>
+          <div class="chart-bar" style="height:88%"></div>
+          <div class="chart-bar" style="height:95%"></div>
+          <div class="chart-bar" style="height:91%"></div>
+          <div class="chart-bar" style="height:86%"></div>
+          <div class="chart-bar" style="height:83%"></div>
+          <div class="chart-bar" style="height:79%"></div>
+          <div class="chart-bar" style="height:84%"></div>
+          <div class="chart-bar" style="height:88%"></div>
+        </div>
+        <div class="chart-legend-fake">
+          <span>Haddock</span><span>Cod</span><span>Monkfish</span><span>Hake</span>
+        </div>
+      </div>
+      <div class="locked-overlay">
+        <div class="locked-overlay-inner">
+          <div class="locked-overlay-icon">🔒</div>
+          <div class="locked-overlay-title">30-day price trends</div>
+          <div class="locked-overlay-body">Track how every species has moved across every port over the last month &mdash; spot trends before the market moves.</div>
+          <a href="#" class="locked-overlay-btn">Start free trial &rarr;</a>
+        </div>
+      </div>
+    </div>
 
     <!-- 7. CSV DOWNLOAD -->
     <div class="csv-row">
