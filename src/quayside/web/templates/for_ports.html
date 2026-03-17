@@ -1,79 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>For Ports — Quayside</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}For Ports — Quayside{% endblock %}
+
+{% block head %}
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --ink: #0f0e0c;
-    --paper: #f5f0e8;
-    --tide: #1a3a4a;
-    --salt: #e8e0d0;
-    --catch: #c8401a;
-    --foam: #f0ebe0;
-    --muted: #7a7060;
-    --rule: #c8bfaa;
-  }
-
   html { scroll-behavior: smooth; }
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-weight: 300;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* NAV */
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 48px;
-    border-bottom: 1px solid var(--rule);
-    background: var(--paper);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .nav-logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    text-decoration: none;
-  }
-  .nav-logo span { color: var(--catch); }
-  .nav-links {
-    display: flex;
-    gap: 36px;
-    list-style: none;
-  }
-  .nav-links a {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .nav-links a:hover { color: var(--ink); }
-  .nav-num { font-size: 8px; letter-spacing: 0.06em; color: var(--rule); margin-right: 3px; font-weight: 500; }
-  .nav-cta {
-    background: var(--tide);
-    color: #d0e8f0 !important;
-    padding: 8px 20px !important;
-    border-radius: 2px;
-    transition: background 0.2s !important;
-  }
-  .nav-cta:hover { background: var(--catch) !important; color: white !important; }
+  body { overflow-x: hidden; }
 
   /* SECTION LABEL */
   .section-label {
@@ -361,7 +293,6 @@
     line-height: 1.8;
   }
   .talk-card strong { color: #a8c8d8; font-weight: 500; }
-  @media (max-width: 900px) { .talk-grid { grid-template-columns: 1fr; } }
 
   /* FINAL CTA */
   .final-cta {
@@ -453,9 +384,13 @@
     transform: translateY(0);
   }
 
+  @keyframes pulse-pill {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200,64,26,0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(200,64,26,0); }
+  }
+
   @media (max-width: 900px) {
-    nav { padding: 16px 24px; }
-    .nav-links { display: none; }
+    .talk-grid { grid-template-columns: 1fr; }
     .port-hero { grid-template-columns: 1fr; min-height: auto; }
     .port-hero-left { padding: 48px 24px; }
     .port-hero-right { min-height: 240px; }
@@ -467,24 +402,9 @@
     footer { padding: 24px; flex-direction: column; align-items: flex-start; }
   }
 </style>
-</head>
-<body>
+{% endblock %}
 
-<!-- NAV -->
-<nav>
-  <a href="{{ url_for('landing') }}" class="nav-logo">Quay<span>side</span></a>
-  <ul class="nav-links">
-    <li><a href="{{ url_for('index') }}"><span class="nav-num">P0</span> Hub</a></li>
-    <li><a href="{{ url_for('landing') }}"><span class="nav-num">P1</span> Landing</a></li>
-    <li><a href="{{ url_for('digest_page') }}"><span class="nav-num">P2</span> Digest</a></li>
-    <li><a href="{{ url_for('for_ports') }}" style="color:var(--ink);"><span class="nav-num">P3</span> For Ports</a></li>
-    <li><a href="{{ url_for('port_dashboard', slug='peterhead') }}"><span class="nav-num">P4</span> Dashboard</a></li>
-    <li><a href="{{ url_for('ops_dashboard') }}"><span class="nav-num">P5</span> Ops</a></li>
-    <li><a href="{{ url_for('weekly_digest') }}"><span class="nav-num">P6</span> Weekly</a></li>
-    <li><a href="{{ url_for('monthly_digest') }}"><span class="nav-num">P7</span> Monthly</a></li>
-  </ul>
-</nav>
-
+{% block main %}
 <!-- HERO -->
 <section class="port-hero">
   <div class="port-hero-left">
@@ -531,7 +451,6 @@
 <section class="section" style="background:var(--ink);padding:80px 48px;border-bottom:1px solid #2a2820;text-align:center;">
   <div class="section-inner">
     <div style="display:inline-block;background:var(--catch);color:white;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:8px 24px;border-radius:2px;margin-bottom:28px;animation:pulse-pill 2s ease-in-out infinite;">Launching April 2026</div>
-    <style>@keyframes pulse-pill { 0%,100% { box-shadow:0 0 0 0 rgba(200,64,26,0.4); } 50% { box-shadow:0 0 0 12px rgba(200,64,26,0); } }</style>
     <h2 style="font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,48px);font-weight:700;color:var(--paper);letter-spacing:-0.02em;line-height:1.1;margin-bottom:16px;">Your port, featured in the <em style="font-style:italic;color:#7ab0c8;">daily digest.</em></h2>
     <p style="font-size:17px;line-height:1.7;color:#7a7060;max-width:540px;margin:0 auto 48px;">We're onboarding ports now. Join today for your free dashboard &mdash; and be featured in the daily digest from day one when it launches.</p>
     <div class="digest-preview-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#2a2820;border:1px solid #2a2820;text-align:left;">
@@ -643,7 +562,9 @@
   </ul>
   <div class="footer-copy">&copy; 2026 Quayside Data Ltd</div>
 </footer>
+{% endblock %}
 
+{% block scripts %}
 <script>
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -654,6 +575,4 @@
   }, { threshold: 0.1 });
   document.querySelectorAll('.fade-up').forEach((el) => observer.observe(el));
 </script>
-
-</body>
-</html>
+{% endblock %}

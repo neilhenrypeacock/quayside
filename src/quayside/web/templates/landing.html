@@ -1,156 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quayside — UK Fish Market Prices, Aggregated</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}Quayside — UK Fish Market Prices, Aggregated{% endblock %}
+
+{% block head %}
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --ink: #0f0e0c;
-    --paper: #f5f0e8;
-    --tide: #1a3a4a;
-    --salt: #e8e0d0;
-    --catch: #c8401a;
-    --foam: #f0ebe0;
-    --muted: #7a7060;
-    --rule: #c8bfaa;
-  }
-
   html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-weight: 300;
-    overflow-x: hidden;
-  }
-
-  /* TICKER */
-  .ticker-wrap {
-    background: var(--tide);
-    color: #a8c8d8;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    overflow: hidden;
-    padding: 8px 0;
-    border-bottom: 1px solid #2a5a70;
-  }
-  .ticker {
-    display: flex;
-    white-space: nowrap;
-    animation: ticker 40s linear infinite;
-  }
-  .ticker span {
-    padding: 0 40px;
-    color: #d0e8f0;
-  }
-  .ticker span.up { color: #6db88a; }
-  .ticker span.down { color: #e07060; }
-  .ticker-label {
-    color: #5a8a9a;
-    padding-right: 8px;
-  }
-  @keyframes ticker {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-
-  /* NAV */
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 48px;
-    border-bottom: 1px solid var(--rule);
-    background: var(--paper);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .nav-logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    text-decoration: none;
-  }
-  .nav-logo span {
-    color: var(--catch);
-  }
-  .nav-links {
-    display: flex;
-    gap: 36px;
-    list-style: none;
-    align-items: center;
-  }
-  .nav-links a {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .nav-links a:hover { color: var(--ink); }
-  .nav-num { font-size: 8px; letter-spacing: 0.06em; color: var(--rule); margin-right: 3px; font-weight: 500; }
-  .nav-cta {
-    background: var(--tide);
-    color: #d0e8f0 !important;
-    padding: 8px 20px !important;
-    border-radius: 2px;
-    transition: background 0.2s !important;
-  }
-  .nav-cta:hover { background: var(--catch) !important; color: white !important; }
-  /* Dropdowns in landing nav */
-  .nav-dd { position: relative; }
-  .nav-dd-toggle {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    transition: color 0.2s;
-  }
-  .nav-dd-toggle:hover { color: var(--ink); }
-  .nav-dd-caret { font-size: 8px; margin-left: 2px; transition: transform 0.2s; }
-  .nav-dd.open .nav-dd-caret { transform: rotate(180deg); }
-  .nav-dd-menu {
-    display: none;
-    position: absolute;
-    top: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%);
-    min-width: 160px;
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    box-shadow: 0 4px 12px rgba(15,14,12,0.08);
-    z-index: 200;
-    overflow: hidden;
-  }
-  .nav-dd.open .nav-dd-menu { display: block; }
-  .nav-dd-menu a {
-    display: block;
-    padding: 8px 16px !important;
-    font-size: 11px;
-    border-bottom: 1px solid var(--salt);
-    white-space: nowrap;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  .nav-dd-menu a:last-child { border-bottom: none; }
-  .nav-dd-sep { height: 1px; background: var(--rule); margin: 4px 0; }
+  body { overflow-x: hidden; }
 
   /* HERO */
   .hero {
@@ -1159,14 +1014,6 @@
   .audience-card-buyers .audience-cta { background: white; color: var(--tide); }
   .audience-card-ports .audience-cta { background: white; color: var(--catch); }
 
-  @media (max-width: 900px) {
-    .launch-section { padding: 64px 24px; }
-    .launch-columns { grid-template-columns: 1fr; }
-    .audiences-header { padding: 48px 24px 0; }
-    .audience-grid { grid-template-columns: 1fr; padding: 32px 24px 48px; gap: 16px; }
-    .audience-card { padding: 36px 28px; }
-  }
-
   /* SCROLL ANIMATIONS */
   .fade-up {
     opacity: 0;
@@ -1179,14 +1026,11 @@
   }
 
   @media (max-width: 900px) {
-    nav { padding: 16px 24px; }
-    .nav-links { display: none !important; }
-    .nav-links.open { display: flex !important; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: var(--paper); border-bottom: 1px solid var(--rule); padding: 12px 24px 20px; gap: 0; box-shadow: 0 4px 12px rgba(15,14,12,0.08); z-index: 200; }
-    .nav-links.open li { list-style: none; width: 100%; }
-    .nav-links.open .nav-dd-toggle { padding: 10px 0; border-bottom: 1px solid var(--salt); font-size: 12px; width: 100%; text-align: left; }
-    .nav-links.open .nav-dd-menu { position: static; transform: none; box-shadow: none; border: none; border-radius: 0; background: transparent; }
-    .nav-links.open .nav-dd-menu a { padding: 8px 0 8px 16px !important; color: var(--muted); border-bottom: 1px solid var(--salt); }
-    .nav-burger-landing { display: flex !important; }
+    .launch-section { padding: 64px 24px; }
+    .launch-columns { grid-template-columns: 1fr; }
+    .audiences-header { padding: 48px 24px 0; }
+    .audience-grid { grid-template-columns: 1fr; padding: 32px 24px 48px; gap: 16px; }
+    .audience-card { padding: 36px 28px; }
     .hero { grid-template-columns: 1fr; min-height: auto; }
     .hero-left { padding: 48px 24px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .email-input { width: 100%; }
@@ -1203,64 +1047,9 @@
     footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
   }
 </style>
-</head>
-<body>
+{% endblock %}
 
-<!-- TICKER -->
-<div class="ticker-wrap">
-  <div class="ticker">
-    {% if ld and ld.ticker_items %}
-      {% for item in ld.ticker_items %}
-      <span><span class="ticker-label">{{ item.port_code }}</span> {{ item.species }} <span class="{{ item.direction }}">&pound;{{ "%.2f"|format(item.price) }}/kg {% if item.direction == "up" %}&#9650;{% elif item.direction == "down" %}&#9660;{% endif %}</span></span>
-      {% endfor %}
-      {% for item in ld.ticker_items %}
-      <span><span class="ticker-label">{{ item.port_code }}</span> {{ item.species }} <span class="{{ item.direction }}">&pound;{{ "%.2f"|format(item.price) }}/kg {% if item.direction == "up" %}&#9650;{% elif item.direction == "down" %}&#9660;{% endif %}</span></span>
-      {% endfor %}
-    {% endif %}
-  </div>
-</div>
-
-<!-- NAV -->
-<nav style="position:relative;">
-  <a href="{{ url_for('landing') }}" class="nav-logo">Quay<span>side</span></a>
-  <button class="nav-burger-landing" style="display:none;flex-direction:column;gap:4px;background:none;border:none;cursor:pointer;padding:4px;" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
-    <span style="display:block;width:20px;height:2px;background:var(--ink);border-radius:1px;"></span>
-    <span style="display:block;width:20px;height:2px;background:var(--ink);border-radius:1px;"></span>
-    <span style="display:block;width:20px;height:2px;background:var(--ink);border-radius:1px;"></span>
-  </button>
-  <ul class="nav-links">
-    <li class="nav-dd">
-      <button class="nav-dd-toggle" onclick="this.closest('.nav-dd').classList.toggle('open')">For Ports <span class="nav-dd-caret">&#9662;</span></button>
-      <div class="nav-dd-menu">
-        <a href="{{ url_for('for_ports') }}">For Ports</a>
-        <div class="nav-dd-sep"></div>
-        <a href="{{ url_for('port_dashboard', slug='peterhead') }}">Peterhead</a>
-        <a href="{{ url_for('port_dashboard', slug='brixham') }}">Brixham</a>
-        <a href="{{ url_for('port_dashboard', slug='newlyn') }}">Newlyn</a>
-        <a href="{{ url_for('port_dashboard', slug='scrabster') }}">Scrabster</a>
-        <a href="{{ url_for('port_dashboard', slug='lerwick') }}">Lerwick</a>
-      </div>
-    </li>
-    <li class="nav-dd">
-      <button class="nav-dd-toggle" onclick="this.closest('.nav-dd').classList.toggle('open')">Buyers &amp; Sellers <span class="nav-dd-caret">&#9662;</span></button>
-      <div class="nav-dd-menu">
-        <a href="{{ url_for('landing') }}">Dashboard</a>
-        <a href="{{ url_for('digest_page') }}">Daily Digest</a>
-        <a href="{{ url_for('weekly_digest') }}">Weekly Report</a>
-        <a href="{{ url_for('monthly_digest') }}">Monthly Report</a>
-      </div>
-    </li>
-    <li class="nav-dd">
-      <button class="nav-dd-toggle" onclick="this.closest('.nav-dd').classList.toggle('open')">Dev <span class="nav-dd-caret">&#9662;</span></button>
-      <div class="nav-dd-menu">
-        <a href="{{ url_for('index') }}">Overview</a>
-        <a href="{{ url_for('ops_dashboard') }}">Operations</a>
-        <a href="{{ url_for('port_dashboard', slug='peterhead') }}">Demo Dashboard</a>
-      </div>
-    </li>
-  </ul>
-</nav>
-
+{% block main %}
 <!-- HERO -->
 <section class="hero">
   <div class="hero-left">
@@ -1568,15 +1357,10 @@
   </ul>
   <div class="footer-copy">&copy; 2026 Quayside Data Ltd &middot; All prices indicative &middot; Sources: Peterhead, Lerwick, Brixham, Newlyn, Scrabster</div>
 </footer>
+{% endblock %}
 
+{% block scripts %}
 <script>
-  // Close landing nav dropdowns on outside click
-  document.addEventListener('click', function(e) {
-    document.querySelectorAll('.nav-dd.open').forEach(function(dd) {
-      if (!dd.contains(e.target)) dd.classList.remove('open');
-    });
-  });
-
   // Scroll animations
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry, i) => {
@@ -1593,6 +1377,4 @@
     observer.observe(el);
   });
 </script>
-
-</body>
-</html>
+{% endblock %}
