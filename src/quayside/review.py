@@ -63,7 +63,7 @@ def _port_daily_species_count(
     }
 
 
-def _sparkline_svg(values: list[float | None], width: int = 60, height: int = 20) -> str:
+def sparkline_svg(values: list[float | None], width: int = 60, height: int = 20) -> str:
     """Generate a tiny inline SVG polyline from a list of values."""
     nums = [v for v in values if v is not None]
     if len(nums) < 2:
@@ -187,7 +187,7 @@ def build_weekly_data(end_date: str | None = None) -> dict:
             "change_pct": pct,
             "direction": "up" if pct > 0 else "down",
             "arrow": "\u25B2" if pct > 0 else "\u25BC",
-            "sparkline": _sparkline_svg(spark_values),
+            "sparkline": sparkline_svg(spark_values),
         })
 
     movers.sort(key=lambda m: abs(m["change_pct"]), reverse=True)

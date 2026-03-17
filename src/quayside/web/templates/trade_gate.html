@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Trade Dashboard — Quayside{% endblock %}
+
+{% block content %}
+<div style="max-width:560px;margin:80px auto;text-align:center;padding:0 32px;">
+    <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Premium Access</div>
+    <h1 style="font-family:var(--font-serif);font-size:36px;font-weight:700;letter-spacing:-0.02em;margin-bottom:16px;">Trade Dashboard</h1>
+    <p style="font-family:var(--font-sans);font-weight:300;color:var(--muted);margin-bottom:32px;line-height:1.7;">
+        The Trade Dashboard is a premium intelligence tool for fish merchants and buyers.<br>
+        Species-first cross-port price matrix, arbitrage opportunities, 90-day history charts, and full data export.
+    </p>
+    <div style="background:var(--foam);border:1px solid var(--rule);border-radius:2px;padding:24px;margin-bottom:32px;">
+        <div style="font-family:var(--font-mono);font-size:28px;font-weight:500;color:var(--tide);margin-bottom:4px;">&pound;95<span style="font-size:14px;color:var(--muted)">/month</span></div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">Cancel any time &bull; Instant access via link</div>
+    </div>
+    <a href="mailto:hello@quaysidedata.com?subject=Trade+Dashboard+Access" class="btn btn-primary">
+        Get Access
+    </a>
+    <div style="margin-top:20px;">
+        <a href="{{ url_for('digest_page') }}" style="font-family:var(--font-mono);font-size:10px;color:var(--muted);text-decoration:none;">
+            View today's free digest &rarr;
+        </a>
+    </div>
+</div>
+{% endblock %}

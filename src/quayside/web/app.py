@@ -1258,6 +1258,93 @@ def create_app() -> Flask:
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
 
+    # ── Trade dashboard routes ────────────────────────────────────────────────
+
+    TRADE_TOKEN = os.environ.get("QUAYSIDE_TRADE_TOKEN", "")
+
+    def _check_trade_access() -> bool:
+        """Return True if the request has a valid trade access token/cookie."""
+        if not TRADE_TOKEN:
+            return True  # No token set — open in dev mode
+        token = request.args.get("token") or request.cookies.get("trade_access")
+        return token == TRADE_TOKEN
+
+    @app.route("/trade")
+    @app.route("/trade/<date>")
+    def trade_dashboard(date: str | None = None):
+        from quayside.trade import build_trade_data
+
+        if not _check_trade_access():
+            return render_template("trade_gate.html"), 403
+
+        if date is None:
+            date = get_latest_rich_date()
+        if not date:
+            return "No data available", 404
+
+        data = build_trade_data(date)
+
+        response = app.make_response(render_template("trade.html", **data))
+
+        # Set access cookie if valid token was passed in URL (30-day expiry)
+        if TRADE_TOKEN:
+            url_token = request.args.get("token")
+            if url_token == TRADE_TOKEN:
+                response.set_cookie(
+                    "trade_access",
+                    url_token,
+                    max_age=30 * 24 * 60 * 60,
+                    httponly=True,
+                    samesite="Lax",
+                )
+        return response
+
+    @app.route("/trade/export")
+    def trade_export():
+        """Download filtered price data as CSV."""
+        import csv
+        import io
+
+        from flask import Response
+
+        from quayside.db import get_prices_for_date_range
+        from quayside.species import normalise_species
+
+        if not _check_trade_access():
+            return "Access denied", 403
+
+        date_from = request.args.get("date_from", "")
+        date_to = request.args.get("date_to", "")
+        species_filter = request.args.get("species", "").strip().lower()
+
+        if not date_to:
+            date_to = datetime.now().strftime("%Y-%m-%d")
+        if not date_from:
+            from datetime import timedelta
+            date_from = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
+
+        rows = get_prices_for_date_range(date_from, date_to)
+
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(["Date", "Port", "Raw Species", "Canonical Species",
+                         "Grade", "Price Low", "Price High", "Price Avg"])
+        for date_val, port, species, grade, low, high, avg in rows:
+            canonical = normalise_species(species)
+            if species_filter and canonical.lower() != species_filter:
+                continue
+            writer.writerow([date_val, port, species, canonical, grade,
+                             f"{low:.2f}" if low is not None else "",
+                             f"{high:.2f}" if high is not None else "",
+                             f"{avg:.2f}" if avg is not None else ""])
+
+        filename = f"quayside_trade_{date_from}_{date_to}.csv"
+        return Response(
+            buf.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+
     from quayside.scheduler import start_scheduler
     start_scheduler(app)
 

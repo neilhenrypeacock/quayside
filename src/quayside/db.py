@@ -268,6 +268,19 @@ def get_trading_dates(start_date: str, end_date: str) -> list[str]:
     return [r[0] for r in rows]
 
 
+def get_trading_dates_recent(n: int = 10) -> list[str]:
+    """Most recent N dates where at least 2 ports reported, newest first."""
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT date FROM prices
+           GROUP BY date HAVING COUNT(DISTINCT port) >= 2
+           ORDER BY date DESC LIMIT ?""",
+        (n,),
+    ).fetchall()
+    conn.close()
+    return [r[0] for r in rows]
+
+
 def get_port_auction_dates(port: str, limit: int = 20) -> list[str]:
     """Most recent auction dates for a specific port, newest first."""
     conn = get_connection()

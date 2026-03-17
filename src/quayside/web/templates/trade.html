@@ -1,0 +1,1047 @@
+{% extends "base.html" %}
+{% block title %}Trade Dashboard — Quayside{% endblock %}
+
+{% block head %}
+<style>
+/* ── Trade dashboard overrides ── */
+.trade-wrap {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 24px 32px;
+}
+/* Override base container for this page */
+.container { display: none; }
+.trade-wrap { display: block; }
+
+/* ── Header bar ── */
+.trade-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.trade-title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+}
+.trade-premium-badge {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--tide);
+    color: #d0e8f0;
+    padding: 3px 8px;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+.trade-dateline {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+/* ── Controls bar ── */
+.trade-controls {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    padding: 14px 20px;
+    background: var(--foam);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    margin-bottom: 16px;
+}
+.trade-controls label.ctrl-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 5px;
+}
+.trade-controls select {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 5px 8px;
+    color: var(--ink);
+    cursor: pointer;
+}
+.port-check-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.port-check-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+.port-check-label:hover { color: var(--ink); }
+
+/* ── Pulse strip ── */
+.pulse-strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    margin-bottom: 14px;
+    overflow: hidden;
+}
+.pulse-kpi {
+    background: var(--foam);
+    padding: 16px 18px;
+}
+.pulse-kpi:not(:last-child) {
+    border-right: 1px solid var(--rule);
+}
+.pulse-value {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+.pulse-value.up { color: var(--up); }
+.pulse-value.down { color: var(--down); }
+.pulse-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 2px;
+}
+.pulse-label {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rule);
+}
+
+/* ── Port status pills ── */
+.port-status-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+.port-pill {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.port-pill.reporting {
+    background: rgba(109,184,138,0.12);
+    border-color: rgba(109,184,138,0.4);
+    color: #3a7a5a;
+}
+.port-pill.missing {
+    background: rgba(224,112,96,0.08);
+    border-color: rgba(224,112,96,0.3);
+    color: var(--down);
+}
+.port-pill-code {
+    font-weight: 500;
+    letter-spacing: 0.08em;
+}
+.port-pill-count {
+    opacity: 0.7;
+    font-size: 9px;
+}
+
+/* ── Main + sidebar layout ── */
+.trade-body {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: start;
+}
+@media (max-width: 960px) {
+    .trade-body { grid-template-columns: 1fr; }
+}
+
+/* ── Species matrix ── */
+.matrix-scroll { overflow-x: auto; }
+.matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.matrix-table thead th {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 400;
+    border-bottom: 2px solid var(--tide);
+    padding: 6px 8px;
+    white-space: nowrap;
+    text-align: right;
+}
+.matrix-table thead th.species-col { text-align: left; }
+.matrix-table tbody tr {
+    border-bottom: 1px solid var(--salt);
+    cursor: pointer;
+    transition: background 0.1s;
+}
+.matrix-table tbody tr:hover { background: rgba(200,191,170,0.2); }
+.matrix-table tbody tr.selected-row { background: rgba(26,58,74,0.07); }
+.matrix-cell {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-align: right;
+    padding: 7px 8px;
+    white-space: nowrap;
+}
+.matrix-cell.cell-below {
+    background: rgba(109,184,138,0.18);
+    color: #2a6a4a;
+    font-weight: 500;
+}
+.matrix-cell.cell-above {
+    background: rgba(224,112,96,0.12);
+    color: #b04030;
+}
+.matrix-cell.cell-best {
+    background: rgba(26,58,74,0.12);
+    color: var(--tide);
+    font-weight: 600;
+}
+.matrix-cell.cell-empty { color: var(--rule); text-align: center; }
+.matrix-cell.change-up { color: var(--up); }
+.matrix-cell.change-down { color: var(--down); }
+td.species-name-cell { padding: 7px 8px; }
+.species-name {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink);
+}
+.cat-badge {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--salt);
+    color: var(--muted);
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+.spread-high {
+    color: var(--catch);
+    font-weight: 600;
+}
+
+/* Matrix legend */
+.matrix-legend {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.legend-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 1px;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+/* Category tabs */
+.cat-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 12px;
+}
+.cat-tab {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--muted);
+    cursor: pointer;
+    border-right: none;
+    transition: background 0.15s, color 0.15s;
+}
+.cat-tab:last-child { border-right: 1px solid var(--rule); }
+.cat-tab:hover { background: var(--salt); color: var(--ink); }
+.cat-tab.active {
+    background: var(--tide);
+    color: var(--paper);
+    border-color: var(--tide);
+}
+
+/* ── Sidebar cards ── */
+.sidebar-card {
+    background: var(--foam);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 20px;
+    margin-bottom: 14px;
+}
+.sidebar-card-title {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+.sidebar-card-subtitle {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--rule);
+    margin-bottom: 14px;
+}
+
+/* Arbitrage rows */
+.arb-row {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--salt);
+}
+.arb-row:last-child { border-bottom: none; }
+.arb-species {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 14px;
+    margin-bottom: 3px;
+}
+.arb-spread {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--catch);
+    margin-bottom: 3px;
+}
+.arb-detail {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+/* Momentum rows */
+.momentum-dir-label {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 10px 0 6px;
+}
+.momentum-dir-label.up { color: var(--up); }
+.momentum-dir-label.down { color: var(--down); }
+.momentum-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--salt);
+}
+.momentum-row:last-child { border-bottom: none; }
+.momentum-info { flex: 1; }
+.momentum-species {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 13px;
+}
+.momentum-stats {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+}
+
+/* ── Chart section ── */
+.chart-card {
+    background: var(--foam);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.chart-species-name {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--tide);
+    min-height: 24px;
+}
+.chart-hint {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--rule);
+}
+.chart-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.range-btns {
+    display: flex;
+    gap: 0;
+}
+.range-btn {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--muted);
+    cursor: pointer;
+    border-right: none;
+    transition: background 0.15s;
+}
+.range-btn:last-child { border-right: 1px solid var(--rule); }
+.range-btn.active { background: var(--tide); color: var(--paper); border-color: var(--tide); }
+.chart-overlay-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ── Export section ── */
+.export-card {
+    background: var(--foam);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.export-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 4px;
+}
+.export-card input[type="date"] {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 5px 8px;
+    color: var(--ink);
+}
+</style>
+{% endblock %}
+
+{% block content %}{% endblock %}
+
+{% block scripts %}
+<div class="trade-wrap">
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════════════ -->
+<div class="trade-header">
+    <div>
+        <div class="trade-title">
+            Trade Dashboard
+            <span class="trade-premium-badge">Premium</span>
+        </div>
+        <div class="trade-dateline">{{ date_display }} &mdash; generated {{ generated_at }}</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+        <button onclick="downloadExport()" class="btn btn-secondary" style="font-size:10px;padding:7px 16px;">
+            &#8595; Export CSV
+        </button>
+    </div>
+</div>
+
+<!-- ══ CONTROLS ════════════════════════════════════════════════════════════ -->
+<div class="trade-controls">
+    <div>
+        <label class="ctrl-label">Date</label>
+        <select id="trade-date-select" onchange="navigateDate(this.value)">
+            {% for d in recent_dates %}
+            <option value="{{ d }}"{% if d == date %} selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="ctrl-label">Ports</label>
+        <div class="port-check-group" id="port-checkboxes">
+            {% for port in all_ports %}
+            <label class="port-check-label">
+                <input type="checkbox" class="port-cb" value="{{ port }}" checked>
+                {{ port_codes.get(port, port[:3]) }}
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    <div>
+        <label class="ctrl-label">Sort by</label>
+        <select id="sort-select" onchange="sortMatrix(this.value)">
+            <option value="spread">Spread %</option>
+            <option value="species">Species A–Z</option>
+            <option value="vs30d">vs 30d avg</option>
+            <option value="change">Daily change</option>
+            <option value="market_avg">Market avg price</option>
+        </select>
+    </div>
+</div>
+
+<!-- ══ MARKET PULSE ════════════════════════════════════════════════════════ -->
+<div class="pulse-strip">
+    <div class="pulse-kpi">
+        <div class="pulse-value">{{ pulse.ports_reporting }}/{{ pulse.ports_total }}</div>
+        <div class="pulse-sub">ports live today</div>
+        <div class="pulse-label">Coverage</div>
+    </div>
+    <div class="pulse-kpi">
+        <div class="pulse-value">{{ pulse.species_tracked }}</div>
+        <div class="pulse-sub">canonical species</div>
+        <div class="pulse-label">Breadth</div>
+    </div>
+    <div class="pulse-kpi">
+        {% if pulse.market_direction_pct is not none %}
+        <div class="pulse-value {{ pulse.market_direction_label }}">
+            {{ pulse.market_direction_arrow }}&nbsp;{% if pulse.market_direction_pct > 0 %}+{% endif %}{{ "%.1f"|format(pulse.market_direction_pct) }}%
+        </div>
+        <div class="pulse-sub">vs yesterday</div>
+        {% else %}
+        <div class="pulse-value" style="color:var(--rule);">—</div>
+        <div class="pulse-sub">no prev data</div>
+        {% endif %}
+        <div class="pulse-label">Market Direction</div>
+    </div>
+    <div class="pulse-kpi">
+        {% if pulse.best_value_port %}
+        <div class="pulse-value" style="font-size:15px;">{{ pulse.best_value_port }}</div>
+        <div class="pulse-sub">&pound;{{ "%.2f"|format(pulse.best_value_port_avg) }}/kg avg</div>
+        {% else %}
+        <div class="pulse-value" style="color:var(--rule);">—</div>
+        <div class="pulse-sub">&nbsp;</div>
+        {% endif %}
+        <div class="pulse-label">Best Value Port</div>
+    </div>
+    <div class="pulse-kpi">
+        {% if pulse.biggest_mover_species %}
+        <div class="pulse-value {{ pulse.biggest_mover_direction }}" style="font-size:14px;font-style:italic;font-family:var(--font-serif);">
+            {{ pulse.biggest_mover_species }}
+        </div>
+        <div class="pulse-sub">
+            {% if pulse.biggest_mover_pct > 0 %}+{% endif %}{{ "%.1f"|format(pulse.biggest_mover_pct) }}% today
+        </div>
+        {% else %}
+        <div class="pulse-value" style="color:var(--rule);">—</div>
+        <div class="pulse-sub">&nbsp;</div>
+        {% endif %}
+        <div class="pulse-label">Biggest Mover</div>
+    </div>
+    <div class="pulse-kpi">
+        {% if pulse.widest_spread_species %}
+        <div class="pulse-value" style="font-size:14px;color:var(--catch);font-style:italic;font-family:var(--font-serif);">
+            {{ pulse.widest_spread_species }}
+        </div>
+        <div class="pulse-sub">{{ "%.0f"|format(pulse.widest_spread_pct) }}% cross-port gap</div>
+        {% else %}
+        <div class="pulse-value" style="color:var(--rule);">—</div>
+        <div class="pulse-sub">&nbsp;</div>
+        {% endif %}
+        <div class="pulse-label">Widest Spread</div>
+    </div>
+</div>
+
+<!-- ══ PORT STATUS ═════════════════════════════════════════════════════════ -->
+<div class="port-status-row">
+    {% for ps in port_status %}
+    <div class="port-pill {{ 'reporting' if ps.reporting else 'missing' }}">
+        <span class="port-pill-code">{{ ps.code }}</span>
+        {{ ps.port }}
+        {% if ps.reporting %}
+        <span class="port-pill-count">{{ ps.species_count }} sp</span>
+        {% else %}
+        <span class="port-pill-count">not reporting</span>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ══ MAIN BODY: MATRIX + SIDEBAR ════════════════════════════════════════ -->
+<div class="trade-body">
+
+    <!-- LEFT: Species Intelligence Matrix -->
+    <div>
+        <!-- Category filter tabs -->
+        <div class="cat-tabs" id="cat-tabs">
+            {% for cat in categories %}
+            <button class="cat-tab{% if cat == 'all' %} active{% endif %}"
+                    data-cat="{{ cat }}"
+                    onclick="filterCategory(this)">{{ cat|title }}</button>
+            {% endfor %}
+        </div>
+
+        <!-- Legend -->
+        <div class="matrix-legend">
+            <span><span class="legend-swatch" style="background:rgba(109,184,138,0.35);"></span>below market avg (buy)</span>
+            <span><span class="legend-swatch" style="background:rgba(224,112,96,0.25);"></span>above market avg</span>
+            <span><span class="legend-swatch" style="background:rgba(26,58,74,0.18);border:1px solid rgba(26,58,74,0.3);"></span>cheapest port today</span>
+            <span style="color:var(--catch);">Spread % in red = &gt;20% gap</span>
+            <span style="color:var(--muted);">Click row to chart species</span>
+        </div>
+
+        <div class="matrix-scroll">
+        <table class="matrix-table" id="matrix-table">
+            <thead>
+                <tr>
+                    <th class="species-col" style="text-align:left;">Species</th>
+                    {% for port in all_ports %}
+                    <th class="port-header" data-port="{{ port }}">{{ port_codes.get(port, port[:3]) }}</th>
+                    {% endfor %}
+                    <th title="Market average across all reporting ports today">Mkt avg</th>
+                    <th title="30-day rolling average">30d avg</th>
+                    <th title="Today's market avg vs 30-day average">vs 30d</th>
+                    <th title="Market average change vs yesterday">vs yest</th>
+                    <th title="Cross-port price spread (max−min)/min">Spread</th>
+                </tr>
+            </thead>
+            <tbody id="matrix-tbody">
+            {% for row in matrix %}
+            <tr class="matrix-row"
+                data-category="{{ row.category }}"
+                data-spread="{{ row.spread_pct or 0 }}"
+                data-vs30d="{{ row.vs_30d_pct or 0 }}"
+                data-change="{{ row.vs_yesterday_pct or 0 }}"
+                data-market-avg="{{ row.market_avg or 0 }}"
+                data-species="{{ row.species }}"
+                onclick="selectSpecies('{{ row.species | e }}')">
+                <td class="species-name-cell">
+                    <span class="species-name">{{ row.species }}</span>
+                    <span class="cat-badge">{{ row.category }}</span>
+                </td>
+                {% for port in all_ports %}
+                {% set price = row.ports.get(port) %}
+                {% if price is not none %}
+                    {% set is_best = (port == row.best_buy_port) %}
+                    {% set is_above = (row.market_avg and price > row.market_avg * 1.05) %}
+                    {% set is_below = (row.market_avg and price < row.market_avg * 0.95 and not is_best) %}
+                    <td class="matrix-cell port-cell
+                        {{ 'cell-best' if is_best }}
+                        {{ 'cell-below' if is_below }}
+                        {{ 'cell-above' if is_above }}"
+                        data-port="{{ port }}">
+                        &pound;{{ "%.2f"|format(price) }}
+                    </td>
+                {% else %}
+                    <td class="matrix-cell cell-empty port-cell" data-port="{{ port }}">—</td>
+                {% endif %}
+                {% endfor %}
+                <!-- Market avg -->
+                <td class="matrix-cell" style="font-weight:500;color:var(--tide);">
+                    {% if row.market_avg %}&pound;{{ "%.2f"|format(row.market_avg) }}{% else %}—{% endif %}
+                </td>
+                <!-- 30d avg -->
+                <td class="matrix-cell" style="color:var(--muted);">
+                    {% if row.thirty_day_avg %}&pound;{{ "%.2f"|format(row.thirty_day_avg) }}{% else %}—{% endif %}
+                </td>
+                <!-- vs 30d -->
+                <td class="matrix-cell {{ row.vs_30d_direction }}
+                    {{ 'change-up' if row.vs_30d_direction == 'up' else 'change-down' if row.vs_30d_direction == 'down' else '' }}">
+                    {% if row.vs_30d_pct is not none %}
+                    {{ '+' if row.vs_30d_pct > 0 else '' }}{{ "%.1f"|format(row.vs_30d_pct) }}%
+                    {% else %}—{% endif %}
+                </td>
+                <!-- vs yesterday -->
+                <td class="matrix-cell
+                    {{ 'change-up' if row.vs_yesterday_direction == 'up' else 'change-down' if row.vs_yesterday_direction == 'down' else '' }}">
+                    {% if row.vs_yesterday_pct is not none %}
+                    {{ '+' if row.vs_yesterday_pct > 0 else '' }}{{ "%.1f"|format(row.vs_yesterday_pct) }}%
+                    {% else %}—{% endif %}
+                </td>
+                <!-- Spread -->
+                <td class="matrix-cell {{ 'spread-high' if (row.spread_pct and row.spread_pct > 20) else '' }}">
+                    {% if row.spread_pct is not none %}{{ "%.0f"|format(row.spread_pct) }}%{% else %}—{% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="{{ all_ports|length + 6 }}" style="text-align:center;padding:24px;color:var(--muted);font-family:var(--font-mono);font-size:12px;">
+                No price data available for {{ date }}
+            </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <!-- RIGHT: Sidebar -->
+    <div>
+        <!-- Arbitrage opportunities -->
+        <div class="sidebar-card">
+            <div class="sidebar-card-title">Arbitrage Opportunities</div>
+            <div class="sidebar-card-subtitle">Widest cross-port price gap today</div>
+            {% for arb in arbitrage %}
+            <div class="arb-row">
+                <div class="arb-species">{{ arb.species }}</div>
+                <div class="arb-spread">{{ "%.0f"|format(arb.spread_pct) }}% spread</div>
+                <div class="arb-detail">
+                    {{ port_codes.get(arb.low_port, arb.low_port[:3]) }} &pound;{{ "%.2f"|format(arb.low_price) }}
+                    &nbsp;&#8594;&nbsp;
+                    {{ port_codes.get(arb.high_port, arb.high_port[:3]) }} &pound;{{ "%.2f"|format(arb.high_price) }}
+                    &nbsp;&bull;&nbsp;&pound;{{ "%.2f"|format(arb.spread_gbp) }}/kg gap
+                </div>
+            </div>
+            {% else %}
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:8px 0;">
+                Only one port reporting today
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Market momentum -->
+        <div class="sidebar-card">
+            <div class="sidebar-card-title">Market Momentum (7-day)</div>
+            <div class="sidebar-card-subtitle">Consistently trending species</div>
+
+            {% if momentum.risers %}
+            <div class="momentum-dir-label up">&#9650; Rising</div>
+            {% for r in momentum.risers %}
+            <div class="momentum-row">
+                {{ r.sparkline_svg|safe }}
+                <div class="momentum-info">
+                    <div class="momentum-species">{{ r.species }}</div>
+                    <div class="momentum-stats">
+                        &pound;{{ "%.2f"|format(r.current_price) }}/kg &nbsp;
+                        <span class="change-up">+{{ "%.1f"|format(r.trend_pct) }}% 7d</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if momentum.fallers %}
+            <div class="momentum-dir-label down">&#9660; Falling</div>
+            {% for f in momentum.fallers %}
+            <div class="momentum-row">
+                {{ f.sparkline_svg|safe }}
+                <div class="momentum-info">
+                    <div class="momentum-species">{{ f.species }}</div>
+                    <div class="momentum-stats">
+                        &pound;{{ "%.2f"|format(f.current_price) }}/kg &nbsp;
+                        <span class="change-down">{{ "%.1f"|format(f.trend_pct) }}% 7d</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if not momentum.risers and not momentum.fallers %}
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:8px 0;">
+                Insufficient 7-day data
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div><!-- /trade-body -->
+
+<!-- ══ PRICE HISTORY CHART ════════════════════════════════════════════════ -->
+<div class="chart-card">
+    <div class="chart-header">
+        <div>
+            <div class="sidebar-card-title" style="margin-bottom:4px;">Price History</div>
+            <div class="chart-species-name" id="chart-species-label">
+                <span style="color:var(--rule);font-family:var(--font-mono);font-size:12px;font-style:normal;">Click a species row above to chart it</span>
+            </div>
+        </div>
+        <div class="chart-controls">
+            <div class="range-btns">
+                <button class="range-btn active" onclick="setRange(30,this)">30d</button>
+                <button class="range-btn" onclick="setRange(60,this)">60d</button>
+                <button class="range-btn" onclick="setRange(90,this)">90d</button>
+            </div>
+            <label class="chart-overlay-label">
+                <input type="checkbox" id="cb-mkt" checked onchange="rebuildChart()"> Mkt avg
+            </label>
+            <label class="chart-overlay-label">
+                <input type="checkbox" id="cb-30d" checked onchange="rebuildChart()"> 30d avg
+            </label>
+        </div>
+    </div>
+    <canvas id="trade-chart" style="max-height:280px;"></canvas>
+</div>
+
+<!-- ══ DATA EXPORT ════════════════════════════════════════════════════════ -->
+<div class="export-card">
+    <span class="export-label">Export data</span>
+    <label class="export-label" style="letter-spacing:0;">From</label>
+    <input type="date" id="exp-from" value="{{ ninety_days_ago }}">
+    <label class="export-label" style="letter-spacing:0;">To</label>
+    <input type="date" id="exp-to" value="{{ date }}">
+    <button onclick="downloadExport()" class="btn btn-primary" style="font-size:10px;padding:7px 16px;">
+        &#8595; Download CSV
+    </button>
+    <span style="font-family:var(--font-mono);font-size:9px;color:var(--muted);">90-day default &mdash; all ports, all species</span>
+</div>
+
+</div><!-- /trade-wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────
+const CHART_DATA = {{ chart_data | tojson }};
+const ALL_PORTS  = {{ all_ports | tojson }};
+const PORT_COLORS = {
+    {% for port in all_ports %}
+    "{{ port }}": "{{ loop.cycle('#1a3a4a','#c8401a','#6db88a','#c07830','#3a6a8a','#a83050') }}",
+    {% endfor %}
+};
+const TRADE_DATE = "{{ date }}";
+
+// ── State ─────────────────────────────────────────────────────────────────
+let currentSpecies = null;
+let currentRange = 30;
+let tradeChart = null;
+let activeCat = 'all';
+let activePorts = new Set(ALL_PORTS);
+
+// ── Navigation ───────────────────────────────────────────────────────────
+function navigateDate(d) {
+    const u = new URL(window.location.href);
+    window.location.href = '/trade/' + d + (u.search || '');
+}
+
+// ── Category filter ───────────────────────────────────────────────────────
+function filterCategory(btn) {
+    activeCat = btn.dataset.cat;
+    document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+}
+
+// ── Port filter ───────────────────────────────────────────────────────────
+document.querySelectorAll('.port-cb').forEach(cb => {
+    cb.addEventListener('change', function() {
+        if (this.checked) activePorts.add(this.value);
+        else activePorts.delete(this.value);
+        applyPortColumns();
+    });
+});
+
+function applyPortColumns() {
+    document.querySelectorAll('.port-header').forEach(th => {
+        th.style.display = activePorts.has(th.dataset.port) ? '' : 'none';
+    });
+    document.querySelectorAll('.port-cell').forEach(td => {
+        td.style.display = activePorts.has(td.dataset.port) ? '' : 'none';
+    });
+}
+
+// ── Combined filter ───────────────────────────────────────────────────────
+function applyFilters() {
+    document.querySelectorAll('.matrix-row').forEach(row => {
+        const catOk = activeCat === 'all' || row.dataset.category === activeCat;
+        row.style.display = catOk ? '' : 'none';
+    });
+}
+
+// ── Sort ──────────────────────────────────────────────────────────────────
+function sortMatrix(key) {
+    const tbody = document.getElementById('matrix-tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr.matrix-row'));
+    rows.sort((a, b) => {
+        if (key === 'species') return a.dataset.species.localeCompare(b.dataset.species);
+        const va = parseFloat(a.dataset[key] || 0);
+        const vb = parseFloat(b.dataset[key] || 0);
+        if (key === 'change' || key === 'vs30d') return Math.abs(vb) - Math.abs(va);
+        return vb - va;
+    });
+    rows.forEach(r => tbody.appendChild(r));
+}
+
+// ── Species selection ─────────────────────────────────────────────────────
+function selectSpecies(species) {
+    currentSpecies = species;
+    document.getElementById('chart-species-label').innerHTML =
+        '<span style="font-style:italic;">' + species + '</span>';
+    document.querySelectorAll('.matrix-row').forEach(r => {
+        r.classList.toggle('selected-row', r.dataset.species === species);
+    });
+    rebuildChart();
+}
+
+// ── Chart ─────────────────────────────────────────────────────────────────
+function setRange(days, btn) {
+    currentRange = days;
+    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    rebuildChart();
+}
+
+function rebuildChart() {
+    if (!currentSpecies || !CHART_DATA[currentSpecies]) return;
+    const data = CHART_DATA[currentSpecies];
+
+    // Filter to range
+    const cutoff = new Date(TRADE_DATE);
+    cutoff.setDate(cutoff.getDate() - currentRange);
+    const idxs = data.labels.map((d, i) => i).filter(i => new Date(data.labels[i]) >= cutoff);
+    const labels = idxs.map(i => data.labels[i]);
+
+    const showMkt = document.getElementById('cb-mkt').checked;
+    const show30d = document.getElementById('cb-30d').checked;
+
+    const datasets = [];
+
+    // Per-port lines
+    for (const port of ALL_PORTS) {
+        if (!activePorts.has(port)) continue;
+        const portData = data.ports && data.ports[port];
+        if (!portData) continue;
+        datasets.push({
+            label: port,
+            data: idxs.map(i => portData[i]),
+            borderColor: PORT_COLORS[port] || '#7a7060',
+            backgroundColor: 'transparent',
+            borderWidth: 1.5,
+            pointRadius: 2,
+            pointHoverRadius: 4,
+            tension: 0.3,
+            spanGaps: true,
+        });
+    }
+
+    // Market average line
+    if (showMkt && data.market_avg) {
+        datasets.push({
+            label: 'Market avg',
+            data: idxs.map(i => data.market_avg[i]),
+            borderColor: '#a8c0d0',
+            borderWidth: 1,
+            borderDash: [4, 4],
+            pointRadius: 0,
+            tension: 0.3,
+            spanGaps: true,
+        });
+    }
+
+    // 30-day avg horizontal line
+    if (show30d && data.thirty_day_avg) {
+        datasets.push({
+            label: '30d avg',
+            data: labels.map(() => data.thirty_day_avg),
+            borderColor: '#c8401a',
+            borderWidth: 1,
+            borderDash: [2, 6],
+            pointRadius: 0,
+        });
+    }
+
+    const ctx = document.getElementById('trade-chart').getContext('2d');
+    if (tradeChart) tradeChart.destroy();
+    tradeChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                        color: '#7a7060',
+                        padding: 14,
+                        usePointStyle: true,
+                        pointStyle: 'line',
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#0f0e0c',
+                    titleFont: { family: "'IBM Plex Mono', monospace", size: 10 },
+                    bodyFont: { family: "'IBM Plex Mono', monospace", size: 11 },
+                    padding: 12,
+                    callbacks: {
+                        label: ctx => ctx.dataset.label + ': £' + (ctx.parsed.y || 0).toFixed(2) + '/kg'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    grid: { color: '#e8e0d0' },
+                    ticks: {
+                        font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                        color: '#7a7060',
+                        callback: v => '£' + v.toFixed(2)
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxTicksLimit: currentRange <= 30 ? 10 : 14,
+                        font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                        color: '#7a7060',
+                    },
+                    grid: { color: '#e8e0d0' }
+                }
+            }
+        }
+    });
+}
+
+// ── CSV Export ────────────────────────────────────────────────────────────
+function downloadExport() {
+    const from = document.getElementById('exp-from').value;
+    const to   = document.getElementById('exp-to').value;
+    window.location.href = '/trade/export?date_from=' + from + '&date_to=' + to;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-select first visible species for chart
+    const first = document.querySelector('.matrix-row');
+    if (first) selectSpecies(first.dataset.species);
+});
+</script>
+{% endblock %}

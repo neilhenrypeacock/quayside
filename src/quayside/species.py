@@ -137,3 +137,19 @@ def get_species_category(canonical: str) -> str:
     Unmapped species default to 'other'.
     """
     return _CATEGORY_MAP.get(canonical, "other")
+
+
+# Noisy/generic species names that produce meaningless price comparisons
+_NOISE_WORDS = {"mixed", "offal", "roe", "livers", "frames", "heads", "wings", "skin"}
+_NOISE_SUBSTRINGS = ("mixed", "damaged", "bruised", "bru ", " bru", "tails")
+
+
+def is_noisy_species(name: str) -> bool:
+    """Return True if this species name is too generic/damaged to be meaningful.
+
+    Used by report builders to filter out noise before cross-port comparisons.
+    """
+    low = name.lower().strip()
+    if low in _NOISE_WORDS:
+        return True
+    return any(n in low for n in _NOISE_SUBSTRINGS)
