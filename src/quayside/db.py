@@ -153,7 +153,31 @@ def _migrate(conn: sqlite3.Connection) -> None:
         """)
     except Exception:
         pass
+    # trade_feedback table
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS trade_feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                message TEXT NOT NULL,
+                page_context TEXT,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
+    except Exception:
+        pass
     conn.commit()
+
+
+def insert_trade_feedback(name: str, message: str, page_context: str = "") -> None:
+    """Store a trade dashboard feedback submission."""
+    conn = get_connection()
+    conn.execute(
+        "INSERT INTO trade_feedback (name, message, page_context) VALUES (?, ?, ?)",
+        (name or "", message, page_context),
+    )
+    conn.commit()
+    conn.close()
 
 
 def log_scrape_attempt(

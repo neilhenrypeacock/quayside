@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% block title %}Port Contacts — Trade Dashboard — Quayside{% endblock %}
+
+{% block head %}
+<style>
+.ports-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px;
+}
+.container { display: none; }
+.ports-wrap { display: block; }
+
+.ports-header {
+    margin-bottom: 28px;
+}
+.ports-title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 6px;
+}
+.ports-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+}
+.ports-back {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--tide);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    display: inline-block;
+    margin-bottom: 16px;
+}
+.ports-back:hover { text-decoration: underline; }
+
+/* Section heading */
+.ports-section-title {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+}
+
+/* Card grid */
+.ports-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+@media (max-width: 900px) { .ports-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 580px) { .ports-grid { grid-template-columns: 1fr; } }
+
+.port-card {
+    background: var(--foam);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.port-card:hover {
+    border-color: var(--tide);
+}
+.port-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+.port-card-name {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+}
+.port-card-code {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    color: var(--paper);
+    background: var(--tide);
+    padding: 3px 8px;
+    border-radius: 2px;
+}
+.port-card-code.outreach {
+    background: var(--muted);
+}
+.port-card-region {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+}
+.port-card-desc {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink);
+    line-height: 1.6;
+    margin-bottom: 14px;
+    flex: 1;
+}
+
+.port-card-details {
+    border-top: 1px solid var(--salt);
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.port-detail-row {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+.port-detail-label {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    min-width: 64px;
+    flex-shrink: 0;
+}
+.port-detail-value {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink);
+}
+.port-detail-value a {
+    color: var(--tide);
+    text-decoration: none;
+}
+.port-detail-value a:hover { text-decoration: underline; }
+
+.port-card-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.port-card-btn {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    background: var(--paper);
+    color: var(--muted);
+    text-decoration: none;
+    transition: border-color 0.1s, color 0.1s;
+}
+.port-card-btn:hover { border-color: var(--tide); color: var(--tide); }
+.port-card-btn.primary {
+    background: var(--tide);
+    color: var(--paper);
+    border-color: var(--tide);
+}
+.port-card-btn.primary:hover { opacity: 0.88; color: var(--paper); }
+
+/* Outreach section */
+.outreach-note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.7;
+    background: var(--salt);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+}
+</style>
+{% endblock %}
+
+{% block content %}{% endblock %}
+
+{% block scripts %}
+<div class="ports-wrap">
+
+    <a href="/trade" class="ports-back">← Back to Trade Dashboard</a>
+
+    <div class="ports-header">
+        <div class="ports-title">Port Contacts</div>
+        <div class="ports-subtitle">Auction times, contact details and direct links for all UK fish markets on Quayside</div>
+    </div>
+
+    <!-- ── Active ports ── -->
+    <div class="ports-section-title">Live on Quayside — {{ active_ports | rejectattr('slug', 'equalto', 'demo') | list | length }} ports</div>
+    <div class="ports-grid">
+        {% for port in active_ports %}
+        {% if port.slug != 'demo' %}
+        <div class="port-card">
+            <div class="port-card-top">
+                <div class="port-card-name">{{ port.name }}</div>
+                <div class="port-card-code">{{ port.code }}</div>
+            </div>
+            <div class="port-card-region">{{ port.region }}</div>
+            {% if port.description %}
+            <div class="port-card-desc">{{ port.description }}</div>
+            {% endif %}
+            <div class="port-card-details">
+                {% if port.auction_time %}
+                <div class="port-detail-row">
+                    <span class="port-detail-label">Auction</span>
+                    <span class="port-detail-value">{{ port.auction_time }}</span>
+                </div>
+                {% endif %}
+                {% if port.contact_name %}
+                <div class="port-detail-row">
+                    <span class="port-detail-label">Contact</span>
+                    <span class="port-detail-value">{{ port.contact_name }}</span>
+                </div>
+                {% endif %}
+                {% if port.contact_phone %}
+                <div class="port-detail-row">
+                    <span class="port-detail-label">Phone</span>
+                    <span class="port-detail-value">
+                        <a href="tel:{{ port.contact_phone }}">{{ port.contact_phone }}</a>
+                    </span>
+                </div>
+                {% endif %}
+                {% if port.contact_email %}
+                <div class="port-detail-row">
+                    <span class="port-detail-label">Email</span>
+                    <span class="port-detail-value">
+                        <a href="mailto:{{ port.contact_email }}">{{ port.contact_email }}</a>
+                    </span>
+                </div>
+                {% endif %}
+                {% if port.website %}
+                <div class="port-detail-row">
+                    <span class="port-detail-label">Website</span>
+                    <span class="port-detail-value">
+                        <a href="{{ port.website }}" target="_blank" rel="noopener">{{ port.website | replace('https://', '') | replace('http://', '') }}</a>
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="port-card-actions">
+                <a href="/port/{{ port.slug }}" class="port-card-btn primary">View Dashboard</a>
+                {% if port.contact_email %}
+                <a href="mailto:{{ port.contact_email }}" class="port-card-btn">Email</a>
+                {% endif %}
+                {% if port.website %}
+                <a href="{{ port.website }}" target="_blank" rel="noopener" class="port-card-btn">Website ↗</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- ── Outreach ports (coming soon) ── -->
+    {% if outreach_ports %}
+    <div class="ports-section-title">Coming Soon — In Outreach</div>
+    <div class="outreach-note">
+        These ports are on our expansion roadmap. We are actively reaching out to establish data partnerships.
+        If you have a contact at any of these ports, we would love an introduction — please use the feature request form on the trade dashboard.
+    </div>
+    <div class="ports-grid">
+        {% for port in outreach_ports %}
+        <div class="port-card" style="opacity:0.7;">
+            <div class="port-card-top">
+                <div class="port-card-name">{{ port.name }}</div>
+                <div class="port-card-code outreach">{{ port.code }}</div>
+            </div>
+            <div class="port-card-region">{{ port.region }}</div>
+            {% if port.description %}
+            <div class="port-card-desc">{{ port.description }}</div>
+            {% endif %}
+            <div class="port-card-details">
+                {% if port.auction_time %}
+                <div class="port-detail-row">
+                    <span class="port-detail-label">Auction</span>
+                    <span class="port-detail-value">{{ port.auction_time }}</span>
+                </div>
+                {% endif %}
+                {% if port.website %}
+                <div class="port-detail-row">
+                    <span class="port-detail-label">Website</span>
+                    <span class="port-detail-value">
+                        <a href="{{ port.website }}" target="_blank" rel="noopener">{{ port.website | replace('https://', '') | replace('http://', '') }}</a>
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="port-card-actions">
+                {% if port.website %}
+                <a href="{{ port.website }}" target="_blank" rel="noopener" class="port-card-btn">Website ↗</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

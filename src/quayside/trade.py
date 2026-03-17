@@ -29,6 +29,346 @@ from quayside.species import (
 )
 
 
+# ── Highlights ────────────────────────────────────────────────────────────────
+
+def _highlights_today(matrix: list[dict], port_code_map: dict) -> list[dict]:
+    """Plain-English insights for today vs yesterday."""
+    out = []
+
+    # Biggest daily mover up
+    risers = sorted(
+        [r for r in matrix if r["vs_yesterday_pct"] is not None and r["vs_yesterday_pct"] > 0],
+        key=lambda r: r["vs_yesterday_pct"], reverse=True,
+    )
+    if risers:
+        r = risers[0]
+        port_note = ""
+        if r["best_buy_port"]:
+            port_note = f" — cheapest at {port_code_map.get(r['best_buy_port'], r['best_buy_port'][:3])} £{r['best_buy_price']:.2f}/kg"
+        out.append({
+            "type": "up",
+            "species": r["species"],
+            "text": f"<em>{r['species']}</em> up +{r['vs_yesterday_pct']:.1f}% vs yesterday{port_note}",
+        })
+
+    # Biggest daily mover down
+    fallers = sorted(
+        [r for r in matrix if r["vs_yesterday_pct"] is not None and r["vs_yesterday_pct"] < 0],
+        key=lambda r: r["vs_yesterday_pct"],
+    )
+    if fallers:
+        f = fallers[0]
+        out.append({
+            "type": "down",
+            "species": f["species"],
+            "text": f"<em>{f['species']}</em> fell {f['vs_yesterday_pct']:.1f}% vs yesterday market-wide",
+        })
+
+    # Widest spread → arbitrage
+    spreads = sorted(
+        [r for r in matrix if r["spread_pct"] is not None and r["spread_pct"] > 0],
+        key=lambda r: r["spread_pct"], reverse=True,
+    )
+    if spreads:
+        s = spreads[0]
+        low_code = port_code_map.get(s["best_buy_port"], s["best_buy_port"][:3])
+        high_port = max(s["ports"], key=s["ports"].get)
+        high_code = port_code_map.get(high_port, high_port[:3])
+        out.append({
+            "type": "opportunity",
+            "species": s["species"],
+            "text": (
+                f"<em>{s['species']}</em> cross-port spread: {s['spread_pct']:.0f}% — "
+                f"buy at {low_code} £{s['best_buy_price']:.2f}/kg vs {high_code} £{s['ports'][high_port]:.2f}/kg"
+            ),
+        })
+
+    # Best value vs 30d avg (most below)
+    value_buys = sorted(
+        [r for r in matrix if r["vs_30d_pct"] is not None and r["vs_30d_pct"] < -5],
+        key=lambda r: r["vs_30d_pct"],
+    )
+    if value_buys:
+        v = value_buys[0]
+        out.append({
+            "type": "value",
+            "species": v["species"],
+            "text": (
+                f"<em>{v['species']}</em> is {abs(v['vs_30d_pct']):.1f}% below its 30-day average "
+                f"— potential buy opportunity at £{v['market_avg']:.2f}/kg"
+            ),
+        })
+
+    # Most above 30d avg (expensive)
+    expensive = sorted(
+        [r for r in matrix if r["vs_30d_pct"] is not None and r["vs_30d_pct"] > 10],
+        key=lambda r: r["vs_30d_pct"], reverse=True,
+    )
+    if expensive:
+        e = expensive[0]
+        out.append({
+            "type": "context",
+            "species": e["species"],
+            "text": (
+                f"<em>{e['species']}</em> running {e['vs_30d_pct']:.1f}% above its 30-day average "
+                f"at £{e['market_avg']:.2f}/kg"
+            ),
+        })
+
+    return out[:5]
+
+
+def _highlights_week(
+    matrix: list[dict],
+    species_7d: dict[str, list[float | None]],
+    port_code_map: dict,
+) -> list[dict]:
+    """Plain-English insights for 7-day trends."""
+    out = []
+
+    # Build week-over-week deltas from 7d series
+    week_movers = []
+    for sp, series in species_7d.items():
+        nums = [(i, v) for i, v in enumerate(series) if v is not None]
+        if len(nums) < 3:
+            continue
+        first_val = nums[0][1]
+        last_val = nums[-1][1]
+        if first_val <= 0:
+            continue
+        pct = round((last_val - first_val) / first_val * 100, 1)
+        week_movers.append({"species": sp, "pct": pct, "current": last_val})
+
+    week_movers.sort(key=lambda m: m["pct"], reverse=True)
+    risers = [m for m in week_movers if m["pct"] > 0]
+    fallers = [m for m in week_movers if m["pct"] < 0]
+
+    if risers:
+        r = risers[0]
+        out.append({
+            "type": "up",
+            "species": r["species"],
+            "text": f"<em>{r['species']}</em> has risen +{r['pct']:.1f}% over the past 7 days — now £{r['current']:.2f}/kg",
+        })
+    if len(risers) > 1:
+        r2 = risers[1]
+        out.append({
+            "type": "up",
+            "species": r2["species"],
+            "text": f"<em>{r2['species']}</em> also gaining this week: +{r2['pct']:.1f}% at £{r2['current']:.2f}/kg",
+        })
+
+    if fallers:
+        f = fallers[-1]
+        out.append({
+            "type": "down",
+            "species": f["species"],
+            "text": f"<em>{f['species']}</em> dropped {f['pct']:.1f}% this week — now £{f['current']:.2f}/kg",
+        })
+
+    # Best buy this week (current best_buy_port)
+    port_scores: dict[str, int] = defaultdict(int)
+    for row in matrix:
+        if row.get("best_buy_port"):
+            port_scores[row["best_buy_port"]] += 1
+    if port_scores:
+        top_port = max(port_scores, key=port_scores.get)
+        count = port_scores[top_port]
+        code = port_code_map.get(top_port, top_port[:3])
+        out.append({
+            "type": "value",
+            "species": None,
+            "text": f"{top_port} ({code}) offering best prices on {count} species today",
+        })
+
+    return out[:5]
+
+
+def _highlights_month(matrix: list[dict], port_code_map: dict) -> list[dict]:
+    """Plain-English insights based on 30-day averages."""
+    out = []
+
+    # Species most below 30d avg
+    below = sorted(
+        [r for r in matrix if r["vs_30d_pct"] is not None and r["vs_30d_pct"] < 0],
+        key=lambda r: r["vs_30d_pct"],
+    )
+    for r in below[:2]:
+        out.append({
+            "type": "value",
+            "species": r["species"],
+            "text": (
+                f"<em>{r['species']}</em> is {abs(r['vs_30d_pct']):.1f}% below its monthly average — "
+                f"30d avg £{r['thirty_day_avg']:.2f}, today £{r['market_avg']:.2f}/kg"
+            ),
+        })
+
+    # Species most above 30d avg
+    above = sorted(
+        [r for r in matrix if r["vs_30d_pct"] is not None and r["vs_30d_pct"] > 0],
+        key=lambda r: r["vs_30d_pct"], reverse=True,
+    )
+    for r in above[:2]:
+        out.append({
+            "type": "context",
+            "species": r["species"],
+            "text": (
+                f"<em>{r['species']}</em> up {r['vs_30d_pct']:.1f}% on its monthly average — "
+                f"30d avg £{r['thirty_day_avg']:.2f}, today £{r['market_avg']:.2f}/kg"
+            ),
+        })
+
+    # Widest sustained spread this month
+    spreads = sorted(
+        [r for r in matrix if r["spread_pct"] is not None],
+        key=lambda r: r["spread_pct"], reverse=True,
+    )
+    if spreads:
+        s = spreads[0]
+        out.append({
+            "type": "opportunity",
+            "species": s["species"],
+            "text": (
+                f"<em>{s['species']}</em> consistently showing the widest cross-port spread "
+                f"— {s['spread_pct']:.0f}% gap between ports today"
+            ),
+        })
+
+    return out[:5]
+
+
+def _highlights_ytd(date: str, matrix: list[dict], port_code_map: dict) -> list[dict]:
+    """Plain-English insights vs start-of-year prices."""
+    out = []
+    dt = datetime.strptime(date, "%Y-%m-%d")
+    year_start = f"{dt.year}-01-01"
+    year_end = f"{dt.year}-01-31"
+
+    # Fetch Jan data for YTD baseline
+    jan_rows = get_prices_for_date_range(year_start, year_end)
+    jan_by_species: dict[str, list[float]] = defaultdict(list)
+    for _d, _port, raw_sp, _grade, _low, _high, avg in jan_rows:
+        if avg is not None:
+            jan_by_species[normalise_species(raw_sp)].append(avg)
+
+    jan_avgs = {sp: sum(v) / len(v) for sp, v in jan_by_species.items() if v}
+
+    ytd_movers = []
+    for row in matrix:
+        sp = row["species"]
+        if sp not in jan_avgs or jan_avgs[sp] <= 0:
+            continue
+        pct = round((row["market_avg"] - jan_avgs[sp]) / jan_avgs[sp] * 100, 1)
+        ytd_movers.append({"species": sp, "pct": pct, "current": row["market_avg"], "jan_avg": jan_avgs[sp]})
+
+    ytd_movers.sort(key=lambda m: m["pct"], reverse=True)
+
+    for m in ytd_movers[:2]:
+        direction = "up" if m["pct"] > 0 else "down"
+        sign = "+" if m["pct"] > 0 else ""
+        out.append({
+            "type": direction,
+            "species": m["species"],
+            "text": (
+                f"<em>{m['species']}</em> {sign}{m['pct']:.1f}% YTD — "
+                f"Jan avg £{m['jan_avg']:.2f}, now £{m['current']:.2f}/kg"
+            ),
+        })
+
+    if len(ytd_movers) > 2:
+        for m in ytd_movers[-2:]:
+            direction = "up" if m["pct"] > 0 else "down"
+            sign = "+" if m["pct"] > 0 else ""
+            out.append({
+                "type": direction,
+                "species": m["species"],
+                "text": (
+                    f"<em>{m['species']}</em> {sign}{m['pct']:.1f}% YTD — "
+                    f"Jan avg £{m['jan_avg']:.2f}, now £{m['current']:.2f}/kg"
+                ),
+            })
+
+    if not ytd_movers:
+        out.append({
+            "type": "context",
+            "species": None,
+            "text": f"YTD data comparison unavailable — no January {dt.year} prices in database",
+        })
+
+    return out[:5]
+
+
+def build_highlights(
+    date: str,
+    matrix: list[dict],
+    port_code_map: dict,
+    species_7d: dict[str, list[float | None]],
+) -> dict[str, list[dict]]:
+    """Build plain-English insight bullets for all 4 timeframes."""
+    return {
+        "today": _highlights_today(matrix, port_code_map),
+        "week": _highlights_week(matrix, species_7d, port_code_map),
+        "month": _highlights_month(matrix, port_code_map),
+        "ytd": _highlights_ytd(date, matrix, port_code_map),
+    }
+
+
+# ── Compare view ──────────────────────────────────────────────────────────────
+
+def build_compare_data(date_a: str, date_b: str) -> dict:
+    """Build comparison matrix between two dates for the Compare view."""
+    port_code_map = _port_codes()
+
+    rows_a = get_all_prices_for_date(date_a, exclude_demo=True)
+    rows_b = get_all_prices_for_date(date_b, exclude_demo=True)
+
+    matrix_a = _best_price_per_port(rows_a)
+    matrix_b = _best_price_per_port(rows_b)
+
+    # Union of all species in either date
+    all_species = sorted(set(matrix_a.keys()) | set(matrix_b.keys()))
+    # Union of all ports
+    all_ports_set: set[str] = set()
+    for d in (matrix_a, matrix_b):
+        for pp in d.values():
+            all_ports_set.update(pp.keys())
+    all_ports = sorted(all_ports_set)
+
+    rows = []
+    for species in all_species:
+        if is_noisy_species(species):
+            continue
+        ports_a = matrix_a.get(species, {})
+        ports_b = matrix_b.get(species, {})
+
+        prices_a = list(ports_a.values())
+        prices_b = list(ports_b.values())
+        mkt_a = round(sum(prices_a) / len(prices_a), 2) if prices_a else None
+        mkt_b = round(sum(prices_b) / len(prices_b), 2) if prices_b else None
+
+        delta_pct = None
+        if mkt_a and mkt_b and mkt_b > 0:
+            delta_pct = round((mkt_a - mkt_b) / mkt_b * 100, 1)
+
+        rows.append({
+            "species": species,
+            "category": get_species_category(species),
+            "ports_a": ports_a,
+            "ports_b": ports_b,
+            "mkt_a": mkt_a,
+            "mkt_b": mkt_b,
+            "delta_pct": delta_pct,
+        })
+
+    return {
+        "date_a": date_a,
+        "date_b": date_b,
+        "all_ports": all_ports,
+        "port_codes": port_code_map,
+        "rows": rows,
+    }
+
+
 def _port_codes() -> dict[str, str]:
     codes = get_port_code_map()
     if codes:
@@ -327,6 +667,9 @@ def build_trade_data(date: str) -> dict:
             "thirty_day_avg": thirty_day_avgs.get(sp),
         }
 
+    # ── Highlights ────────────────────────────────────────────────────────────
+    highlights = build_highlights(date, matrix, port_code_map, species_7d)
+
     # ── Date/display helpers ──────────────────────────────────────────────────
     dt_display = datetime.strptime(date, "%Y-%m-%d")
     date_display = dt_display.strftime("%A %d %B %Y")
@@ -349,5 +692,6 @@ def build_trade_data(date: str) -> dict:
         "momentum": {"risers": risers, "fallers": fallers},
         "chart_data": chart_data,
         "ninety_days_ago": ninety_days_ago,
+        "highlights": highlights,
         "generated_at": datetime.now().strftime("%H:%M"),
     }
