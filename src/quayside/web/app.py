@@ -548,7 +548,7 @@ def create_app() -> Flask:
                                       "is_this_port": p_name == this_port})
             if not port_avgs:
                 return {"species": species_filter, "rows": [], "market_avg": None}
-            port_avgs.sort(key=lambda r: r["avg"])
+            port_avgs.sort(key=lambda r: r["avg"], reverse=True)
             market_avg = round(sum(r["avg"] for r in port_avgs) / len(port_avgs), 2)
             for i, row in enumerate(port_avgs):
                 row["rank"] = i + 1
@@ -578,7 +578,7 @@ def create_app() -> Flask:
                     if c == canon
                 )
                 total = len(all_avgs)
-                rank = sum(1 for a in all_avgs if a <= my_avg)
+                rank = sum(1 for a in all_avgs if a >= my_avg)
                 market_avg = sum(all_avgs) / total if all_avgs else None
                 vs_market = round(((my_avg - market_avg) / market_avg) * 100, 1) \
                     if market_avg else None
