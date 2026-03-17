@@ -616,8 +616,50 @@ def _report_quality_issues(conn) -> list[dict]:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+
+    # Step 1: statistical checks → writes issues to quality_log
     summary = run_quality_checks()
     print(f"Quality check complete: {summary['errors']} errors, {summary['warns']} warnings")
     for issue in summary["issues"]:
         level = "ERROR" if issue["severity"] == "error" else "WARN "
         print(f"  [{level}] {issue['message']}")
+
+    # Step 2: comprehensive report — port dashboards, digest preview, ops health
+    print("\n--- Comprehensive Report ---")
+    report = build_comprehensive_report()
+
+    # Port dashboards
+    print(f"\nPort Dashboards ({report['date']}):")
+    for p in report["port_dashboards"]:
+        status = "OK" if p["has_today_data"] else "NO DATA"
+        avg = f"£{p['today_avg']:.2f}/kg" if p["today_avg"] else "—"
+        vs_lw = (f"{p['vs_last_week_pct']:+.1f}% vs last week" if p["vs_last_week_pct"] is not None else "— vs last week")
+        vs_mkt = (f"{p['vs_market_pct']:+.1f}% vs market" if p["vs_market_pct"] is not None else "— vs market")
+        print(f"  [{status}] {p['port']}: {p['record_count']} records, avg {avg}, {vs_lw}, {vs_mkt}")
+        if p["hero_nulls"] and not p["hero_null_expected"]:
+            print(f"    WARNING: unexpected null hero stats: {', '.join(p['hero_nulls'])}")
+
+    # Digest preview
+    dp = report["digest_preview"]
+    if dp.get("error"):
+        print(f"\nDigest preview: ERROR — {dp['error']}")
+    else:
+        print(f"\nDigest preview: {len(dp['ports_reporting'])} ports reporting, "
+              f"{dp['total_species']} species, "
+              f"{dp['benchmark_species_available']}/10 benchmark species, "
+              f"{dp['movers_count']} movers")
+        if dp["missing_from_digest"]:
+            print(f"  Missing from digest: {', '.join(dp['missing_from_digest'])}")
+        if dp["benchmark_species_missing"]:
+            print(f"  Benchmark species missing: {', '.join(dp['benchmark_species_missing'])}")
+
+    # Ops health
+    oh = report["ops_health"]
+    print(f"\nOps health: {len(oh['ports_succeeded'])}/{len(oh['ports_succeeded']) + len(oh['ports_failed']) + len(oh['ports_not_attempted'])} ports scraped today")
+    if oh["ports_failed"]:
+        print(f"  Failed: {', '.join(oh['ports_failed'])}")
+    if oh["ports_not_attempted"]:
+        print(f"  Not attempted: {', '.join(oh['ports_not_attempted'])}")
+    if oh["coverage_holes"]:
+        for hole in oh["coverage_holes"]:
+            print(f"  Coverage hole: {hole['port']} — only {hole['days_in_recent']} days in recent window")
