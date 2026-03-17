@@ -258,9 +258,10 @@
 
     /* Coverage heatmap */
     .coverage-table {
-        width: 100%;
+        width: auto;
         border-collapse: collapse;
         font-size: 11px;
+        table-layout: fixed;
     }
     .coverage-table th {
         font-family: var(--font-mono);
@@ -271,8 +272,12 @@
         padding: 6px 4px;
         border-bottom: 2px solid var(--rule);
         white-space: nowrap;
+        width: 44px;
     }
-    .coverage-table th:first-child { text-align: left; }
+    .coverage-table th:first-child {
+        text-align: left;
+        width: 120px;
+    }
     .coverage-table td {
         padding: 6px 4px;
         border-bottom: 1px solid var(--rule);
@@ -608,12 +613,14 @@
         {% endif %}
         <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
             <a href="/ops/quality-report" style="font-size:12px;font-weight:500;color:var(--catch);text-decoration:none;letter-spacing:0.02em;">Full Report →</a>
+            <a href="/ops/quality-report/download" style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:0.02em;" title="Download Markdown report">↓ Download</a>
             <button id="run-quality-btn" onclick="runQualityCheck()"
                 style="font-size:12px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;
                        padding:5px 14px;border:1px solid var(--rule);border-radius:3px;
                        background:var(--foam);color:var(--ink);">
                 Run Check
             </button>
+            <a id="quality-download-link" href="#" download style="display:none;font-size:12px;font-weight:600;color:var(--up);text-decoration:none;">↓ Download results</a>
         </span>
     </div>
 
@@ -676,8 +683,10 @@
 <script>
 async function runQualityCheck() {
     const btn = document.getElementById('run-quality-btn');
+    const dlLink = document.getElementById('quality-download-link');
     btn.disabled = true;
     btn.textContent = 'Running…';
+    dlLink.style.display = 'none';
     try {
         const r = await fetch('/ops/run-quality-check', {method: 'POST'});
         if (!r.ok) throw new Error('Server error ' + r.status);
@@ -685,14 +694,20 @@ async function runQualityCheck() {
         if (d.errors > 0) {
             btn.textContent = d.errors + ' error' + (d.errors !== 1 ? 's' : '') + ' found';
             btn.style.color = 'var(--down)';
+            dlLink.href = '/ops/quality-report/download';
+            dlLink.textContent = '↓ Download report';
+            dlLink.style.display = 'inline';
         } else if (d.warns > 0) {
             btn.textContent = d.warns + ' warning' + (d.warns !== 1 ? 's' : '');
             btn.style.color = '#8a6800';
+            dlLink.href = '/ops/quality-report/download';
+            dlLink.textContent = '↓ Download report';
+            dlLink.style.display = 'inline';
         } else {
             btn.textContent = '✓ All clear';
             btn.style.color = 'var(--up)';
         }
-        setTimeout(() => window.location.reload(), 1400);
+        setTimeout(() => window.location.reload(), d.errors > 0 || d.warns > 0 ? 8000 : 1400);
     } catch(e) {
         btn.textContent = 'Error — check logs';
         btn.style.color = 'var(--down)';
@@ -872,6 +887,47 @@ async function runQualityCheck() {
     </table>
 </div>
 
+<!-- Data Publishing Times -->
+<div class="card" style="margin-top:16px;">
+    <div class="section-head">
+        Data Publishing Times
+        <span class="count">median time data first available each day &middot; times UTC</span>
+    </div>
+    {% if port_data_timing %}
+    <table class="port-table">
+        <thead>
+            <tr>
+                <th>Port</th>
+                <th>Median available</th>
+                <th>Earliest</th>
+                <th>Latest</th>
+                <th>Based on</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for port in live_ports %}
+            {% set t = port_data_timing.get(port.name) %}
+            <tr>
+                <td><span class="port-name">{{ port.name }}</span></td>
+                {% if t %}
+                <td style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--ink);">{{ t.median }}</td>
+                <td style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">{{ t.earliest }}</td>
+                <td style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">{{ t.latest }}</td>
+                <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">{{ t.sample_days }} days</td>
+                {% else %}
+                <td colspan="4" style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">insufficient data</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="padding:16px 20px;font-family:var(--font-mono);font-size:12px;color:var(--muted);">
+        No timing data yet — requires at least 3 days of scraped data per port.
+    </div>
+    {% endif %}
+</div>
+
 <!-- Pipeline -->
 <div class="card">
     <div class="section-head">
@@ -937,7 +993,7 @@ async function runQualityCheck() {
                 {% for dow in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] %}
                 <td>
                     {% set count = freq.get(dow, 0) %}
-                    <span class="dow-cell {% if count >= 8 %}active{% elif count >= 3 %}rare{% else %}none{% endif %}">
+                    <span class="dow-cell {% if count >= 3 %}active{% elif count >= 1 %}rare{% else %}none{% endif %}">
                         {{ count }}
                     </span>
                 </td>

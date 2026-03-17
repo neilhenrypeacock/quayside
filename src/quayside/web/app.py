@@ -920,6 +920,9 @@ def create_app() -> Flask:
                 date_str = d.strftime("%Y-%m-%d")
                 for port_name in active_port_names:
                     if date_str not in port_coverage.get(port_name, {}):
+                        # Skip dates before this port started scraping
+                        if date_str < first_data_per_port.get(port_name, "0000-00-00"):
+                            continue
                         gaps.append({"port": port_name, "date": date_str, "type": "missing"})
                 weekdays_checked += 1
             d -= timedelta(days=1)
@@ -1120,6 +1123,7 @@ def create_app() -> Flask:
             historical_alerts=historical_alerts,
             quality_issues=quality_issues,
             quality_summary=quality_summary,
+            port_data_timing=port_data_timing,
         )
 
     @app.route("/ops/run-quality-check", methods=["POST"])
@@ -1137,6 +1141,109 @@ def create_app() -> Flask:
         date_param = request.args.get("date") or _date_type.today().isoformat()
         report = build_comprehensive_report(date_param)
         return render_template("quality_report.html", report=report, date=date_param)
+
+    @app.route("/ops/quality-report/download")
+    def ops_quality_report_download():
+        """Download the comprehensive quality report as a Markdown file."""
+        import io
+        from datetime import date as _date_type
+        from quayside.quality import build_comprehensive_report
+
+        date_param = request.args.get("date") or _date_type.today().isoformat()
+        report = build_comprehensive_report(date_param)
+
+        lines = []
+        lines.append(f"# Quayside Quality Report — {report['date']}")
+        lines.append(f"\nGenerated: {report['generated_at'][:16].replace('T', ' ')} UTC")
+        lines.append(f"Site: https://quaysidedata.duckdns.org\n")
+
+        # ── Section 1: Port Dashboards ──
+        lines.append("## Port Dashboards\n")
+        lines.append(f"What each port dashboard displays for {report['date']}.\n")
+        for p in report["port_dashboards"]:
+            status = "DATA" if p["has_today_data"] else "NO DATA"
+            lines.append(f"### {p['port']} [{status}]")
+            lines.append(f"- Records today: {p['record_count']}")
+            lines.append(f"- Today avg price: {'£{:.2f}/kg'.format(p['today_avg']) if p['today_avg'] else '—'}")
+            if p["vs_last_week_pct"] is not None:
+                lines.append(f"- vs last week: {p['vs_last_week_pct']:+.1f}% (was £{p['last_week_price']:.2f}/kg)")
+            else:
+                exp = "expected" if p["hero_null_expected"] else "UNEXPECTED"
+                lines.append(f"- vs last week: — ({exp}, {p['history_days']} days history)")
+            if p["vs_market_pct"] is not None:
+                lines.append(f"- vs market: {p['vs_market_pct']:+.1f}%")
+            else:
+                lines.append("- vs market: — (no benchmark)")
+            lines.append(f"- This week avg: {'£{:.2f}/kg'.format(p['this_week_avg']) if p['this_week_avg'] else '—'}")
+            lines.append(f"- This month avg: {'£{:.2f}/kg'.format(p['this_month_avg']) if p['this_month_avg'] else '—'}")
+            if p["hero_nulls"] and not p["hero_null_expected"]:
+                lines.append(f"- ⚠ Unexpected null hero stats: {', '.join(p['hero_nulls'])}")
+            if p["species_no_benchmark"]:
+                lines.append(f"- Species with no market benchmark: {', '.join(p['species_no_benchmark'])}")
+            lines.append("")
+
+        # ── Section 2: Digest Preview ──
+        dp = report["digest_preview"]
+        lines.append("## Today's Digest\n")
+        if dp.get("error"):
+            lines.append(f"**Error building digest preview:** {dp['error']}\n")
+        else:
+            lines.append(f"- Ports reporting: {', '.join(dp['ports_reporting']) or 'none'}")
+            if dp["missing_from_digest"]:
+                lines.append(f"- Missing from digest: {', '.join(dp['missing_from_digest'])}")
+            lines.append(f"- Total species: {dp['total_species']}")
+            lines.append(f"- Benchmark species: {dp['benchmark_species_available']}/10")
+            if dp["benchmark_species_missing"]:
+                lines.append(f"- Benchmark species missing: {', '.join(dp['benchmark_species_missing'])}")
+            lines.append(f"- Price movers: {dp['movers_count']}")
+            if dp["top_mover"]:
+                tm = dp["top_mover"]
+                lines.append(f"- Top mover: {tm['species']} @ {tm['port']} ({tm['change_pct']:+.1f}%)")
+            lines.append(f"- Digest generated: {'Yes' if dp['digest_already_generated'] else 'No'}")
+        lines.append("")
+
+        # ── Section 3: Ops Health ──
+        oh = report["ops_health"]
+        lines.append("## Ops Health\n")
+        lines.append(f"- Ports scraped today: {', '.join(oh['ports_succeeded']) or 'none'}")
+        if oh["ports_failed"]:
+            lines.append(f"- Scrape failures: {', '.join(oh['ports_failed'])}")
+        if oh["ports_not_attempted"]:
+            lines.append(f"- Not attempted: {', '.join(oh['ports_not_attempted'])}")
+        lines.append(f"- Historical gaps (14d): {oh['historical_gap_count']}")
+        if oh["coverage_holes"]:
+            for h in oh["coverage_holes"]:
+                lines.append(f"- Coverage hole: {h['port']} — {h['days_in_recent']} days in recent window")
+        lines.append(f"- Quality errors (7d): {oh['quality_issues_7d']['errors']}")
+        lines.append(f"- Quality warnings (7d): {oh['quality_issues_7d']['warns']}")
+        lines.append("")
+
+        # ── Section 4: Quality Issues ──
+        lines.append("## Quality Issues (last 7 days)\n")
+        issues = report["quality_issues"]
+        if not issues:
+            lines.append("No quality issues in the last 7 days.\n")
+        else:
+            lines.append(f"{len(issues)} issue(s) found:\n")
+            lines.append("| Severity | Port | Date | Check | Species | Value | Expected | Message |")
+            lines.append("|---|---|---|---|---|---|---|---|")
+            for issue in issues:
+                sev = issue["severity"].upper()
+                species = f"{issue['species']} ({issue['grade']})" if issue.get("species") else ""
+                val = f"{issue['value']:.2f}" if issue.get("value") is not None else ""
+                exp = f"{issue['expected']:.2f}" if issue.get("expected") is not None else ""
+                msg = issue["message"].replace("|", "\\|")
+                lines.append(f"| {sev} | {issue['port']} | {issue['date']} | {issue['check_type']} | {species} | {val} | {exp} | {msg} |")
+            lines.append("")
+
+        md_content = "\n".join(lines)
+        filename = f"quayside-quality-{date_param}.md"
+        return send_file(
+            io.BytesIO(md_content.encode("utf-8")),
+            mimetype="text/markdown",
+            as_attachment=True,
+            download_name=filename,
+        )
 
     @app.route("/port/<slug>/export")
     def export_port_data(slug: str):
