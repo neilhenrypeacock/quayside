@@ -62,8 +62,35 @@
         <button id="refresh-btn" onclick="runPipeline()" style="background:var(--rust,#c8401a);color:white;border:none;font-family:var(--font-mono,'Courier New'),monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 16px;border-radius:2px;cursor:pointer;white-space:nowrap;">&#8635; Refresh Data</button>
     </div>
 </div>
+<div id="last-updated-bar" style="margin-bottom:10px;padding:8px 14px;background:var(--tide,#e8f0f8);border-radius:2px;font-family:var(--font-mono,'Courier New'),monospace;font-size:10px;letter-spacing:0.06em;color:var(--foam,#3a6ea5);display:flex;align-items:center;gap:16px;">
+    <span>&#9679; INTERNAL VIEW &mdash; NOT VISIBLE IN EMAIL</span>
+    <span id="last-updated-text">{% if generated_at %}Data last computed: {{ generated_at }}{% else %}Data timestamp unavailable{% endif %}</span>
+    <span id="auto-refresh-status" style="margin-left:auto;"></span>
+</div>
 <div id="refresh-status" style="display:none;margin-bottom:12px;padding:10px 16px;font-family:var(--font-mono,'Courier New'),monospace;font-size:11px;letter-spacing:0.04em;border-radius:2px;"></div>
 <script>
+(function() {
+    var statusEl = document.getElementById('auto-refresh-status');
+    function withinTradingHours() {
+        var now = new Date();
+        var h = now.getHours(), m = now.getMinutes();
+        var mins = h * 60 + m;
+        return mins >= 8 * 60 && mins < 16 * 60;
+    }
+    function scheduleAutoRefresh() {
+        if (!withinTradingHours()) {
+            if (statusEl) statusEl.textContent = 'Auto-refresh: off (outside 08:00–16:00)';
+            return;
+        }
+        var INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+        if (statusEl) statusEl.textContent = 'Auto-refresh: on (every 10 min, 08:00–16:00)';
+        setTimeout(function() {
+            if (withinTradingHours()) { window.location.reload(); }
+            else { scheduleAutoRefresh(); }
+        }, INTERVAL_MS);
+    }
+    scheduleAutoRefresh();
+})();
 function runPipeline() {
     var btn = document.getElementById('refresh-btn');
     var status = document.getElementById('refresh-status');

@@ -124,7 +124,7 @@ def create_app() -> Flask:
         digest_template = _digest_env.get_template("digest.html")
         digest_html = digest_template.render(**data)
         # Wrap in a simple page with nav
-        return render_template("digest_wrapper.html", digest_html=digest_html, date=date)
+        return render_template("digest_wrapper.html", digest_html=digest_html, date=date, generated_at=data.get("generated_at"))
 
     @app.route("/digest/weekly")
     @app.route("/digest/weekly/<date>")

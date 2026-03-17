@@ -203,8 +203,11 @@ def scrape_prices(xls_url: str | None = None, xls_bytes: bytes | None = None) ->
             low, high, avg = _read_prices(sheet, row_idx)
             grade = col1
 
-            # Determine species name
-            species_name = current_species or "Unknown"
+            # Determine species name — skip if we haven't seen a species header yet
+            if not current_species:
+                logger.warning("Grade row at row %d has no species context, skipping", row_idx)
+                continue
+            species_name = current_species
             if is_round:
                 species_name = f"{current_species} Round"
 
