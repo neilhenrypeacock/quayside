@@ -797,50 +797,78 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     text-align: center;
 }
 
-/* ── Intelligence section ── */
-.intel-grid {
+/* ── Port Intelligence section ── */
+.port-intel-summary {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
 }
-@media (max-width: 768px) { .intel-grid { grid-template-columns: 1fr; } }
-.intel-card {
+@media (max-width: 700px) { .port-intel-summary { grid-template-columns: 1fr; } }
+.port-intel-kpi {
     background: var(--foam);
     border: 1px solid var(--rule);
     border-radius: 2px;
-    padding: 20px;
+    padding: 16px 20px;
 }
-.intel-card-title {
+.port-intel-kpi-value {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 2px;
+}
+.port-intel-kpi-value.up { color: var(--up); }
+.port-intel-kpi-value.down { color: var(--down); }
+.port-intel-kpi-label {
     font-family: var(--font-mono);
     font-size: 9px;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 4px;
 }
-.intel-card-subtitle {
+.port-intel-table { width: 100%; border-collapse: collapse; }
+.port-intel-table thead th {
+    text-align: right;
+    padding: 8px 10px;
     font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--rule);
-    margin-bottom: 14px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 400;
+    border-bottom: 2px solid var(--tide);
 }
-
-/* Arbitrage */
-.arb-row { padding: 10px 0; border-bottom: 1px solid var(--salt); }
-.arb-row:last-child { border-bottom: none; }
-.arb-species { font-family: var(--font-serif); font-style: italic; font-size: 15px; margin-bottom: 3px; }
-.arb-spread { font-family: var(--font-mono); font-size: 18px; font-weight: 500; color: var(--catch); margin-bottom: 3px; }
-.arb-detail { font-family: var(--font-mono); font-size: 10px; color: var(--muted); line-height: 1.6; }
-
-/* Momentum */
-.momentum-dir-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; margin: 10px 0 6px; }
-.momentum-dir-label.up { color: var(--up); }
-.momentum-dir-label.down { color: var(--down); }
-.momentum-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--salt); }
-.momentum-row:last-child { border-bottom: none; }
-.momentum-info { flex: 1; }
-.momentum-species { font-family: var(--font-serif); font-style: italic; font-size: 14px; }
-.momentum-stats { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+.port-intel-table thead th:first-child { text-align: left; }
+.port-intel-table tbody td {
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--salt);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-align: right;
+    vertical-align: middle;
+}
+.port-intel-table tbody td:first-child {
+    text-align: left;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 14px;
+}
+.port-intel-table tbody tr { cursor: pointer; transition: background 0.1s; }
+.port-intel-table tbody tr:hover { background: rgba(200,191,170,0.15); }
+.port-intel-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 2px;
+}
+.port-intel-badge.best-buy { background: rgba(109,184,138,0.2); color: #2a6a4a; }
+.port-intel-badge.below-avg { background: rgba(109,184,138,0.1); color: #3a7a5a; }
+.port-intel-badge.above-avg { background: rgba(224,112,96,0.1); color: #b04030; }
 
 /* ── Tools section ── */
 .tools-grid {
@@ -1036,7 +1064,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             <li><a href="#section-prices">Today's Prices</a></li>
             <li><a href="#section-chart">Price History</a></li>
             <li><a href="#section-compare">Compare Dates</a></li>
-            <li><a href="#section-intelligence">Intelligence</a></li>
+            <li><a href="#section-intelligence">Port Intelligence</a></li>
             <li><a href="#section-tools">Tools</a></li>
         </ul>
     </nav>
@@ -1148,6 +1176,12 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         <button class="overview-filter-btn" onclick="filterOverview('flatfish', this)">Flatfish</button>
         <button class="overview-filter-btn" onclick="filterOverview('shellfish', this)">Shellfish</button>
         <button class="overview-filter-btn" onclick="filterOverview('pelagic', this)">Pelagic</button>
+        <select id="overview-species-select" onchange="filterOverviewBySpecies(this.value)" style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:6px 10px;color:var(--muted);cursor:pointer;">
+            <option value="">Individual species...</option>
+            {% for row in matrix|sort(attribute='species') %}
+            <option value="{{ row.species }}">{{ row.species }}</option>
+            {% endfor %}
+        </select>
     </div>
 
     <!-- 6 KPI pulse cards (3x2 grid) -->
@@ -1418,6 +1452,15 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         Click a row in the price table above, or choose a species below to change the view.
     </div>
     <div class="chart-card">
+        <div class="overview-filter" id="chart-group-filter" style="margin-bottom:14px;">
+            <button class="overview-filter-btn active" onclick="setChartGroup('single', this)">Single Species</button>
+            <button class="overview-filter-btn" onclick="setChartGroup('favourites', this)">My Favourites</button>
+            <button class="overview-filter-btn" onclick="setChartGroup('demersal', this)">Demersal</button>
+            <button class="overview-filter-btn" onclick="setChartGroup('flatfish', this)">Flatfish</button>
+            <button class="overview-filter-btn" onclick="setChartGroup('shellfish', this)">Shellfish</button>
+            <button class="overview-filter-btn" onclick="setChartGroup('pelagic', this)">Pelagic</button>
+            <button class="overview-filter-btn" onclick="setChartGroup('all', this)">All Species</button>
+        </div>
         <div class="chart-header">
             <div>
                 <div class="chart-species-name" id="chart-species-label">
@@ -1438,10 +1481,10 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
                     <button class="range-btn" onclick="setRange(60,this)">60d</button>
                     <button class="range-btn" onclick="setRange(90,this)">90d</button>
                 </div>
-                <label class="chart-overlay-label">
+                <label class="chart-overlay-label" id="cb-mkt-label">
                     <input type="checkbox" id="cb-mkt" checked onchange="rebuildChart()"> Mkt avg
                 </label>
-                <label class="chart-overlay-label">
+                <label class="chart-overlay-label" id="cb-30d-label">
                     <input type="checkbox" id="cb-30d" checked onchange="rebuildChart()"> 30d avg
                 </label>
             </div>
@@ -1477,78 +1520,38 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 7: MARKET INTELLIGENCE                                       -->
+<!-- SECTION 7: PORT INTELLIGENCE                                         -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-intelligence">
-    <div class="section-heading">Market Intelligence</div>
+    <div class="section-heading">Port Intelligence</div>
     <div class="section-desc">
-        Cross-port arbitrage opportunities and 7-day momentum trends.
+        How does each port compare to the wider market? Select a port to see which species
+        are priced below average &mdash; and where the buying opportunities are.
     </div>
-    <div class="intel-grid">
-        <!-- Arbitrage -->
-        <div class="intel-card">
-            <div class="intel-card-title">Arbitrage Opportunities</div>
-            <div class="intel-card-subtitle">Widest cross-port price gap today</div>
-            {% for arb in arbitrage %}
-            <div class="arb-row">
-                <div class="arb-species">{{ arb.species }}</div>
-                <div class="arb-spread">{{ "%.0f"|format(arb.spread_pct) }}% spread</div>
-                <div class="arb-detail">
-                    {{ port_codes.get(arb.low_port, arb.low_port[:3]) }} &pound;{{ "%.2f"|format(arb.low_price) }}
-                    &nbsp;&#8594;&nbsp;
-                    {{ port_codes.get(arb.high_port, arb.high_port[:3]) }} &pound;{{ "%.2f"|format(arb.high_price) }}
-                    &nbsp;&bull;&nbsp;&pound;{{ "%.2f"|format(arb.spread_gbp) }}/kg gap
-                </div>
-            </div>
-            {% else %}
-            <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);padding:10px 0;">
-                Only one port reporting today
-            </div>
+
+    <!-- Port selector tabs -->
+    <div class="overview-filter" id="port-intel-tabs"></div>
+
+    <!-- Species filter -->
+    <div class="overview-filter" id="port-intel-species-filter" style="margin-top:12px;">
+        <button class="overview-filter-btn active" onclick="filterPortIntel('all', this)">All Species</button>
+        <button class="overview-filter-btn" onclick="filterPortIntel('favourites', this)">My Favourites</button>
+        <button class="overview-filter-btn" onclick="filterPortIntel('demersal', this)">Demersal</button>
+        <button class="overview-filter-btn" onclick="filterPortIntel('flatfish', this)">Flatfish</button>
+        <button class="overview-filter-btn" onclick="filterPortIntel('shellfish', this)">Shellfish</button>
+        <button class="overview-filter-btn" onclick="filterPortIntel('pelagic', this)">Pelagic</button>
+        <select id="port-intel-species-select" onchange="filterPortIntelBySpecies(this.value)" style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:6px 10px;color:var(--muted);cursor:pointer;">
+            <option value="">Individual species...</option>
+            {% for row in matrix|sort(attribute='species') %}
+            <option value="{{ row.species }}">{{ row.species }}</option>
             {% endfor %}
-        </div>
+        </select>
+    </div>
 
-        <!-- Momentum -->
-        <div class="intel-card">
-            <div class="intel-card-title">Market Momentum (7-day)</div>
-            <div class="intel-card-subtitle">Consistently trending species</div>
-
-            {% if momentum.risers %}
-            <div class="momentum-dir-label up">&#9650; Rising</div>
-            {% for r in momentum.risers %}
-            <div class="momentum-row">
-                {{ r.sparkline_svg|safe }}
-                <div class="momentum-info">
-                    <div class="momentum-species">{{ r.species }}</div>
-                    <div class="momentum-stats">
-                        &pound;{{ "%.2f"|format(r.current_price) }}/kg &nbsp;
-                        <span class="change-up">+{{ "%.1f"|format(r.trend_pct) }}% 7d</span>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-            {% endif %}
-
-            {% if momentum.fallers %}
-            <div class="momentum-dir-label down">&#9660; Falling</div>
-            {% for f in momentum.fallers %}
-            <div class="momentum-row">
-                {{ f.sparkline_svg|safe }}
-                <div class="momentum-info">
-                    <div class="momentum-species">{{ f.species }}</div>
-                    <div class="momentum-stats">
-                        &pound;{{ "%.2f"|format(f.current_price) }}/kg &nbsp;
-                        <span class="change-down">{{ "%.1f"|format(f.trend_pct) }}% 7d</span>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-            {% endif %}
-
-            {% if not momentum.risers and not momentum.fallers %}
-            <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);padding:10px 0;">
-                Insufficient 7-day data
-            </div>
-            {% endif %}
+    <!-- Port intelligence content (rendered by JS) -->
+    <div id="port-intel-content" style="margin-top:20px;">
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);padding:20px 0;">
+            Select a port above to see its market position.
         </div>
     </div>
 </div>
@@ -1677,6 +1680,7 @@ const HIGHLIGHTS_DATA = {{ highlights | tojson }};
 let currentSpecies = null;
 let currentRange = 30;
 let tradeChart = null;
+let chartGroup = 'single';
 let activeCat = 'all';
 let activePorts = new Set(ALL_PORTS);
 let mySpecies = new Set(JSON.parse(localStorage.getItem('quayside_my_species') || '[]'));
@@ -2030,6 +2034,15 @@ function sortMatrix(key) {
 // ── Species selection ─────────────────────────────────────────────────────
 function selectSpecies(species) {
     currentSpecies = species;
+    // Reset to single species mode if in group mode
+    if (chartGroup !== 'single') {
+        chartGroup = 'single';
+        document.querySelectorAll('#chart-group-filter .overview-filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('#chart-group-filter .overview-filter-btn').classList.add('active');
+        document.getElementById('chart-species-select').style.display = '';
+        document.getElementById('cb-mkt-label').style.display = '';
+        document.getElementById('cb-30d-label').style.display = '';
+    }
     document.getElementById('chart-species-label').innerHTML =
         '<span style="font-style:italic;">' + species + '</span>';
     document.querySelectorAll('.matrix-row').forEach(r => {
@@ -2050,6 +2063,7 @@ function setRange(days, btn) {
 }
 
 function rebuildChart() {
+    if (chartGroup !== 'single') { rebuildChartGroup(); return; }
     if (!currentSpecies || !CHART_DATA[currentSpecies]) return;
     const data = CHART_DATA[currentSpecies];
     const cutoff = new Date(TRADE_DATE);
@@ -2124,6 +2138,136 @@ function rebuildChart() {
                     titleFont: { family: "'IBM Plex Mono', monospace", size: 10 },
                     bodyFont: { family: "'IBM Plex Mono', monospace", size: 11 },
                     padding: 12,
+                    callbacks: {
+                        label: ctx => ctx.dataset.label + ': \u00a3' + (ctx.parsed.y || 0).toFixed(2) + '/kg'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    grid: { color: '#e8e0d0' },
+                    ticks: {
+                        font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                        color: '#7a7060',
+                        callback: v => '\u00a3' + v.toFixed(2)
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxTicksLimit: currentRange <= 30 ? 10 : 14,
+                        font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                        color: '#7a7060',
+                    },
+                    grid: { color: '#e8e0d0' }
+                }
+            }
+        }
+    });
+}
+
+// ── Chart group mode ──────────────────────────────────────────────────────
+const GROUP_COLORS = [
+    '#1a3a4a','#c8401a','#6db88a','#c07830','#3a6a8a','#a83050',
+    '#5a8a5a','#8a6a3a','#4a7a9a','#9a5a6a','#3a8a7a','#7a5a9a',
+    '#6a8a4a','#b06050','#4a6a7a'
+];
+
+function setChartGroup(group, btn) {
+    chartGroup = group;
+    document.querySelectorAll('#chart-group-filter .overview-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    if (group === 'single') {
+        document.getElementById('chart-species-select').style.display = '';
+        document.getElementById('cb-mkt-label').style.display = '';
+        document.getElementById('cb-30d-label').style.display = '';
+        rebuildChart();
+    } else {
+        document.getElementById('chart-species-select').style.display = 'none';
+        document.getElementById('cb-mkt-label').style.display = 'none';
+        document.getElementById('cb-30d-label').style.display = 'none';
+        rebuildChartGroup();
+    }
+}
+
+function rebuildChartGroup() {
+    // Determine species list for this group
+    let speciesList;
+    if (chartGroup === 'all') {
+        speciesList = MATRIX_DATA.map(r => r.species);
+    } else if (chartGroup === 'favourites') {
+        speciesList = MATRIX_DATA.filter(r => mySpecies.has(r.species)).map(r => r.species);
+    } else {
+        speciesList = MATRIX_DATA.filter(r => r.category === chartGroup).map(r => r.species);
+    }
+
+    // Cap at 15 species
+    speciesList = speciesList.slice(0, 15);
+
+    if (speciesList.length === 0) {
+        document.getElementById('chart-species-label').innerHTML =
+            '<span style="color:var(--rule);font-family:var(--font-mono);font-size:12px;font-style:normal;">No species in this group</span>';
+        if (tradeChart) { tradeChart.destroy(); tradeChart = null; }
+        return;
+    }
+
+    // Use first species' labels for date axis (all should share the same dates)
+    const refData = CHART_DATA[speciesList[0]];
+    if (!refData) return;
+
+    const cutoff = new Date(TRADE_DATE);
+    cutoff.setDate(cutoff.getDate() - currentRange);
+    const idxs = refData.labels.map((d, i) => i).filter(i => new Date(refData.labels[i]) >= cutoff);
+    const labels = idxs.map(i => refData.labels[i]);
+
+    const groupLabel = chartGroup === 'all' ? 'All Species' :
+        chartGroup === 'favourites' ? 'My Favourites' :
+        chartGroup.charAt(0).toUpperCase() + chartGroup.slice(1);
+    document.getElementById('chart-species-label').innerHTML =
+        '<span style="font-family:var(--font-mono);font-size:12px;">' + groupLabel + ' — Market Averages</span>';
+
+    const datasets = [];
+    speciesList.forEach((sp, i) => {
+        const spData = CHART_DATA[sp];
+        if (!spData || !spData.market_avg) return;
+        datasets.push({
+            label: sp,
+            data: idxs.map(j => spData.market_avg[j]),
+            borderColor: GROUP_COLORS[i % GROUP_COLORS.length],
+            backgroundColor: 'transparent',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            pointHoverRadius: 3,
+            tension: 0.3,
+            spanGaps: true,
+        });
+    });
+
+    const ctx = document.getElementById('trade-chart').getContext('2d');
+    if (tradeChart) tradeChart.destroy();
+    tradeChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { family: "'IBM Plex Mono', monospace", size: 9 },
+                        color: '#7a7060',
+                        padding: 10,
+                        usePointStyle: true,
+                        pointStyle: 'line',
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#0f0e0c',
+                    titleFont: { family: "'IBM Plex Mono', monospace", size: 10 },
+                    bodyFont: { family: "'IBM Plex Mono', monospace", size: 10 },
+                    padding: 10,
                     callbacks: {
                         label: ctx => ctx.dataset.label + ': \u00a3' + (ctx.parsed.y || 0).toFixed(2) + '/kg'
                     }
@@ -2315,8 +2459,10 @@ async function submitFeedback() {
 let overviewFilter = 'all';
 function filterOverview(filter, btn) {
     overviewFilter = filter;
-    document.querySelectorAll('.overview-filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#overview-filter .overview-filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    // Reset individual species dropdown
+    document.getElementById('overview-species-select').value = '';
     // Filter highlights
     document.querySelectorAll('.hl-item').forEach(item => {
         const sp = item.dataset.species;
@@ -2328,6 +2474,170 @@ function filterOverview(filter, btn) {
         else show = (cat === filter);
         item.style.display = show ? '' : 'none';
     });
+}
+
+function filterOverviewBySpecies(species) {
+    if (!species) {
+        // Reset to all
+        const allBtn = document.querySelector('#overview-filter .overview-filter-btn');
+        if (allBtn) filterOverview('all', allBtn);
+        return;
+    }
+    overviewFilter = 'species:' + species;
+    document.querySelectorAll('#overview-filter .overview-filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.hl-item').forEach(item => {
+        const sp = item.dataset.species;
+        item.style.display = (sp === species) ? '' : 'none';
+    });
+}
+
+// ── Port Intelligence ─────────────────────────────────────────────────────
+let selectedIntelPort = null;
+let portIntelFilter = 'all';
+let portIntelSpecies = '';
+
+function initPortIntelTabs() {
+    const tabsEl = document.getElementById('port-intel-tabs');
+    let html = '';
+    ALL_PORTS.forEach((port, i) => {
+        const code = PORT_CODES[port] || port.substring(0, 3).toUpperCase();
+        const active = i === 0 ? ' active' : '';
+        const esc = port.replace(/'/g, "\\'");
+        html += `<button class="overview-filter-btn${active}" onclick="selectIntelPort('${esc}', this)">${port} (${code})</button>`;
+    });
+    tabsEl.innerHTML = html;
+
+    if (ALL_PORTS.length > 0) {
+        selectedIntelPort = ALL_PORTS[0];
+        renderPortIntel();
+    }
+}
+
+function selectIntelPort(port, btn) {
+    selectedIntelPort = port;
+    document.querySelectorAll('#port-intel-tabs .overview-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderPortIntel();
+}
+
+function filterPortIntel(filter, btn) {
+    portIntelFilter = filter;
+    portIntelSpecies = '';
+    document.querySelectorAll('#port-intel-species-filter .overview-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('port-intel-species-select').value = '';
+    renderPortIntel();
+}
+
+function filterPortIntelBySpecies(species) {
+    if (!species) {
+        const allBtn = document.querySelector('#port-intel-species-filter .overview-filter-btn');
+        if (allBtn) filterPortIntel('all', allBtn);
+        return;
+    }
+    portIntelSpecies = species;
+    portIntelFilter = 'species';
+    document.querySelectorAll('#port-intel-species-filter .overview-filter-btn').forEach(b => b.classList.remove('active'));
+    renderPortIntel();
+}
+
+function renderPortIntel() {
+    if (!selectedIntelPort) return;
+    const container = document.getElementById('port-intel-content');
+    const code = PORT_CODES[selectedIntelPort] || selectedIntelPort.substring(0, 3).toUpperCase();
+
+    // Filter matrix rows to those where this port has data
+    let rows = MATRIX_DATA.filter(r => r.ports[selectedIntelPort] != null);
+
+    // Apply species filter
+    if (portIntelFilter === 'favourites') {
+        rows = rows.filter(r => mySpecies.has(r.species));
+    } else if (portIntelFilter === 'species') {
+        rows = rows.filter(r => r.species === portIntelSpecies);
+    } else if (portIntelFilter !== 'all') {
+        rows = rows.filter(r => r.category === portIntelFilter);
+    }
+
+    // Compute per-species data
+    const portRows = rows.map(r => {
+        const portPrice = r.ports[selectedIntelPort];
+        const vsMkt = r.market_avg > 0 ? ((portPrice - r.market_avg) / r.market_avg * 100) : 0;
+        const isBestBuy = r.best_buy_port === selectedIntelPort;
+        return {
+            species: r.species,
+            category: r.category,
+            portPrice,
+            marketAvg: r.market_avg,
+            vsMkt: Math.round(vsMkt * 10) / 10,
+            isBestBuy,
+        };
+    });
+
+    // Sort: biggest discounts first (most below market)
+    portRows.sort((a, b) => a.vsMkt - b.vsMkt);
+
+    // KPI summaries
+    const speciesCount = portRows.length;
+    const bestBuyCount = portRows.filter(r => r.isBestBuy).length;
+    const avgVsMkt = portRows.length > 0
+        ? Math.round(portRows.reduce((s, r) => s + r.vsMkt, 0) / portRows.length * 10) / 10
+        : 0;
+    const avgVsMktClass = avgVsMkt < 0 ? 'up' : avgVsMkt > 0 ? 'down' : '';
+
+    let html = `<div class="port-intel-summary">
+        <div class="port-intel-kpi">
+            <div class="port-intel-kpi-value">${speciesCount}</div>
+            <div class="port-intel-kpi-label">Species Available</div>
+        </div>
+        <div class="port-intel-kpi">
+            <div class="port-intel-kpi-value" style="color:var(--tide);">${bestBuyCount}</div>
+            <div class="port-intel-kpi-label">Best Buy Species</div>
+        </div>
+        <div class="port-intel-kpi">
+            <div class="port-intel-kpi-value ${avgVsMktClass}">${avgVsMkt > 0 ? '+' : ''}${avgVsMkt.toFixed(1)}%</div>
+            <div class="port-intel-kpi-label">Avg vs Market</div>
+        </div>
+    </div>`;
+
+    if (portRows.length === 0) {
+        html += `<div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);padding:20px 0;">
+            No species data for ${selectedIntelPort} with this filter.
+        </div>`;
+    } else {
+        html += `<div class="matrix-scroll"><table class="port-intel-table">
+            <thead><tr>
+                <th>Species</th>
+                <th>${code} Price</th>
+                <th>Mkt Avg</th>
+                <th>vs Market</th>
+                <th>Status</th>
+            </tr></thead><tbody>`;
+
+        portRows.forEach(r => {
+            const sign = r.vsMkt > 0 ? '+' : '';
+            const cls = r.vsMkt < 0 ? 'change-up' : r.vsMkt > 0 ? 'change-down' : '';
+            let badge = '';
+            if (r.isBestBuy) {
+                badge = '<span class="port-intel-badge best-buy">Best Buy</span>';
+            } else if (r.vsMkt < 0) {
+                badge = '<span class="port-intel-badge below-avg">Below Avg</span>';
+            } else if (r.vsMkt > 0) {
+                badge = '<span class="port-intel-badge above-avg">Above Avg</span>';
+            }
+            const esc = r.species.replace(/'/g, "\\'");
+            html += `<tr onclick="selectSpecies('${esc}');document.getElementById('section-chart').scrollIntoView({behavior:'smooth',block:'start'});">
+                <td>${r.species}</td>
+                <td>\u00a3${r.portPrice.toFixed(2)}</td>
+                <td style="color:var(--muted);">\u00a3${r.marketAvg.toFixed(2)}</td>
+                <td class="${cls}">${sign}${r.vsMkt.toFixed(1)}%</td>
+                <td>${badge}</td>
+            </tr>`;
+        });
+
+        html += '</tbody></table></div>';
+    }
+
+    container.innerHTML = html;
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
@@ -2344,6 +2654,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Init sidebar scroll tracking
     initSidebarNav();
+
+    // Init port intelligence tabs
+    initPortIntelTabs();
 
     // Auto-select first species for chart
     const first = document.querySelector('#matrix-tbody .matrix-row');
