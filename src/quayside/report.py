@@ -120,6 +120,41 @@ def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
     return changes[:6]
 
 
+def _build_market_summary(
+    movers: list[dict],
+    species_ports: dict[str, dict[str, float]],
+    prev_best: dict[str, float],
+    highest: dict | None,
+    ports_seen: set[str],
+    species_seen: set[str],
+) -> list[str]:
+    """Generate 2–3 plain-English lines summarising today's market holistically."""
+    lines = []
+
+    risers = [m for m in movers if m["direction"] == "up"]
+    fallers = [m for m in movers if m["direction"] == "down"]
+    if risers and fallers:
+        lines.append(f"Prices are mixed today \u2014 {len(risers)} species firmer, {len(fallers)} lower vs yesterday.")
+    elif risers:
+        lines.append(f"Prices broadly firmer today with {len(risers)} species rising vs yesterday.")
+    elif fallers:
+        lines.append(f"Prices under pressure \u2014 {len(fallers)} species lower vs yesterday.")
+    else:
+        lines.append("Prices broadly stable today across UK ports.")
+
+    if movers:
+        top = movers[0]
+        lines.append(f"{top['species']} is the standout {top['label'].lower()} at \u00a3{top['price']:.2f}/kg ({top['pct_str']} vs yesterday).")
+    elif highest:
+        lines.append(f"{highest['species']} fetched the highest price today at \u00a3{highest['price']:.2f}/kg ({highest['port']}).")
+
+    port_count = len(ports_seen)
+    species_count = len(species_seen)
+    lines.append(f"{port_count} port{'s' if port_count != 1 else ''} reporting today with {species_count} species on offer.")
+
+    return lines
+
+
 def _build_port_highlights(rows: list[tuple], thirty_day_raw: dict[str, float]) -> list[dict]:
     """Per-port highlight: species with biggest % deviation from its 30-day average today.
 
@@ -188,6 +223,7 @@ def build_report_data(date: str) -> dict:
             "benchmark_snapshot": [],
             "key_species_summary": [],
             "movers": [],
+            "market_summary": [],
             "best_value_port": None,
             "biggest_spread": None,
             "highest_price": None,
@@ -272,9 +308,12 @@ def build_report_data(date: str) -> dict:
                     "direction": "up" if pct > 0 else "down",
                 }
 
+        market_avg = round(sum(port_prices.values()) / len(port_prices), 2)
+
         key_species_summary.append({
             "species": species,
             "best_price": best_price,
+            "market_avg": market_avg,
             "best_port": best_port,
             "best_port_code": PORT_CODES.get(best_port, best_port[:3].upper()),
             "port_count": port_count,
@@ -368,63 +407,8 @@ def build_report_data(date: str) -> dict:
     # --- Port highlights (biggest % deviation from 30-day avg per port) ---
     port_highlights = _build_port_highlights(rows, thirty_day_raw)
 
-    # --- Today's Highlights ---
-    # Best value port: port with lowest average of best-grade prices across species
-    port_all_prices: dict[str, list[float]] = defaultdict(list)
-    for _sp, port_prices in species_ports.items():
-        for port, price in port_prices.items():
-            port_all_prices[port].append(price)
-
-    best_value_port = None
-    if port_all_prices:
-        port_avgs = {
-            port: sum(prices) / len(prices)
-            for port, prices in port_all_prices.items()
-        }
-        bv_port = min(port_avgs, key=port_avgs.get)
-        # Grab 3 examples at this port: prefer benchmark species, sorted by price desc
-        bv_examples = []
-        for sp, port_prices in species_ports.items():
-            if bv_port not in port_prices:
-                continue
-            if _is_noisy_species(sp):
-                continue
-            bv_examples.append({"species": sp, "price": port_prices[bv_port], "is_benchmark": sp in BENCHMARK_SPECIES})
-        bv_examples.sort(key=lambda e: (not e["is_benchmark"], -e["price"]))
-        best_value_port = {
-            "port": bv_port,
-            "avg_price": round(port_avgs[bv_port], 2),
-            "examples": bv_examples[:3],
-        }
-
-    # Biggest cross-port spread: species with largest % gap between highest and lowest port
-
-    biggest_spread = None
-    multi_port_map = {sp: ports for sp, ports in species_ports.items() if len(ports) >= 2}
-    best_spread_pct = 0
-    for sp, port_prices in multi_port_map.items():
-        if _is_noisy_species(sp):
-            continue
-        max_p = max(port_prices.values())
-        min_p = min(port_prices.values())
-        if min_p > 0:
-            spread_pct = round(((max_p - min_p) / min_p) * 100, 1)
-            if spread_pct > best_spread_pct:
-                best_spread_pct = spread_pct
-                max_port = max(port_prices, key=port_prices.get)
-                min_port = min(port_prices, key=port_prices.get)
-                spread_ports = sorted(
-                    [{"port": p, "price": pr} for p, pr in port_prices.items()],
-                    key=lambda x: x["price"],
-                    reverse=True,
-                )
-                biggest_spread = {
-                    "species": sp,
-                    "spread_pct": spread_pct,
-                    "high_port": max_port,
-                    "low_port": min_port,
-                    "ports": spread_ports,
-                }
+    # --- Market summary (holistic 2–3 sentence overview) ---
+    market_summary = _build_market_summary(movers, species_ports, prev_best, highest, ports_seen, species_seen)
 
     dt = datetime.strptime(date, "%Y-%m-%d")
 
@@ -444,8 +428,9 @@ def build_report_data(date: str) -> dict:
         "benchmark_snapshot": benchmark_snapshot,
         "key_species_summary": key_species_summary,
         "movers": movers,
-        "best_value_port": best_value_port,
-        "biggest_spread": biggest_spread,
+        "market_summary": market_summary,
+        "best_value_port": None,
+        "biggest_spread": None,
         "highest_price": highest,
         "fx_rate": fx_data,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),

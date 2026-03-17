@@ -925,6 +925,28 @@
     letter-spacing: 0.02em;
   }
 
+  /* MARKET SUMMARY */
+  .market-summary {
+    padding: 18px 24px;
+    background: #f4f8f5;
+    border-left: 4px solid #2e6b3e;
+    margin-bottom: 20px;
+    border-radius: 0 4px 4px 0;
+  }
+  .market-summary-line {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 8px;
+    line-height: 1.45;
+  }
+  .market-summary-line:last-child {
+    margin-bottom: 0;
+    font-weight: 400;
+    color: #666;
+    font-size: 13px;
+  }
+
   /* EMPTY STATE */
   .empty-state {
     padding: 60px 32px;
@@ -984,26 +1006,6 @@
     </div>
   </div>
 
-  <!-- TRADE ACCOUNT ADVERT -->
-  <div class="trade-band">
-    <div class="trade-band-inner">
-      <div class="trade-band-left">
-        <div class="trade-band-label">Trade Account</div>
-        <div class="trade-band-headline">The market, without <em>the gaps.</em></div>
-        <ul class="trade-band-features">
-          <li>Full dashboard &mdash; 90-day history, all ports</li>
-          <li>WhatsApp alert before 7am, every trading day</li>
-          <li>AI queries &mdash; ask the data in plain English</li>
-        </ul>
-      </div>
-      <div class="trade-band-cta">
-        <span class="trade-band-price">&pound;95</span>
-        <span class="trade-band-period">per month</span>
-        <a href="#" class="trade-band-btn">Start free trial &rarr;</a>
-      </div>
-    </div>
-  </div>
-
   <!-- SHARE STRIP -->
   <div class="share-strip">
     <a href="#">&uarr; Share this digest</a>
@@ -1017,33 +1019,13 @@
 
   <div class="email-body">
 
-    <!-- 3. TODAY'S HIGHLIGHTS -->
-    {% if best_value_port or biggest_spread %}
-    <div class="section-label">Today's Highlights</div>
-    <div class="highlights-row">
-      {% if best_value_port %}
-      <div class="highlight-cell">
-        <div class="hl-eyebrow">Best value port today</div>
-        <div class="hl-value">{{ best_value_port.port }}</div>
-        <div class="hl-detail">
-          {% for ex in best_value_port.examples %}
-          {{ ex.species }} &nbsp;<strong>&pound;{{ "%.2f"|format(ex.price) }}</strong>{% if not loop.last %}<br>{% endif %}
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-      {% if biggest_spread %}
-      <div class="highlight-cell">
-        <div class="hl-eyebrow">Biggest port spread</div>
-        <div class="hl-value">{{ biggest_spread.species }}</div>
-        <div class="hl-detail">
-          {% for p in biggest_spread.ports %}
-          {{ p.port }} &nbsp;<strong>&pound;{{ "%.2f"|format(p.price) }}</strong>{% if not loop.last %}<br>{% endif %}
-          {% endfor %}
-        </div>
-        <div class="hl-footer">{{ biggest_spread.spread_pct }}% price gap</div>
-      </div>
-      {% endif %}
+    <!-- 3. MARKET SUMMARY -->
+    {% if market_summary %}
+    <div class="section-label">Today's Market</div>
+    <div class="market-summary">
+      {% for line in market_summary %}
+      <p class="market-summary-line">{{ line }}</p>
+      {% endfor %}
     </div>
     {% endif %}
 
@@ -1062,18 +1044,37 @@
         <div class="bar-track">
           <div class="bar-fill{% if loop.first %} best{% endif %}" style="width:{{ p.bar_width_pct }}%"></div>
           <div class="bar-marker mkt-avg" style="left:{{ b.market_avg_bar_pct }}%"></div>
-          {% if b.thirty_day_avg_bar_pct %}<div class="bar-marker thirty-day" style="left:{{ b.thirty_day_avg_bar_pct }}%"></div>{% endif %}
         </div>
         <span class="bar-price">&pound;{{ "%.2f"|format(p.price_avg) }}</span>
       </div>
       {% endfor %}
       <div class="snapshot-legend">
         <span class="legend-item"><span class="legend-swatch mkt"></span>Market avg today &nbsp;<strong>&pound;{{ "%.2f"|format(b.market_avg) }}</strong></span>
-        {% if b.thirty_day_avg %}<span class="legend-item"><span class="legend-swatch thirty"></span>30-day avg &nbsp;<strong>&pound;{{ "%.2f"|format(b.thirty_day_avg) }}</strong></span>{% endif %}
       </div>
     </div>
     {% endfor %}
     {% endif %}
+
+    <!-- TRADE ACCOUNT ADVERT -->
+    <div class="trade-band">
+      <div class="trade-band-inner">
+        <div class="trade-band-left">
+          <div class="trade-band-label">Trade Account</div>
+          <div class="trade-band-headline">The full picture. <em>Every morning.</em></div>
+          <p style="font-size:12px;color:#c8e6d0;margin:4px 0 10px;">Trusted by buyers, processors and auctioneers across the UK.</p>
+          <ul class="trade-band-features">
+            <li>Full dashboard &mdash; 90-day history, all ports</li>
+            <li>WhatsApp alert before 7am, every trading day</li>
+            <li>AI queries &mdash; ask the data in plain English</li>
+          </ul>
+        </div>
+        <div class="trade-band-cta">
+          <span class="trade-band-price">&pound;95</span>
+          <span class="trade-band-period">per month</span>
+          <a href="#" class="trade-band-btn">Start free trial &rarr;</a>
+        </div>
+      </div>
+    </div>
 
     <!-- 6. ALL MULTI-PORT SPECIES SUMMARY TABLE -->
     {% if key_species_summary %}
@@ -1083,7 +1084,7 @@
         <thead>
           <tr>
             <th>Species</th>
-            <th class="right">Best &pound;/kg</th>
+            <th class="right">Mkt avg</th>
             <th>Best port</th>
             <th class="right">Ports</th>
             <th class="right">vs yesterday</th>
@@ -1093,7 +1094,7 @@
           {% for s in key_species_summary %}
           <tr>
             <td><span class="species-name">{{ s.species }}</span></td>
-            <td class="price-val">&pound;{{ "%.2f"|format(s.best_price) }}</td>
+            <td class="price-val">&pound;{{ "%.2f"|format(s.market_avg) }}</td>
             <td><span class="port-name" style="margin-top:0">{{ s.best_port_code }}</span></td>
             <td class="price-val" style="font-weight:400;font-size:11px">{{ s.port_count }}</td>
             <td class="price-val">{% if s.change %}<span class="change-{{ s.change.direction }}">{{ s.change.arrow }} {{ s.change.pct_str }}</span>{% else %}&mdash;{% endif %}</td>
