@@ -181,20 +181,6 @@
         vertical-align: middle;
     }
     .port-table tr:hover { background: var(--foam); }
-    .scrape-timeline {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 3px;
-        align-items: center;
-    }
-    .scrape-dot {
-        font-size: 11px;
-        line-height: 1;
-        cursor: default;
-    }
-    .scrape-dot.success { color: var(--up); }
-    .scrape-dot.fail { color: var(--down); }
-    .scrape-dot.pending { color: var(--rule); }
     .port-name {
         font-family: var(--font-serif);
         font-weight: 700;
@@ -542,7 +528,6 @@
         <tbody>
             {% for port in live_ports %}
             {% set s = today_scrape_summary.get(port.name) %}
-            {% set timeline = today_timeline.get(port.name, {}) %}
             <tr>
                 <td><span class="port-name">{{ port.name }}</span></td>
                 <td>
@@ -585,7 +570,7 @@
 </div>
 
 <!-- Data Quality -->
-<div class="card" style="margin-bottom:16px;">
+<div id="quality-card" class="card" style="margin-bottom:16px;">
     <div class="section-head">
         Data Quality
         <span class="count">last 7 days</span>
@@ -603,8 +588,10 @@
                 Run Check
             </button>
             <a id="quality-download-link" href="#" download style="display:none;font-size:12px;font-weight:600;color:var(--up);text-decoration:none;">↓ Download results</a>
+            {% if quality_summary.last_checked_at %}<a id="quality-hide-btn" href="#" onclick="hideQualityCard();return false;" style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:0.02em;" title="Hide this section">✕ Hide</a>{% endif %}
         </span>
     </div>
+    <div id="quality-body">
 
     {# ── Summary banner ─────────────────────────────────────────────────── #}
     {% if not quality_summary.last_checked_at %}
@@ -660,9 +647,21 @@
         </tbody>
     </table>
     {% endif %}
+    </div>{# end quality-body #}
 </div>
 
 <script>
+function hideQualityCard() {
+    document.getElementById('quality-body').style.display = 'none';
+    const hideBtn = document.getElementById('quality-hide-btn');
+    if (hideBtn) hideBtn.textContent = '↺ Show';
+    hideBtn.onclick = function() {
+        document.getElementById('quality-body').style.display = '';
+        hideBtn.textContent = '✕ Hide';
+        hideBtn.onclick = function() { hideQualityCard(); return false; };
+        return false;
+    };
+}
 async function runQualityCheck() {
     const btn = document.getElementById('run-quality-btn');
     const dlLink = document.getElementById('quality-download-link');
