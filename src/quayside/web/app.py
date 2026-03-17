@@ -29,6 +29,7 @@ from quayside.db import (
     confirm_upload,
     create_upload,
     get_all_ports,
+    get_all_prices_for_date,
     get_latest_date,
     get_latest_rich_date,
     get_latest_scraped_at,
@@ -228,7 +229,12 @@ def create_app() -> Flask:
 
         # Get 90-day history for trend chart (supports 7d/30d/90d toggles)
         history = get_port_prices_history(port["name"], days=90)
-        trend_data = _build_trend_data(history)
+        from datetime import timedelta
+        _history_start = (
+            dt.strptime(date, "%Y-%m-%d") - timedelta(days=90)
+        ).strftime("%Y-%m-%d")
+        market_avgs_range = get_market_averages_for_range(_history_start, date)
+        trend_data = _build_trend_data(history, market_avgs_range)
         history_days = len({h[0] for h in history})  # distinct auction dates in history
 
         # Build best performers and insights
@@ -1762,9 +1768,15 @@ def _pct_in_range(value: float, min_val: float, max_val: float) -> int:
     return max(0, min(100, round(((value - min_val) / (max_val - min_val)) * 100)))
 
 
-def _build_trend_data(history: list[tuple]) -> dict:
-    """Build trend data for chart.js from price history rows."""
-    # Group by species, then by date
+def _build_trend_data(
+    history: list[tuple],
+    market_avgs: dict[str, dict[str, float]] | None = None,
+) -> dict:
+    """Build trend data for chart.js from price history rows.
+
+    market_avgs: optional {date: {raw_species: market_avg}} from
+    get_market_averages_for_range — used to overlay the real UK market average.
+    """
     from collections import defaultdict
     species_dates: dict[str, dict[str, float]] = defaultdict(dict)
 
@@ -1780,16 +1792,25 @@ def _build_trend_data(history: list[tuple]) -> dict:
     # Build chart data
     all_dates = sorted({d for sp in top_species for d in species_dates[sp]})
 
-    return {
-        "labels": all_dates,
-        "datasets": [
-            {
-                "label": sp,
-                "data": [species_dates[sp].get(d) for d in all_dates],
-            }
-            for sp in top_species
-        ],
-    }
+    # Pre-build normalised market avg lookup: {canonical_species: {date: avg}}
+    market_by_canonical: dict[str, dict[str, float]] = defaultdict(dict)
+    if market_avgs:
+        for m_date, species_map in market_avgs.items():
+            for raw_sp, avg in species_map.items():
+                canon = normalise_species(raw_sp)
+                market_by_canonical[canon][m_date] = avg
+
+    datasets = []
+    for sp in top_species:
+        ds: dict = {
+            "label": sp,
+            "data": [species_dates[sp].get(d) for d in all_dates],
+        }
+        if market_avgs:
+            ds["market_avg"] = [market_by_canonical[sp].get(d) for d in all_dates]
+        datasets.append(ds)
+
+    return {"labels": all_dates, "datasets": datasets}
 
 
 def _build_best_performers(
@@ -2201,9 +2222,25 @@ def _build_insights(
     _ranked_port.sort(key=lambda x: x[0])
     _ranked_market.sort(key=lambda x: x[0])
 
+    # Period classification by priority rank
+    # Port: 1=day-of-week pattern(month), 2=volatility(week), 3=species count(week),
+    #       4=top species avg(month), 5=price direction(week)
+    _PORT_PERIOD = {1: "month", 2: "week", 3: "week", 4: "month", 5: "week"}
+    # Market: 1=best today(today), 2=consistent30d(month), 3=best week(week),
+    #         4=worst today(today), 5=below streak(week), 6=position(today),
+    #         7=opportunity(today), 8=spread(today)
+    _MKT_PERIOD = {1: "today", 2: "month", 3: "week", 4: "today", 5: "week",
+                   6: "today", 7: "today", 8: "today"}
+
     return {
-        "port": [item for _, item in _ranked_port[:3]],
-        "market": [item for _, item in _ranked_market[:3]],
+        "port": [
+            {**item, "period": _PORT_PERIOD.get(pri, "week")}
+            for pri, item in _ranked_port[:3]
+        ],
+        "market": [
+            {**item, "period": _MKT_PERIOD.get(pri, "today")}
+            for pri, item in _ranked_market[:3]
+        ],
     }
 
 

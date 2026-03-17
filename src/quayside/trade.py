@@ -14,6 +14,7 @@ from quayside.db import (
     get_30day_species_averages,
     get_all_ports,
     get_all_prices_for_date,
+    get_all_time_market_stats,
     get_market_averages_for_range,
     get_previous_date,
     get_prices_for_date_range,
@@ -420,9 +421,21 @@ def build_trade_data(date: str) -> dict:
     market_avgs_7d = get_market_averages_for_range(start_7d, date)
     trading_dates_7d = get_trading_dates(start_7d, date)
 
+    # 7-day rolling window for vs_7d metrics (calendar days)
+    start_7d_raw = (dt - timedelta(days=7)).strftime("%Y-%m-%d")
+
     port_code_map = _port_codes()
     active_ports = get_all_ports(status="active")
     active_port_names = [p["name"] for p in active_ports]
+
+    # 7-day per-species rolling averages (canonical names, from rows_90d)
+    _seven_accum: dict[str, list[float]] = defaultdict(list)
+    for _d, _port, raw_sp, _grade, _low, _high, _avg in rows_90d:
+        if _avg is not None and _d >= start_7d_raw and _d < date:
+            _seven_accum[normalise_species(raw_sp)].append(_avg)
+    seven_day_avgs: dict[str, float] = {
+        sp: round(sum(vals) / len(vals), 2) for sp, vals in _seven_accum.items()
+    }
 
     # ── Build species → {port: price} matrix ─────────────────────────────────
     today_matrix = _best_price_per_port(rows)
@@ -451,6 +464,13 @@ def build_trade_data(date: str) -> dict:
             vs_30d_pct = round((market_avg - thirty_avg) / thirty_avg * 100, 1)
             vs_30d_direction = "up" if vs_30d_pct > 0 else ("down" if vs_30d_pct < 0 else "flat")
 
+        seven_avg = seven_day_avgs.get(species)
+        vs_7d_pct: float | None = None
+        vs_7d_direction = "flat"
+        if seven_avg and seven_avg > 0:
+            vs_7d_pct = round((market_avg - seven_avg) / seven_avg * 100, 1)
+            vs_7d_direction = "up" if vs_7d_pct > 0 else ("down" if vs_7d_pct < 0 else "flat")
+
         prev_prices = list(prev_matrix.get(species, {}).values())
         vs_yesterday_pct: float | None = None
         vs_yesterday_direction = "flat"
@@ -476,6 +496,9 @@ def build_trade_data(date: str) -> dict:
             "thirty_day_avg": thirty_avg,
             "vs_30d_pct": vs_30d_pct,
             "vs_30d_direction": vs_30d_direction,
+            "seven_day_avg": seven_avg,
+            "vs_7d_pct": vs_7d_pct,
+            "vs_7d_direction": vs_7d_direction,
             "vs_yesterday_pct": vs_yesterday_pct,
             "vs_yesterday_direction": vs_yesterday_direction,
             "spread_pct": spread_pct,
@@ -571,34 +594,26 @@ def build_trade_data(date: str) -> dict:
         vs_30d_market_pct = round((today_grand_avg - thirty_day_grand_avg) / thirty_day_grand_avg * 100, 1)
         vs_30d_market_label = "up" if vs_30d_market_pct > 0 else ("down" if vs_30d_market_pct < 0 else "flat")
 
-    # Market vs 7-week average (use 90-day data we already fetched, take last 49 days)
-    start_7w = (dt - timedelta(days=49)).strftime("%Y-%m-%d")
-    seven_week_prices: list[float] = []
-    for d, _port, raw_sp, _grade, _low, _high, avg in rows_90d:
-        if avg is not None and d >= start_7w and d < date:
-            seven_week_prices.append(avg)
-    seven_week_grand_avg = round(sum(seven_week_prices) / len(seven_week_prices), 2) if seven_week_prices else None
-    vs_7w_market_pct: float | None = None
-    vs_7w_market_label = "flat"
-    if today_grand_avg and seven_week_grand_avg and seven_week_grand_avg > 0:
-        vs_7w_market_pct = round((today_grand_avg - seven_week_grand_avg) / seven_week_grand_avg * 100, 1)
-        vs_7w_market_label = "up" if vs_7w_market_pct > 0 else ("down" if vs_7w_market_pct < 0 else "flat")
+    # Market vs 7-day average
+    seven_day_market_prices: list[float] = []
+    for d, _port, _raw_sp, _grade, _low, _high, avg in rows_90d:
+        if avg is not None and d >= start_7d_raw and d < date:
+            seven_day_market_prices.append(avg)
+    seven_day_grand_avg = round(sum(seven_day_market_prices) / len(seven_day_market_prices), 2) if seven_day_market_prices else None
+    vs_7d_market_pct: float | None = None
+    vs_7d_market_label = "flat"
+    if today_grand_avg and seven_day_grand_avg and seven_day_grand_avg > 0:
+        vs_7d_market_pct = round((today_grand_avg - seven_day_grand_avg) / seven_day_grand_avg * 100, 1)
+        vs_7d_market_label = "up" if vs_7d_market_pct > 0 else ("down" if vs_7d_market_pct < 0 else "flat")
 
-    # Market vs same day last year
-    last_year_date = f"{dt.year - 1}-{dt.month:02d}-{dt.day:02d}"
-    last_year_window_start = (datetime.strptime(last_year_date, "%Y-%m-%d") - timedelta(days=3)).strftime("%Y-%m-%d")
-    last_year_window_end = (datetime.strptime(last_year_date, "%Y-%m-%d") + timedelta(days=3)).strftime("%Y-%m-%d")
-    last_year_rows = get_prices_for_date_range(last_year_window_start, last_year_window_end)
-    last_year_prices: list[float] = []
-    for _d, _port, _raw_sp, _grade, _low, _high, avg in last_year_rows:
-        if avg is not None:
-            last_year_prices.append(avg)
-    last_year_grand_avg = round(sum(last_year_prices) / len(last_year_prices), 2) if last_year_prices else None
-    vs_last_year_pct: float | None = None
-    vs_last_year_label = "flat"
-    if today_grand_avg and last_year_grand_avg and last_year_grand_avg > 0:
-        vs_last_year_pct = round((today_grand_avg - last_year_grand_avg) / last_year_grand_avg * 100, 1)
-        vs_last_year_label = "up" if vs_last_year_pct > 0 else ("down" if vs_last_year_pct < 0 else "flat")
+    # Market vs all-time average (since data collection began)
+    data_start_date, all_time_grand_avg = get_all_time_market_stats()
+    vs_alltime_market_pct: float | None = None
+    vs_alltime_market_label = "flat"
+    if today_grand_avg and all_time_grand_avg and all_time_grand_avg > 0:
+        vs_alltime_market_pct = round((today_grand_avg - all_time_grand_avg) / all_time_grand_avg * 100, 1)
+        vs_alltime_market_label = "up" if vs_alltime_market_pct > 0 else ("down" if vs_alltime_market_pct < 0 else "flat")
+    data_start_display = datetime.strptime(data_start_date, "%Y-%m-%d").strftime("%b %Y") if data_start_date else "—"
 
     # Best value port: lowest avg price across all species today
     port_all_avgs: dict[str, list[float]] = defaultdict(list)
@@ -612,22 +627,6 @@ def build_trade_data(date: str) -> dict:
         best_value_port = min(port_means, key=port_means.get)
         best_value_port_avg = round(port_means[best_value_port], 2)
 
-    # Biggest mover (vs yesterday)
-    biggest_mover: dict | None = None
-    biggest_mover_abs = 0.0
-    for row in matrix:
-        if row["vs_yesterday_pct"] is not None and abs(row["vs_yesterday_pct"]) > biggest_mover_abs:
-            biggest_mover_abs = abs(row["vs_yesterday_pct"])
-            biggest_mover = row
-
-    # Widest spread today
-    widest_spread: dict | None = None
-    widest_spread_pct = 0.0
-    for row in matrix:
-        if row["spread_pct"] is not None and row["spread_pct"] > widest_spread_pct:
-            widest_spread_pct = row["spread_pct"]
-            widest_spread = row
-
     pulse = {
         "ports_reporting": ports_reporting,
         "ports_total": ports_total,
@@ -637,21 +636,39 @@ def build_trade_data(date: str) -> dict:
         "market_direction_arrow": market_direction_arrow,
         "vs_30d_market_pct": vs_30d_market_pct,
         "vs_30d_market_label": vs_30d_market_label,
-        "vs_7w_market_pct": vs_7w_market_pct,
-        "vs_7w_market_label": vs_7w_market_label,
-        "vs_last_year_pct": vs_last_year_pct,
-        "vs_last_year_label": vs_last_year_label,
-        "has_last_year_data": last_year_grand_avg is not None,
+        "vs_7d_market_pct": vs_7d_market_pct,
+        "vs_7d_market_label": vs_7d_market_label,
+        "vs_alltime_market_pct": vs_alltime_market_pct,
+        "vs_alltime_market_label": vs_alltime_market_label,
+        "data_start_date": data_start_display,
         "best_value_port": best_value_port,
         "best_value_port_avg": best_value_port_avg,
-        "biggest_mover_species": biggest_mover["species"] if biggest_mover else None,
-        "biggest_mover_pct": biggest_mover["vs_yesterday_pct"] if biggest_mover else None,
-        "biggest_mover_direction": biggest_mover["vs_yesterday_direction"] if biggest_mover else "flat",
-        "widest_spread_species": widest_spread["species"] if widest_spread else None,
-        "widest_spread_pct": widest_spread["spread_pct"] if widest_spread else None,
-        "widest_spread_low_port": widest_spread["best_buy_port"] if widest_spread else None,
-        "widest_spread_high_port": max(widest_spread["ports"], key=widest_spread["ports"].get) if widest_spread else None,
     }
+
+    # ── Per-category pulse stats (for JS filter updates) ──────────────────────
+    category_pulse: dict[str, dict] = {}
+    for cat in ["all", "demersal", "flatfish", "shellfish", "pelagic", "other"]:
+        filtered = [r for r in matrix if cat == "all" or r["category"] == cat]
+        yest_vals = [r["vs_yesterday_pct"] for r in filtered if r["vs_yesterday_pct"] is not None]
+        sevend_vals = [r["vs_7d_pct"] for r in filtered if r["vs_7d_pct"] is not None]
+        thirtyd_vals = [r["vs_30d_pct"] for r in filtered if r["vs_30d_pct"] is not None]
+        today_avgs = [r["market_avg"] for r in filtered]
+        today_cat_avg = sum(today_avgs) / len(today_avgs) if today_avgs else None
+        vs_alltime_cat = round((today_cat_avg - all_time_grand_avg) / all_time_grand_avg * 100, 1) if (today_cat_avg and all_time_grand_avg and all_time_grand_avg > 0) else None
+        category_pulse[cat] = {
+            "vs_yest": round(sum(yest_vals) / len(yest_vals), 1) if yest_vals else None,
+            "vs_7d": round(sum(sevend_vals) / len(sevend_vals), 1) if sevend_vals else None,
+            "vs_30d": round(sum(thirtyd_vals) / len(thirtyd_vals), 1) if thirtyd_vals else None,
+            "vs_alltime": vs_alltime_cat,
+        }
+    for row in matrix:
+        vs_alltime_sp = round((row["market_avg"] - all_time_grand_avg) / all_time_grand_avg * 100, 1) if (all_time_grand_avg and all_time_grand_avg > 0) else None
+        category_pulse[f"species:{row['species']}"] = {
+            "vs_yest": row["vs_yesterday_pct"],
+            "vs_7d": row["vs_7d_pct"],
+            "vs_30d": row["vs_30d_pct"],
+            "vs_alltime": vs_alltime_sp,
+        }
 
     # ── Port status strip ─────────────────────────────────────────────────────
     port_species_count: dict[str, int] = defaultdict(int)
@@ -734,6 +751,7 @@ def build_trade_data(date: str) -> dict:
         "port_codes": port_code_map,
         "categories": ["all", "demersal", "flatfish", "shellfish", "pelagic", "other"],
         "pulse": pulse,
+        "category_pulse": category_pulse,
         "port_status": port_status,
         "matrix": matrix,
         "arbitrage": arbitrage,

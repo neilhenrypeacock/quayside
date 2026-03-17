@@ -312,6 +312,18 @@ def get_prices_for_date_range(start_date: str, end_date: str) -> list[tuple]:
     return rows
 
 
+def get_all_time_market_stats() -> tuple[str | None, float | None]:
+    """Returns (earliest_price_date, all_time_avg_price) across all non-demo prices."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT MIN(date), AVG(price_avg) FROM prices WHERE price_avg IS NOT NULL"
+    ).fetchone()
+    conn.close()
+    if row and row[0]:
+        return row[0], round(row[1], 2) if row[1] else None
+    return None, None
+
+
 def get_trading_dates(start_date: str, end_date: str) -> list[str]:
     """Distinct dates with price data in a range, sorted ascending."""
     conn = get_connection()
