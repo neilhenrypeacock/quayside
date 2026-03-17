@@ -1,0 +1,9 @@
+[Unit]
+Description=Quayside pipeline — every 10 min weekdays 07:00–17:00
+
+[Timer]
+OnCalendar=Mon..Fri *-*-* *:00/10:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=Quayside scrape pipeline (one-shot)
+After=network.target
+
+[Service]
+Type=oneshot
+User=quayside
+Group=quayside
+WorkingDirectory=/home/quayside/app
+EnvironmentFile=/home/quayside/app/.env
+ExecStart=/bin/bash /home/quayside/app/deploy/run_pipeline.sh
+StandardOutput=append:/var/log/quayside/pipeline.log
+StandardError=append:/var/log/quayside/pipeline.log
