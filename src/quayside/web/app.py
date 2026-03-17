@@ -760,6 +760,19 @@ def create_app() -> Flask:
         ).fetchall():
             port_records[row["port"]] = row["record_count"]
 
+        # 30-day rolling port value: SUM(weight_kg * price_avg) for ports that publish weight
+        port_value_30d = {}
+        for row in conn.execute(
+            """SELECT port, SUM(weight_kg * price_avg) as total_value
+               FROM prices
+               WHERE date >= date('now', '-30 days')
+                 AND weight_kg IS NOT NULL AND weight_kg > 0
+                 AND price_avg IS NOT NULL
+               GROUP BY port"""
+        ).fetchall():
+            if row["total_value"]:
+                port_value_30d[row["port"]] = row["total_value"]
+
         # Total records
         totals = conn.execute(
             "SELECT COUNT(*) as total, COUNT(DISTINCT date) as dates FROM prices"
@@ -994,6 +1007,7 @@ def create_app() -> Flask:
             success_days_per_port=success_days_per_port,
             fails_per_port=fails_per_port,
             port_records=port_records,
+            port_value_30d=port_value_30d,
             last_scrape_info=last_scrape_info,
             today_timeline=today_timeline,
             scrape_slots=_SCRAPE_SLOTS,

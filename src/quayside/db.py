@@ -33,6 +33,7 @@ def init_db() -> None:
             price_low REAL,
             price_high REAL,
             price_avg REAL,
+            weight_kg REAL,
             scraped_at TEXT NOT NULL,
             upload_id INTEGER,
             UNIQUE(date, port, species, grade)
@@ -99,6 +100,8 @@ def _migrate(conn: sqlite3.Connection) -> None:
         conn.execute("ALTER TABLE prices ADD COLUMN scraped_at TEXT NOT NULL DEFAULT ''")
     if "upload_id" not in existing:
         conn.execute("ALTER TABLE prices ADD COLUMN upload_id INTEGER")
+    if "weight_kg" not in existing:
+        conn.execute("ALTER TABLE prices ADD COLUMN weight_kg REAL")
     existing_landings = {row[1] for row in conn.execute("PRAGMA table_info(landings)").fetchall()}
     if existing_landings and "scraped_at" not in existing_landings:
         conn.execute("ALTER TABLE landings ADD COLUMN scraped_at TEXT NOT NULL DEFAULT ''")
@@ -144,8 +147,8 @@ def upsert_prices(records: list[PriceRecord]) -> int:
     conn = get_connection()
     conn.executemany(
         """INSERT OR REPLACE INTO prices
-           (date, port, species, grade, price_low, price_high, price_avg, scraped_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+           (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         [
             (
                 r.date,
@@ -155,6 +158,7 @@ def upsert_prices(records: list[PriceRecord]) -> int:
                 r.price_low,
                 r.price_high,
                 r.price_avg,
+                r.weight_kg,
                 r.scraped_at,
             )
             for r in records
@@ -451,12 +455,12 @@ def upsert_prices_with_upload(records: list[PriceRecord], upload_id: int) -> int
     conn = get_connection()
     conn.executemany(
         """INSERT OR REPLACE INTO prices
-           (date, port, species, grade, price_low, price_high, price_avg, scraped_at, upload_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at, upload_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         [
             (
                 r.date, r.port, r.species, r.grade,
-                r.price_low, r.price_high, r.price_avg, r.scraped_at, upload_id,
+                r.price_low, r.price_high, r.price_avg, r.weight_kg, r.scraped_at, upload_id,
             )
             for r in records
         ],

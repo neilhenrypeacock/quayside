@@ -12,7 +12,7 @@
 	<key>WorkingDirectory</key>
 	<string>/Users/neilpeacock/Projects/quayside</string>
 	<key>StartInterval</key>
-	<integer>1800</integer>
+	<integer>600</integer>
 	<key>StandardOutPath</key>
 	<string>/Users/neilpeacock/Projects/quayside/data/launchd.log</string>
 	<key>StandardErrorPath</key>

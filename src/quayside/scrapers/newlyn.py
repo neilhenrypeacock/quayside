@@ -89,11 +89,12 @@ def scrape_prices(
             continue
 
         prefix = m.group(1).strip()
-        m.group(2).replace(",", "")
+        weight_str = m.group(2).replace(",", "")
         avg_str = m.group(3).replace(",", "")
 
         try:
             avg = float(avg_str)
+            weight_kg = float(weight_str) if weight_str else None
         except ValueError:
             continue
 
@@ -159,6 +160,7 @@ def scrape_prices(
                 price_low=None,
                 price_high=None,
                 price_avg=round(avg, 2),
+                weight_kg=round(weight_kg, 2) if weight_kg and weight_kg > 0 else None,
                 scraped_at=scraped_at,
             )
         )

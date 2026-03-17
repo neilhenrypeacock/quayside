@@ -660,6 +660,7 @@
                 <th>Success</th>
                 <th>Fails</th>
                 <th>Records</th>
+                <th>Value (30d)</th>
             </tr>
         </thead>
         <tbody>
@@ -670,12 +671,12 @@
             {% if country != ns.current_country %}
             {% set ns.current_country = country %}
             <tr class="country-header">
-                <td colspan="8">{{ country }}</td>
+                <td colspan="9">{{ country }}</td>
             </tr>
             {% endif %}
             {% if sub_region %}
             <tr class="region-header">
-                <td colspan="8">{{ sub_region }}</td>
+                <td colspan="9">{{ sub_region }}</td>
             </tr>
             {% endif %}
             {% for port in region_ports %}
@@ -708,6 +709,14 @@
                         {{ '{:,}'.format(pr) }}
                     {% else %}
                         —
+                    {% endif %}
+                </td>
+                <td style="font-family:var(--font-mono);font-size:12px;">
+                    {% set pv = port_value_30d.get(port.name) %}
+                    {% if pv %}
+                        £{{ '{:,.0f}'.format(pv) }}
+                    {% else %}
+                        <span style="color:var(--muted)">—</span>
                     {% endif %}
                 </td>
             </tr>

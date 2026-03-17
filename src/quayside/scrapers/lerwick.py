@@ -112,6 +112,7 @@ def scrape_prices(
     for row in ws.iter_rows(min_row=1, values_only=True):
         species_raw = row[0] if row[0] else None
         grade_raw = row[1] if len(row) > 1 else None
+        volume_raw = row[2] if len(row) > 2 else None
         max_price_raw = row[3] if len(row) > 3 else None
         avg_price_raw = row[4] if len(row) > 4 else None
 
@@ -121,9 +122,10 @@ def scrape_prices(
         if str(species_raw).startswith(("FISH", "WEEKLY", "DAILY")):
             continue
 
-        # Parse prices
+        # Parse prices and volume
         max_price = _parse_num(max_price_raw)
         avg_price = _parse_num(avg_price_raw)
+        weight_kg = _parse_num(volume_raw)
 
         if max_price is None and avg_price is None:
             continue
@@ -140,6 +142,7 @@ def scrape_prices(
                 price_low=None,
                 price_high=max_price,
                 price_avg=avg_price,
+                weight_kg=weight_kg,
                 scraped_at=scraped_at,
             )
         )

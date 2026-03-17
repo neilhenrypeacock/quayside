@@ -13,3 +13,4 @@ class PriceRecord:
     price_high: float | None
     price_avg: float | None
     scraped_at: str  # ISO timestamp
+    weight_kg: float | None = None  # weight sold in kg (None if not published by port)
