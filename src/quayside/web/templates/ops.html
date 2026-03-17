@@ -499,15 +499,39 @@
         Weekend — no auctions scheduled
     </div>
     {% else %}
+
+    {# ── Pipeline summary banner ───────────────────────────────────────── #}
+    {% if today_attempted_count == 0 %}
+    <div style="padding:14px 20px;background:rgba(109,184,138,0.06);border-bottom:1px solid var(--rule);font-size:13px;color:var(--muted);">
+        <strong style="color:var(--ink);">No scrape attempted yet today.</strong>
+        Pipeline runs every 10 minutes, 07:00–17:00.{% if next_scrape_str %} Next check at <strong>{{ next_scrape_str }}</strong>.{% endif %}
+    </div>
+    {% elif today_succeeded_count == live_ports|length %}
+    <div style="padding:14px 20px;background:rgba(109,184,138,0.08);border-bottom:1px solid rgba(109,184,138,0.25);font-size:13px;color:var(--up);">
+        <strong>✓ All {{ live_ports|length }} ports scraped successfully.</strong>
+        First run at <strong>{{ today_first_run }}</strong> — price data is live on all port dashboards.
+    </div>
+    {% elif today_succeeded_count > 0 %}
+    <div style="padding:14px 20px;background:rgba(224,183,96,0.08);border-bottom:1px solid rgba(224,183,96,0.3);font-size:13px;color:#8a6800;">
+        <strong>{{ today_succeeded_count }} of {{ live_ports|length }} ports scraped.</strong>
+        First run at <strong>{{ today_first_run }}</strong>.
+        {{ live_ports|length - today_succeeded_count }} port{{ 's' if (live_ports|length - today_succeeded_count) != 1 }} had issues — see below.{% if next_scrape_str %} Next retry at <strong>{{ next_scrape_str }}</strong>.{% endif %}
+    </div>
+    {% else %}
+    <div style="padding:14px 20px;background:rgba(224,112,96,0.08);border-bottom:1px solid rgba(224,112,96,0.3);font-size:13px;color:var(--down);">
+        <strong>Scrape attempted at {{ today_first_run }} but all ports failed.</strong>{% if next_scrape_str %} Next retry at <strong>{{ next_scrape_str }}</strong>.{% endif %}
+    </div>
+    {% endif %}
+
     <table class="port-table">
         <thead>
             <tr>
                 <th>Port</th>
-                <th>Status</th>
-                <th>Attempted</th>
-                <th>Completed</th>
-                <th>Records</th>
-                <th style="min-width:240px;">Checks today (09:00–17:30)</th>
+                <th>Result</th>
+                <th>First scraped</th>
+                <th>Last success</th>
+                <th>Records imported</th>
+                <th style="min-width:220px;">Check history today (07:00–17:00)</th>
             </tr>
         </thead>
         <tbody>
@@ -535,11 +559,13 @@
                 </td>
                 <td style="font-family:var(--font-mono);font-size:12px;">
                     {% if s and s.status == 'success' %}
-                        {{ s.record_count }} rec
+                        <span style="color:var(--up);">{{ s.record_count }} records</span>
                     {% elif s and s.error_type %}
                         <span style="color:var(--down);">{{ s.error_type }}</span>
+                    {% elif s %}
+                        <span style="color:var(--down);">failed</span>
                     {% else %}
-                        —
+                        <span style="color:var(--muted);">not yet run</span>
                     {% endif %}
                 </td>
                 <td>
@@ -548,12 +574,12 @@
                         {% set slot_data = timeline.get(slot, {}) %}
                         {% if slot_data.attempted %}
                             {% if slot_data.success %}
-                            <span class="scrape-dot success" title="{{ slot }} — {{ slot_data.record_count }} records">●</span>
+                            <span class="scrape-dot success" title="{{ slot }} — {{ slot_data.record_count }} records imported">●</span>
                             {% else %}
-                            <span class="scrape-dot fail" title="{{ slot }} — failed: {{ slot_data.error_type or 'unknown' }}">●</span>
+                            <span class="scrape-dot fail" title="{{ slot }} — failed: {{ slot_data.error_type or 'unknown error' }}">●</span>
                             {% endif %}
                         {% else %}
-                            <span class="scrape-dot pending" title="{{ slot }}">○</span>
+                            <span class="scrape-dot pending" title="{{ slot }} — not checked">○</span>
                         {% endif %}
                         {% endfor %}
                     </div>
@@ -565,24 +591,25 @@
     {% endif %}
 </div>
 
-<!-- Missing data alerts -->
-<div class="alert-banner {% if scrape_alerts|length == 0 %}clear{% endif %}" style="margin-bottom:16px;">
+<!-- Historical data gaps -->
+<div class="alert-banner {% if historical_alerts|length == 0 %}clear{% endif %}" style="margin-bottom:16px;">
     <div class="alert-title">
         <span class="alert-dot"></span>
-        {% if scrape_alerts|length == 0 %}
-            All scrapes healthy — no missing data in the last 2 weeks
+        {% if historical_alerts|length == 0 %}
+            No historical gaps — all expected data present in the last 2 weeks
         {% else %}
-            {{ scrape_alerts|length }} missing data point{{ 's' if scrape_alerts|length != 1 }} in the last 2 weeks
+            {{ historical_alerts|length }} historical gap{{ 's' if historical_alerts|length != 1 }} in the last 2 weeks
+            <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:8px;">(past dates only — today's scrape status shown above)</span>
         {% endif %}
     </div>
-    {% if scrape_alerts %}
+    {% if historical_alerts %}
     <div class="alert-grid">
-        {% for alert in scrape_alerts %}
+        {% for alert in historical_alerts %}
         <div class="alert-row">
             <span class="alert-port">{{ alert.port }}</span>
             <span class="alert-date">{{ alert.date }}</span>
             <span class="alert-dow">{{ alert.dow }}</span>
-            <span class="alert-reason {% if 'holiday' in alert.reason|lower %}holiday{% elif 'not yet' in alert.reason|lower %}pending{% endif %}">{{ alert.reason }}</span>
+            <span class="alert-reason {% if 'holiday' in alert.reason|lower %}holiday{% endif %}">{{ alert.reason }}</span>
         </div>
         {% endfor %}
     </div>

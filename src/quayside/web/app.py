@@ -951,9 +951,9 @@ def create_app() -> Flask:
                 except Exception:
                     pass
 
-        # Today's intraday scrape timeline per port: 30-min slots 09:00–17:00
+        # Today's intraday scrape timeline per port: 30-min slots 07:00–17:00
         today_str_for_log = today.strftime("%Y-%m-%d")
-        _SCRAPE_SLOTS = [f"{h:02d}:{m:02d}" for h in range(9, 18) for m in (0, 30)]
+        _SCRAPE_SLOTS = [f"{h:02d}:{m:02d}" for h in range(7, 17) for m in (0, 30)]
         # Build: {port: {slot: {"attempted": bool, "success": bool}}}
         today_timeline: dict[str, dict[str, dict]] = {}
         for row in scrape_log_rows:
@@ -1010,6 +1010,29 @@ def create_app() -> Flask:
         today_str = today.strftime("%Y-%m-%d")
         today_is_weekday = today.weekday() < 5
 
+        # Summary counts for the pipeline banner
+        today_succeeded = [p for p in today_scrape_summary.values() if p["status"] == "success"]
+        today_failed = [p for p in today_scrape_summary.values() if p["status"] != "success"]
+        today_attempted_count = len(today_scrape_summary)
+        today_succeeded_count = len(today_succeeded)
+        # First run time (earliest first_attempt across all ports)
+        all_attempt_times = [v["first_attempt"] for v in today_scrape_summary.values() if v.get("first_attempt")]
+        today_first_run = min(all_attempt_times) if all_attempt_times else None
+        # Next scheduled check time (next 10-min boundary within 07:00–17:00 UTC)
+        _now = today
+        next_scrape_str: str | None = None
+        if 7 <= _now.hour < 17:
+            _next_min = ((_now.minute // 10) + 1) * 10
+            _next_hour = _now.hour
+            if _next_min >= 60:
+                _next_min = 0
+                _next_hour += 1
+            if _next_hour < 17:
+                next_scrape_str = f"{_next_hour:02d}:{_next_min:02d}"
+        # Separate today's alerts from historical gaps
+        today_alerts = [a for a in scrape_alerts if a["is_today"]]
+        historical_alerts = [a for a in scrape_alerts if not a["is_today"]]
+
         return render_template(
             "ops.html",
             ports=all_ports,
@@ -1041,6 +1064,12 @@ def create_app() -> Flask:
             today_str=today_str,
             today_is_weekday=today_is_weekday,
             today_scrape_summary=today_scrape_summary,
+            today_attempted_count=today_attempted_count,
+            today_succeeded_count=today_succeeded_count,
+            today_first_run=today_first_run,
+            next_scrape_str=next_scrape_str,
+            today_alerts=today_alerts,
+            historical_alerts=historical_alerts,
         )
 
     @app.route("/port/<slug>/export")
