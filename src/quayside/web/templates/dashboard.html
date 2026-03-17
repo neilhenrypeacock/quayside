@@ -152,6 +152,202 @@
         min-width: 0;
     }
     [id^="section-"] { scroll-margin-top: 80px; }
+
+    /* ═══ Ranking card ═══ */
+    .ranking-card {
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+    }
+    .ranking-controls {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    .ranking-species-select {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 5px 10px;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        background: var(--paper);
+        color: var(--ink);
+        cursor: pointer;
+    }
+    .ranking-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-mono);
+        font-size: 12px;
+    }
+    .ranking-table th {
+        text-align: left;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .ranking-table td {
+        padding: 8px 8px;
+        border-bottom: 1px solid rgba(200,191,170,0.4);
+        color: var(--ink);
+    }
+    .ranking-table .rank-num {
+        color: var(--muted);
+        font-size: 11px;
+        width: 48px;
+    }
+    .ranking-this-port td {
+        font-weight: 600;
+        background: rgba(26,58,74,0.04);
+    }
+    .ranking-this-port td:first-child {
+        border-left: 2px solid var(--catch);
+        padding-left: 6px;
+    }
+    .ranking-you-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        color: var(--catch);
+        text-transform: uppercase;
+        margin-left: 6px;
+    }
+    .ranking-vs-pos { color: var(--up); }
+    .ranking-vs-neg { color: var(--down); }
+    .ranking-empty {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        padding: 16px 0;
+        text-align: center;
+    }
+    .ranking-summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-mono);
+        font-size: 12px;
+    }
+    .ranking-summary-table th {
+        text-align: left;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .ranking-summary-table td {
+        padding: 7px 8px;
+        border-bottom: 1px solid rgba(200,191,170,0.3);
+    }
+    .ranking-rank-badge {
+        display: inline-block;
+        padding: 1px 6px;
+        border-radius: 2px;
+        font-size: 10px;
+        font-weight: 600;
+        background: rgba(26,58,74,0.08);
+        color: var(--tide);
+    }
+    .ranking-rank-badge.rank-1 {
+        background: rgba(109,184,138,0.15);
+        color: #3a7a5a;
+    }
+
+    /* ═══ Insights time tabs ═══ */
+    .insight-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 12px;
+    }
+    .insight-tab-btn {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        background: none;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .insight-tab-btn.active {
+        background: var(--tide);
+        color: var(--paper);
+        border-color: var(--tide);
+    }
+    .insight-tab-btn:hover:not(.active) {
+        border-color: var(--tide);
+        color: var(--tide);
+    }
+
+    /* ═══ Compare dates card ═══ */
+    .compare-card {
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+    }
+    .compare-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    .compare-date-input {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 5px 10px;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        background: var(--paper);
+        color: var(--ink);
+    }
+    .compare-sep {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+    }
+    .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-mono);
+        font-size: 12px;
+    }
+    .compare-table th {
+        text-align: left;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .compare-table td {
+        padding: 7px 8px;
+        border-bottom: 1px solid rgba(200,191,170,0.3);
+    }
+    .compare-up { color: var(--up); font-weight: 600; }
+    .compare-down { color: var(--down); font-weight: 600; }
+    .compare-empty {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        padding: 20px 0;
+        text-align: center;
+    }
     .sidebar-upload-link {
         margin-top: 12px;
         border-top: 1px solid var(--rule);
@@ -1053,10 +1249,12 @@
     <ul class="sidebar-nav">
         <li><a href="#section-overview" class="active">Overview</a></li>
         <li><a href="#section-performance">Performance</a></li>
+        <li><a href="#section-ranking">Ranking</a></li>
         <li><a href="#section-insights">Insights</a></li>
         <li><a href="#section-position">Market Position</a></li>
         <li><a href="#section-chart">Price Trends</a></li>
         <li><a href="#section-best">Best Performers</a></li>
+        <li><a href="#section-compare">Compare</a></li>
         <li><a href="#section-chat">Ask Quayside</a></li>
         <li><a href="#section-prices">Prices</a></li>
         <li><a href="#section-customize">Customize</a></li>
@@ -1237,13 +1435,43 @@
 </div>
 {% endif %}
 
+<!-- ═══ SECTION: Ranking ═══ -->
+<div class="section-heading">Ranking</div>
+<div id="section-ranking" class="ranking-card">
+    <div class="ranking-controls">
+        <select class="ranking-species-select" id="rankingSpecies">
+            <option value="">All species</option>
+            {% for item in today_data | unique(attribute='species') | sort(attribute='species') %}
+            <option value="{{ item.species }}">{{ item.species }}</option>
+            {% endfor %}
+        </select>
+        <div class="toggle-group" id="rankingRange">
+            <button class="toggle-btn active" data-days="1">Today</button>
+            <button class="toggle-btn" data-days="7">7d</button>
+            <button class="toggle-btn" data-days="30">30d</button>
+            <button class="toggle-btn" data-days="90">90d</button>
+        </div>
+    </div>
+    <div id="rankingTableContainer">
+        <div class="ranking-empty">Loading&hellip;</div>
+    </div>
+</div>
+
 <!-- ═══ SECTION: Highlights of Your Day ═══ -->
 {% if port_insights %}
 <div class="section-heading">Insights</div>
 <div id="section-insights" class="port-insights-card">
-    <div class="insights-label">Highlights of Your Day</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="insights-label" style="margin:0;">Highlights of Your Day</div>
+        <div class="insight-tabs">
+            <button class="insight-tab-btn active" data-period="all">All</button>
+            <button class="insight-tab-btn" data-period="today">Today</button>
+            <button class="insight-tab-btn" data-period="week">This Week</button>
+            <button class="insight-tab-btn" data-period="month">This Month</button>
+        </div>
+    </div>
     {% for insight in port_insights %}
-    <div class="insight-item">
+    <div class="insight-item" data-period="{{ insight.period }}">
         <span class="insight-tag insight-tag-{{ insight.category|lower }}">{{ insight.category }}</span>
         {{ insight.text }}
     </div>
@@ -1256,9 +1484,17 @@
 {% if market_insights %}
 <div class="section-heading">Market Position</div>
 <div id="section-position" class="insights-card">
-    <div class="insights-label">Market Position</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="insights-label" style="margin:0;">Market Position</div>
+        <div class="insight-tabs">
+            <button class="insight-tab-btn active" data-period="all">All</button>
+            <button class="insight-tab-btn" data-period="today">Today</button>
+            <button class="insight-tab-btn" data-period="week">This Week</button>
+            <button class="insight-tab-btn" data-period="month">This Month</button>
+        </div>
+    </div>
     {% for insight in market_insights %}
-    <div class="insight-item">
+    <div class="insight-item" data-period="{{ insight.period }}">
         <span class="insight-tag insight-tag-{{ insight.category|lower }}">{{ insight.category }}</span>
         {{ insight.text }}
     </div>
@@ -1407,6 +1643,29 @@
     </div>
 </div>
 {% endif %}
+
+<!-- ═══ SECTION: Compare Dates ═══ -->
+<div class="section-heading">Compare</div>
+<div id="section-compare" class="compare-card">
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Compare your prices between two auction dates — see which species moved up, down, or dropped off.</p>
+    <div class="compare-controls">
+        <label style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);">From</label>
+        <select class="compare-date-input" id="compareFrom">
+            {% for d in available_dates %}
+            <option value="{{ d }}" {% if loop.index == 2 %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+        <span class="compare-sep">vs</span>
+        <label style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);">To</label>
+        <select class="compare-date-input" id="compareTo">
+            {% for d in available_dates %}
+            <option value="{{ d }}" {% if loop.first %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary" id="compareBtn" style="font-size:11px;padding:5px 14px;">Compare</button>
+    </div>
+    <div id="compareTableContainer"></div>
+</div>
 
 <!-- ═══ SECTION: Ask Quayside ═══ -->
 <div class="section-heading">Ask Quayside</div>
@@ -1755,12 +2014,11 @@ function buildChartData() {
             spanGaps: true,
         });
 
-        if (showMarketAvg) {
-            // Approximate market average as a smoothed version
-            const avgData = data.map(v => v ? parseFloat((v * 0.96).toFixed(2)) : null);
+        if (showMarketAvg && ds.market_avg) {
+            const mktData = filteredIndices.map(idx => ds.market_avg[idx] || null);
             datasets.push({
-                label: ds.label + ' (Market avg)',
-                data: avgData,
+                label: ds.label + ' (UK avg)',
+                data: mktData,
                 borderColor: colors[i % colors.length],
                 backgroundColor: 'transparent',
                 borderWidth: 1.5,
@@ -2027,6 +2285,164 @@ function scrollActiveDateTab() {
 </script>
 
 <script>
+// ═══ Ranking panel ═══
+(function() {
+    var portSlug = {{ port.slug | tojson }};
+    var latestDate = {{ date | tojson }};
+    var currentDays = 1;
+    var currentSpecies = '';
+    var container = document.getElementById('rankingTableContainer');
+    if (!container) return;
+
+    function ordinal(n) {
+        var s = ['th','st','nd','rd'], v = n % 100;
+        return n + (s[(v-20)%10] || s[v] || s[0]);
+    }
+
+    function renderSummaryTable(rows, period) {
+        if (!rows || !rows.length) {
+            container.innerHTML = '<div class="ranking-empty">No data for this period.</div>';
+            return;
+        }
+        var html = '<p style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-bottom:10px;letter-spacing:0.04em;">' + period + ' — your rank for each species across all UK ports</p>';
+        html += '<table class="ranking-summary-table"><thead><tr><th>Species</th><th>Avg £/kg</th><th>Rank</th><th>vs Market</th></tr></thead><tbody>';
+        rows.forEach(function(r) {
+            var vsClass = r.vs_market_pct > 0 ? 'ranking-vs-pos' : 'ranking-vs-neg';
+            var vsSign = r.vs_market_pct > 0 ? '+' : '';
+            var badge = r.rank === 1 ? ' rank-1' : '';
+            html += '<tr>';
+            html += '<td><em style="font-family:var(--font-serif);font-style:italic;font-size:13px;">' + r.species + '</em></td>';
+            html += '<td>&pound;' + r.avg.toFixed(2) + '</td>';
+            html += '<td><span class="ranking-rank-badge' + badge + '">' + ordinal(r.rank) + ' / ' + r.total + '</span></td>';
+            html += '<td class="' + (r.vs_market_pct !== null ? vsClass : '') + '">' + (r.vs_market_pct !== null ? vsSign + r.vs_market_pct.toFixed(1) + '%' : '—') + '</td>';
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function renderSpeciesTable(data) {
+        if (!data.rows || !data.rows.length) {
+            container.innerHTML = '<div class="ranking-empty">No other ports reporting ' + data.species + ' for this period.</div>';
+            return;
+        }
+        var html = '<p style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-bottom:10px;letter-spacing:0.04em;">' + data.period + ' &mdash; all ports reporting <em style="font-style:italic;">' + data.species + '</em></p>';
+        html += '<table class="ranking-table"><thead><tr><th>Rank</th><th>Port</th><th>Avg £/kg</th><th>vs Market</th></tr></thead><tbody>';
+        data.rows.forEach(function(r) {
+            var rowClass = r.is_this_port ? ' class="ranking-this-port"' : '';
+            var vsClass = r.vs_market_pct > 0 ? 'ranking-vs-pos' : 'ranking-vs-neg';
+            var vsSign = r.vs_market_pct > 0 ? '+' : '';
+            html += '<tr' + rowClass + '>';
+            html += '<td class="rank-num">' + ordinal(r.rank) + '</td>';
+            html += '<td>' + r.port + (r.is_this_port ? '<span class="ranking-you-label">you</span>' : '') + '</td>';
+            html += '<td>&pound;' + r.avg.toFixed(2) + '</td>';
+            html += '<td class="' + vsClass + '">' + vsSign + r.vs_market_pct.toFixed(1) + '%</td>';
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function loadRanking() {
+        container.innerHTML = '<div class="ranking-empty">Loading&hellip;</div>';
+        var url = '/port/' + portSlug + '/api/ranking?date=' + latestDate + '&days=' + currentDays;
+        if (currentSpecies) url += '&species=' + encodeURIComponent(currentSpecies);
+        fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.mode === 'summary') renderSummaryTable(data.rows, data.period);
+            else renderSpeciesTable(data);
+        }).catch(function() {
+            container.innerHTML = '<div class="ranking-empty">Could not load ranking data.</div>';
+        });
+    }
+
+    // Range tabs
+    document.querySelectorAll('#rankingRange .toggle-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#rankingRange .toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            currentDays = parseInt(btn.dataset.days);
+            loadRanking();
+        });
+    });
+
+    // Species select
+    var speciesSelect = document.getElementById('rankingSpecies');
+    if (speciesSelect) {
+        speciesSelect.addEventListener('change', function() {
+            currentSpecies = this.value;
+            loadRanking();
+        });
+    }
+
+    loadRanking();
+})();
+
+// ═══ Insights time tabs ═══
+(function() {
+    document.querySelectorAll('.insight-tabs').forEach(function(tabGroup) {
+        tabGroup.addEventListener('click', function(e) {
+            var btn = e.target.closest('.insight-tab-btn');
+            if (!btn) return;
+            tabGroup.querySelectorAll('.insight-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var period = btn.dataset.period;
+            var card = tabGroup.closest('.port-insights-card, .insights-card');
+            if (!card) return;
+            card.querySelectorAll('.insight-item').forEach(function(item) {
+                if (period === 'all') {
+                    item.style.display = '';
+                } else {
+                    item.style.display = (item.dataset.period === period) ? '' : 'none';
+                }
+            });
+        });
+    });
+})();
+
+// ═══ Compare dates ═══
+(function() {
+    var portSlug = {{ port.slug | tojson }};
+    var btn = document.getElementById('compareBtn');
+    var container = document.getElementById('compareTableContainer');
+    if (!btn || !container) return;
+
+    btn.addEventListener('click', function() {
+        var dateFrom = document.getElementById('compareFrom').value;
+        var dateTo = document.getElementById('compareTo').value;
+        if (!dateFrom || !dateTo) return;
+        container.innerHTML = '<div class="compare-empty">Loading&hellip;</div>';
+        fetch('/port/' + portSlug + '/api/compare?from=' + dateFrom + '&to=' + dateTo)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.rows || !data.rows.length) {
+                    container.innerHTML = '<div class="compare-empty">No matching species found.</div>';
+                    return;
+                }
+                var html = '<table class="compare-table"><thead><tr>';
+                html += '<th>Species</th><th>' + data.date_from + '</th><th>' + data.date_to + '</th><th>Change</th></tr></thead><tbody>';
+                data.rows.forEach(function(r) {
+                    html += '<tr>';
+                    html += '<td><em style="font-family:var(--font-serif);font-style:italic;font-size:13px;">' + r.species + '</em></td>';
+                    html += '<td>' + (r.price_from ? '&pound;' + r.price_from.toFixed(2) : '&mdash;') + '</td>';
+                    html += '<td>' + (r.price_to ? '&pound;' + r.price_to.toFixed(2) : '&mdash;') + '</td>';
+                    if (r.change_pct !== null) {
+                        var cls = r.change_pct >= 0 ? 'compare-up' : 'compare-down';
+                        var sign = r.change_pct >= 0 ? '+' : '';
+                        html += '<td class="' + cls + '">' + sign + r.change_pct.toFixed(1) + '%</td>';
+                    } else {
+                        html += '<td style="color:var(--muted);">—</td>';
+                    }
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            })
+            .catch(function() {
+                container.innerHTML = '<div class="compare-empty">Could not load comparison.</div>';
+            });
+    });
+})();
+
 // Sidebar active state via IntersectionObserver
 (function() {
     var sections = document.querySelectorAll('[id^="section-"]');

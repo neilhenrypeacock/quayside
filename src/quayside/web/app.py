@@ -229,9 +229,9 @@ def create_app() -> Flask:
 
         # Get 90-day history for trend chart (supports 7d/30d/90d toggles)
         history = get_port_prices_history(port["name"], days=90)
-        from datetime import timedelta
+        from datetime import timedelta, datetime as _dt
         _history_start = (
-            dt.strptime(date, "%Y-%m-%d") - timedelta(days=90)
+            _dt.strptime(date, "%Y-%m-%d") - timedelta(days=90)
         ).strftime("%Y-%m-%d")
         market_avgs_range = get_market_averages_for_range(_history_start, date)
         trend_data = _build_trend_data(history, market_avgs_range)
@@ -500,6 +500,140 @@ def create_app() -> Flask:
             has_seasonal=has_seasonal,
             seasonal_data=seasonal_data,
         )
+
+    @app.route("/port/<slug>/api/ranking")
+    def port_ranking_api(slug: str):
+        """Return per-species port ranking JSON for the competitive ranking panel."""
+        from collections import defaultdict
+        from datetime import timedelta
+        import json as _json
+
+        port = get_port(slug)
+        if not port:
+            return {"error": "Not found"}, 404
+
+        latest = get_latest_date() or datetime.now().strftime("%Y-%m-%d")
+        date = request.args.get("date") or latest
+        species_filter = request.args.get("species", "").strip()
+        try:
+            days = max(1, int(request.args.get("days", 1)))
+        except ValueError:
+            days = 1
+
+        # Fetch price rows for the period
+        if days <= 1:
+            all_rows = get_all_prices_for_date(date)
+        else:
+            start = (
+                datetime.strptime(date, "%Y-%m-%d") - timedelta(days=days)
+            ).strftime("%Y-%m-%d")
+            all_rows = get_prices_for_date_range(start, date)
+
+        # Aggregate: {(canonical_species, port_name): [avg_prices]}
+        port_sp_prices: dict[tuple, list] = defaultdict(list)
+        for _d, row_port, row_sp, _grade, _low, _high, row_avg in all_rows:
+            if row_avg:
+                canon = normalise_species(row_sp)
+                port_sp_prices[(canon, row_port)].append(row_avg)
+
+        this_port = port["name"]
+
+        if species_filter:
+            # Single species — return ranked list of all ports
+            port_avgs = []
+            for (canon, p_name), prices in port_sp_prices.items():
+                if canon == species_filter:
+                    avg = sum(prices) / len(prices)
+                    port_avgs.append({"port": p_name, "avg": round(avg, 2),
+                                      "is_this_port": p_name == this_port})
+            if not port_avgs:
+                return {"species": species_filter, "rows": [], "market_avg": None}
+            port_avgs.sort(key=lambda r: r["avg"])
+            market_avg = round(sum(r["avg"] for r in port_avgs) / len(port_avgs), 2)
+            for i, row in enumerate(port_avgs):
+                row["rank"] = i + 1
+                row["vs_market_pct"] = round(
+                    ((row["avg"] - market_avg) / market_avg) * 100, 1
+                )
+            period = "Today" if days <= 1 else f"Last {days} days"
+            return {"species": species_filter, "period": period,
+                    "market_avg": market_avg, "rows": port_avgs}
+
+        else:
+            # All species — return this port's rank for each species it sold
+            results = []
+            # Get all species sold by this port
+            this_port_species = {
+                canon for (canon, p_name) in port_sp_prices if p_name == this_port
+            }
+            for canon in sorted(this_port_species):
+                my_prices = port_sp_prices.get((canon, this_port), [])
+                if not my_prices:
+                    continue
+                my_avg = sum(my_prices) / len(my_prices)
+                # All ports' avgs for this species
+                all_avgs = sorted(
+                    (sum(p) / len(p))
+                    for (c, _p), p in port_sp_prices.items()
+                    if c == canon
+                )
+                total = len(all_avgs)
+                rank = sum(1 for a in all_avgs if a <= my_avg)
+                market_avg = sum(all_avgs) / total if all_avgs else None
+                vs_market = round(((my_avg - market_avg) / market_avg) * 100, 1) \
+                    if market_avg else None
+                results.append({
+                    "species": canon,
+                    "avg": round(my_avg, 2),
+                    "rank": rank,
+                    "total": total,
+                    "vs_market_pct": vs_market,
+                })
+            results.sort(key=lambda r: r["rank"])
+            period = "Today" if days <= 1 else f"Last {days} days"
+            return {"mode": "summary", "period": period, "rows": results}
+
+    @app.route("/port/<slug>/api/compare")
+    def port_compare_api(slug: str):
+        """Return price comparison JSON between two dates for this port."""
+        port = get_port(slug)
+        if not port:
+            return {"error": "Not found"}, 404
+
+        date_from = request.args.get("from", "").strip()
+        date_to = request.args.get("to", "").strip()
+        if not date_from or not date_to:
+            return {"error": "Missing from/to params"}, 400
+
+        rows_from = get_prices_by_date(date_from, port["name"])
+        rows_to = get_prices_by_date(date_to, port["name"])
+
+        def _best_per_species(rows):
+            d: dict[str, float] = {}
+            for _date, _port, sp, _grade, _low, _high, avg in rows:
+                canon = normalise_species(sp)
+                if avg and (canon not in d or avg > d[canon]):
+                    d[canon] = avg
+            return d
+
+        dict_from = _best_per_species(rows_from)
+        dict_to = _best_per_species(rows_to)
+
+        results = []
+        for sp in sorted(set(dict_from) | set(dict_to)):
+            pf = dict_from.get(sp)
+            pt = dict_to.get(sp)
+            change_abs = round(pt - pf, 2) if pf and pt else None
+            change_pct = round(((pt - pf) / pf) * 100, 1) if pf and pt and pf > 0 else None
+            results.append({
+                "species": sp,
+                "price_from": pf,
+                "price_to": pt,
+                "change_abs": change_abs,
+                "change_pct": change_pct,
+            })
+
+        return {"date_from": date_from, "date_to": date_to, "rows": results}
 
     @app.route("/port/<slug>/upload", methods=["GET", "POST"])
     def port_upload(slug: str):
@@ -1150,6 +1284,27 @@ def create_app() -> Flask:
             quality_summary=quality_summary,
             port_data_timing=port_data_timing,
         )
+
+    @app.route("/ops/run-pipeline", methods=["POST"])
+    def ops_run_pipeline():
+        """Trigger the full scrape → store → report pipeline and return JSON result."""
+        import subprocess, sys
+        try:
+            result = subprocess.run(
+                [sys.executable, "-m", "quayside"],
+                capture_output=True, text=True, timeout=300,
+                cwd=app.config.get("PROJECT_ROOT", ".")
+            )
+            return jsonify({
+                "ok": result.returncode == 0,
+                "returncode": result.returncode,
+                "stdout": result.stdout[-3000:] if result.stdout else "",
+                "stderr": result.stderr[-1000:] if result.stderr else "",
+            })
+        except subprocess.TimeoutExpired:
+            return jsonify({"ok": False, "error": "Pipeline timed out after 5 minutes"}), 504
+        except Exception as e:
+            return jsonify({"ok": False, "error": str(e)}), 500
 
     @app.route("/ops/run-quality-check", methods=["POST"])
     def ops_run_quality_check():
