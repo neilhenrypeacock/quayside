@@ -797,6 +797,16 @@ def create_app() -> Flask:
             if row["total_value"]:
                 port_value_30d[row["port"]] = row["total_value"]
 
+        # 30-day record count per port (fallback for ports without weight data)
+        port_records_30d = {}
+        for row in conn.execute(
+            """SELECT port, COUNT(*) as record_count
+               FROM prices
+               WHERE date >= date('now', '-30 days')
+               GROUP BY port"""
+        ).fetchall():
+            port_records_30d[row["port"]] = row["record_count"]
+
         # Total records
         totals = conn.execute(
             "SELECT COUNT(*) as total, COUNT(DISTINCT date) as dates FROM prices"
@@ -832,8 +842,11 @@ def create_app() -> Flask:
                     continue  # skip weekends — no auctions expected
 
                 if not has_data and dow in expected_days:
+                    # Skip ports with no data at all yet — can't have gaps
+                    if port_name not in first_data_per_port:
+                        continue
                     # Skip dates before this port started scraping — not a gap
-                    if date_str < first_data_per_port.get(port_name, "0000-00-00"):
+                    if date_str < first_data_per_port[port_name]:
                         continue
                     # Determine reason
                     if is_today:
@@ -1114,6 +1127,7 @@ def create_app() -> Flask:
             fails_per_port=fails_per_port,
             port_records=port_records,
             port_value_30d=port_value_30d,
+            port_records_30d=port_records_30d,
             last_scrape_info=last_scrape_info,
             today_timeline=today_timeline,
             scrape_slots=_SCRAPE_SLOTS,

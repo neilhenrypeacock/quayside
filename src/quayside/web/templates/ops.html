@@ -537,7 +537,6 @@
                 <th>First scraped</th>
                 <th>Last success</th>
                 <th>Records imported</th>
-                <th style="min-width:220px;">Check history today (07:00–17:00)</th>
             </tr>
         </thead>
         <tbody>
@@ -551,7 +550,7 @@
                         {% if s.status == 'success' %}
                         <span class="status-badge active">Success</span>
                         {% elif s.status == 'empty' or s.status == 'stale' %}
-                        <span class="status-badge stale">Nothing published</span>
+                        <span class="status-badge stale">No data since {{ s.last_data_date_display or s.last_data_date or '?' }}</span>
                         {% else %}
                         <span class="status-badge outreach">Failed</span>
                         {% endif %}
@@ -569,7 +568,7 @@
                     {% if s and s.status == 'success' %}
                         <span style="color:var(--up);">{{ s.record_count }} records</span>
                     {% elif s and (s.status == 'empty' or s.status == 'stale') %}
-                        <span style="color:#a06010;">Nothing published since {{ s.last_data_date or '—' }}</span>
+                        <span style="color:#a06010;">No data since {{ s.last_data_date or '—' }}</span>
                     {% elif s and s.error_type %}
                         <span style="color:var(--down);">{{ s.error_type }}</span>
                     {% elif s %}
@@ -577,22 +576,6 @@
                     {% else %}
                         <span style="color:var(--muted);">not yet run</span>
                     {% endif %}
-                </td>
-                <td>
-                    <div class="scrape-timeline">
-                        {% for slot in scrape_slots %}
-                        {% set slot_data = timeline.get(slot, {}) %}
-                        {% if slot_data.attempted %}
-                            {% if slot_data.success %}
-                            <span class="scrape-dot success" title="{{ slot }} — {{ slot_data.record_count }} records imported">●</span>
-                            {% else %}
-                            <span class="scrape-dot fail" title="{{ slot }} — failed: {{ slot_data.error_type or 'unknown error' }}">●</span>
-                            {% endif %}
-                        {% else %}
-                            <span class="scrape-dot pending" title="{{ slot }} — not checked">○</span>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
                 </td>
             </tr>
             {% endfor %}
@@ -612,7 +595,7 @@
         </span>
         {% endif %}
         <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
-            <a href="/ops/quality-report/download" style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:0.02em;" title="Download Markdown report">↓ Download</a>
+            {% if quality_summary.last_checked_at %}<a href="/ops/quality-report/download" style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:0.02em;" title="Download Markdown report">↓ Download</a>{% endif %}
             <button id="run-quality-btn" onclick="runQualityCheck()"
                 style="font-size:12px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;
                        padding:5px 14px;border:1px solid var(--rule);border-radius:3px;
@@ -877,6 +860,8 @@ async function runQualityCheck() {
                     {% set pv = port_value_30d.get(port.name) %}
                     {% if pv %}
                         £{{ '{:,.0f}'.format(pv) }}
+                    {% elif port_records_30d.get(port.name) %}
+                        <span style="color:var(--muted)">{{ port_records_30d[port.name] }} records</span>
                     {% else %}
                         <span style="color:var(--muted)">—</span>
                     {% endif %}
@@ -886,47 +871,6 @@ async function runQualityCheck() {
             {% endfor %}
         </tbody>
     </table>
-</div>
-
-<!-- Data Publishing Times -->
-<div class="card" style="margin-top:16px;">
-    <div class="section-head">
-        Data Publishing Times
-        <span class="count">median time data first available each day &middot; times UTC</span>
-    </div>
-    {% if port_data_timing %}
-    <table class="port-table">
-        <thead>
-            <tr>
-                <th>Port</th>
-                <th>Median available</th>
-                <th>Earliest</th>
-                <th>Latest</th>
-                <th>Based on</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for port in live_ports %}
-            {% set t = port_data_timing.get(port.name) %}
-            <tr>
-                <td><span class="port-name">{{ port.name }}</span></td>
-                {% if t %}
-                <td style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--ink);">{{ t.median }}</td>
-                <td style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">{{ t.earliest }}</td>
-                <td style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">{{ t.latest }}</td>
-                <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">{{ t.sample_days }} days</td>
-                {% else %}
-                <td colspan="4" style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">insufficient data</td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div style="padding:16px 20px;font-family:var(--font-mono);font-size:12px;color:var(--muted);">
-        No timing data yet — requires at least 3 days of scraped data per port.
-    </div>
-    {% endif %}
 </div>
 
 <!-- Pipeline -->
@@ -1007,25 +951,44 @@ async function runQualityCheck() {
     </table>
 </div>
 
-<!-- Data Gaps & Errors -->
-<div class="card">
+<!-- Data Publishing Times -->
+<div class="card" style="margin-top:16px;">
     <div class="section-head">
-        Data Gaps &amp; Errors
-        <span class="count">Last 10 weekdays, active ports only</span>
+        Data Publishing Times
+        <span class="count">median time data first available each day &middot; times UTC</span>
     </div>
-    {% if gaps %}
-    <ul class="gap-list">
-        {% for gap in gaps %}
-        <li class="gap-item">
-            <span class="gap-icon"></span>
-            <span class="gap-port">{{ gap.port }}</span>
-            <span class="gap-date">{{ gap.date }}</span>
-            <span class="gap-type">{{ gap.type }}</span>
-        </li>
-        {% endfor %}
-    </ul>
+    {% if port_data_timing %}
+    <table class="port-table">
+        <thead>
+            <tr>
+                <th>Port</th>
+                <th>Median available</th>
+                <th>Earliest</th>
+                <th>Latest</th>
+                <th>Based on</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for port in live_ports %}
+            {% set t = port_data_timing.get(port.name) %}
+            <tr>
+                <td><span class="port-name">{{ port.name }}</span></td>
+                {% if t %}
+                <td style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--ink);">{{ t.median }}</td>
+                <td style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">{{ t.earliest }}</td>
+                <td style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">{{ t.latest }}</td>
+                <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">{{ t.sample_days }} days</td>
+                {% else %}
+                <td colspan="4" style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">insufficient data</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     {% else %}
-    <div class="no-issues">All active ports have data for the last 10 weekdays</div>
+    <div style="padding:16px 20px;font-family:var(--font-mono);font-size:12px;color:var(--muted);">
+        No timing data yet — requires at least 3 days of scraped data per port.
+    </div>
     {% endif %}
 </div>
 
