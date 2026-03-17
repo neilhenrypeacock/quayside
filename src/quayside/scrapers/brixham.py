@@ -94,6 +94,14 @@ def scrape_prices(
         if species_grade_raw.upper() in _SKIP_KEYWORDS:
             continue
 
+        # Skip implausible prices — these are lot totals parsed as per-kg prices
+        if day_avg > 500:
+            logger.warning(
+                "Skipping implausible Brixham price: %s = £%.2f/kg (likely a lot total)",
+                species_grade_raw, day_avg,
+            )
+            continue
+
         # Parse species and optional grade number
         # e.g. "BL WING 1" → species="Bl Wing", grade="1"
         # e.g. "BREAM"     → species="Bream",   grade="ALL"
