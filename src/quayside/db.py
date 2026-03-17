@@ -86,6 +86,20 @@ def init_db() -> None:
             error_type TEXT,
             error_msg TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS quality_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            checked_at TEXT NOT NULL,
+            check_type TEXT NOT NULL,
+            severity TEXT NOT NULL,
+            port TEXT NOT NULL,
+            date TEXT NOT NULL,
+            species TEXT,
+            grade TEXT,
+            value REAL,
+            expected REAL,
+            message TEXT NOT NULL
+        );
     """)
 
     # Migrations: add columns that were introduced after initial deploy
@@ -116,6 +130,25 @@ def _migrate(conn: sqlite3.Connection) -> None:
                 record_count INTEGER DEFAULT 0,
                 error_type TEXT,
                 error_msg TEXT
+            )
+        """)
+    except Exception:
+        pass
+    # quality_log table
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS quality_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                checked_at TEXT NOT NULL,
+                check_type TEXT NOT NULL,
+                severity TEXT NOT NULL,
+                port TEXT NOT NULL,
+                date TEXT NOT NULL,
+                species TEXT,
+                grade TEXT,
+                value REAL,
+                expected REAL,
+                message TEXT NOT NULL
             )
         """)
     except Exception:
@@ -804,3 +837,71 @@ def get_market_averages_for_date(date: str) -> dict[str, dict]:
             "ports": dict(port_prices),
         }
     return result
+
+
+def get_quality_issues(days: int = 7) -> list[dict]:
+    """Return quality issues logged in the last `days` days, newest first."""
+    conn = get_connection()
+    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+    rows = conn.execute(
+        """SELECT checked_at, check_type, severity, port, date, species, grade,
+                  value, expected, message
+           FROM quality_log
+           WHERE checked_at >= ?
+           ORDER BY checked_at DESC, severity DESC""",
+        (cutoff,),
+    ).fetchall()
+    conn.close()
+    return [
+        {
+            "checked_at": r[0],
+            "check_type": r[1],
+            "severity": r[2],
+            "port": r[3],
+            "date": r[4],
+            "species": r[5],
+            "grade": r[6],
+            "value": r[7],
+            "expected": r[8],
+            "message": r[9],
+        }
+        for r in rows
+    ]
+
+
+def get_quality_summary() -> dict:
+    """Return last check time and issue counts for the ops dashboard."""
+    conn = get_connection()
+    last_row = conn.execute(
+        "SELECT checked_at FROM quality_log ORDER BY checked_at DESC LIMIT 1"
+    ).fetchone()
+    last_checked_at = last_row[0] if last_row else None
+
+    cutoff = (datetime.utcnow() - timedelta(days=7)).isoformat()
+    counts = conn.execute(
+        """SELECT port, severity, COUNT(*) as n
+           FROM quality_log
+           WHERE checked_at >= ?
+           GROUP BY port, severity""",
+        (cutoff,),
+    ).fetchall()
+    conn.close()
+
+    by_port: dict[str, dict] = {}
+    total_errors = 0
+    total_warns = 0
+    for port, severity, n in counts:
+        by_port.setdefault(port, {"errors": 0, "warns": 0})
+        if severity == "error":
+            by_port[port]["errors"] += n
+            total_errors += n
+        else:
+            by_port[port]["warns"] += n
+            total_warns += n
+
+    return {
+        "last_checked_at": last_checked_at,
+        "open_errors": total_errors,
+        "open_warns": total_warns,
+        "by_port": by_port,
+    }

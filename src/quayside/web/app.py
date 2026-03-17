@@ -44,6 +44,8 @@ from quayside.db import (
     get_species_availability_gaps,
     get_seasonal_comparison,
     get_upload,
+    get_quality_issues,
+    get_quality_summary,
     init_db,
     log_correction,
     seed_demo_data,
@@ -1033,6 +1035,10 @@ def create_app() -> Flask:
         today_alerts = [a for a in scrape_alerts if a["is_today"]]
         historical_alerts = [a for a in scrape_alerts if not a["is_today"]]
 
+        # Data quality
+        quality_issues = get_quality_issues(days=7)
+        quality_summary = get_quality_summary()
+
         return render_template(
             "ops.html",
             ports=all_ports,
@@ -1070,6 +1076,8 @@ def create_app() -> Flask:
             next_scrape_str=next_scrape_str,
             today_alerts=today_alerts,
             historical_alerts=historical_alerts,
+            quality_issues=quality_issues,
+            quality_summary=quality_summary,
         )
 
     @app.route("/port/<slug>/export")

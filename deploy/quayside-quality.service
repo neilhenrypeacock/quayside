@@ -1,0 +1,13 @@
+[Unit]
+Description=Quayside data quality check (one-shot)
+After=network.target
+
+[Service]
+Type=oneshot
+User=quayside
+Group=quayside
+WorkingDirectory=/home/quayside/app
+EnvironmentFile=/home/quayside/app/.env
+ExecStart=/home/quayside/venv/bin/python -m quayside.quality
+StandardOutput=append:/var/log/quayside/quality.log
+StandardError=append:/var/log/quayside/quality.log

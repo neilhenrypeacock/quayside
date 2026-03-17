@@ -19,6 +19,12 @@ chown quayside:quayside /var/log/quayside
 systemctl daemon-reload
 systemctl enable --now quayside-pipeline.timer
 
+echo "==> Installing quality check service and timer"
+cp /home/quayside/app/deploy/quayside-quality.service /etc/systemd/system/quayside-quality.service
+cp /home/quayside/app/deploy/quayside-quality.timer /etc/systemd/system/quayside-quality.timer
+systemctl daemon-reload
+systemctl enable --now quayside-quality.timer
+
 echo "==> Restarting gunicorn"
 systemctl restart quayside
 

@@ -591,6 +591,74 @@
     {% endif %}
 </div>
 
+<!-- Data Quality -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="section-head">
+        Data Quality
+        <span class="count">last 7 days</span>
+        {% if quality_summary.last_checked_at %}
+        <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:auto;">
+            last checked {{ quality_summary.last_checked_at[:16].replace('T',' ') }} UTC
+        </span>
+        {% endif %}
+    </div>
+
+    {# ── Summary banner ─────────────────────────────────────────────────── #}
+    {% if not quality_summary.last_checked_at %}
+    <div style="padding:14px 20px;font-size:13px;color:var(--muted);">
+        No quality checks run yet. Schedule: Mon–Fri at 09:30, 13:30, 17:30.
+    </div>
+    {% elif quality_summary.open_errors > 0 %}
+    <div style="padding:14px 20px;background:rgba(224,112,96,0.08);border-bottom:1px solid rgba(224,112,96,0.3);font-size:13px;color:var(--down);">
+        <strong>{{ quality_summary.open_errors }} error{{ 's' if quality_summary.open_errors != 1 }}</strong>
+        {% if quality_summary.open_warns %} · {{ quality_summary.open_warns }} warning{{ 's' if quality_summary.open_warns != 1 }}{% endif %}
+        — data accuracy issues require attention
+    </div>
+    {% elif quality_summary.open_warns > 0 %}
+    <div style="padding:14px 20px;background:rgba(224,183,96,0.08);border-bottom:1px solid rgba(224,183,96,0.3);font-size:13px;color:#8a6800;">
+        <strong>{{ quality_summary.open_warns }} warning{{ 's' if quality_summary.open_warns != 1 }}</strong> — minor anomalies flagged, no errors
+    </div>
+    {% else %}
+    <div style="padding:14px 20px;background:rgba(109,184,138,0.08);border-bottom:1px solid rgba(109,184,138,0.25);font-size:13px;color:var(--up);">
+        <strong>✓ No quality issues in the last 7 days.</strong> All port data within expected ranges.
+    </div>
+    {% endif %}
+
+    {# ── Issues table ───────────────────────────────────────────────────── #}
+    {% if quality_issues %}
+    <table class="port-table">
+        <thead>
+            <tr>
+                <th>Port</th>
+                <th>Date</th>
+                <th>Check</th>
+                <th></th>
+                <th style="min-width:360px;">Issue</th>
+                <th>Checked</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for issue in quality_issues %}
+        <tr>
+            <td style="font-weight:500;">{{ issue.port }}</td>
+            <td style="font-family:var(--font-mono);font-size:12px;">{{ issue.date }}</td>
+            <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">{{ issue.check_type }}</td>
+            <td>
+                {% if issue.severity == 'error' %}
+                <span style="display:inline-block;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:600;background:rgba(224,112,96,0.12);color:var(--down);">ERROR</span>
+                {% else %}
+                <span style="display:inline-block;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:600;background:rgba(224,183,96,0.15);color:#8a6800;">WARN</span>
+                {% endif %}
+            </td>
+            <td style="font-size:13px;">{{ issue.message }}</td>
+            <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:nowrap;">{{ issue.checked_at[:16].replace('T',' ') }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+
 <!-- Historical data gaps -->
 <div class="alert-banner {% if historical_alerts|length == 0 %}clear{% endif %}" style="margin-bottom:16px;">
     <div class="alert-title">
