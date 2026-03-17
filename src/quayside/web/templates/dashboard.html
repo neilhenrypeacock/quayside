@@ -152,6 +152,26 @@
         min-width: 0;
     }
     [id^="section-"] { scroll-margin-top: 80px; }
+    .sidebar-upload-link {
+        margin-top: 12px;
+        border-top: 1px solid var(--rule);
+        padding-top: 12px !important;
+        color: var(--catch) !important;
+    }
+    .sidebar-upload-link:hover { color: var(--catch) !important; }
+    /* Section headings */
+    .section-heading {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding-bottom: 10px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--rule);
+        margin-top: 32px;
+    }
+    .section-heading:first-child { margin-top: 0; }
     @media (max-width: 768px) {
         .port-page { grid-template-columns: 1fr; }
         .port-sidebar { display: none; }
@@ -1035,12 +1055,12 @@
         <li><a href="#section-performance">Performance</a></li>
         <li><a href="#section-insights">Insights</a></li>
         <li><a href="#section-position">Market Position</a></li>
-        <li><a href="#section-gaps">Species Gaps</a></li>
         <li><a href="#section-chart">Price Trends</a></li>
         <li><a href="#section-best">Best Performers</a></li>
         <li><a href="#section-chat">Ask Quayside</a></li>
         <li><a href="#section-prices">Prices</a></li>
         <li><a href="#section-customize">Customize</a></li>
+        <li><a href="{{ url_for('port_upload', slug=port.slug) }}" class="sidebar-upload-link">Upload &amp; Edit</a></li>
     </ul>
 </aside>
 
@@ -1090,6 +1110,7 @@
 <div class="dashboard-content">
 
 <!-- ═══ HERO SUMMARY STRIP ═══ -->
+<div class="section-heading">Overview</div>
 <div class="section-bar">
     <span class="section-bar-title">Today's Auction — {{ latest_date_display }}</span>
     <span class="section-bar-sub">All prices per kg · {{ port.name }}</span>
@@ -1124,26 +1145,6 @@
         <div class="hero-description">Change vs the same weekday last week</div>
     </div>
     <div class="hero-stat">
-        {% if perf and perf.week_change is not none %}
-        <div class="hero-value {{ 'hero-value-up' if perf.week_change >= 0 else 'hero-value-down' }}" id="hero-week-change">{{ "+" if perf.week_change >= 0 }}{{ "%.1f"|format(perf.week_change) }}%</div>
-        {% else %}
-        <div class="hero-value" id="hero-week-change">&mdash;</div>
-        {% endif %}
-        <div class="hero-label">Avg day this week</div>
-        <div class="hero-sub-price" id="hero-week-avg">{% if perf and perf.this_week_avg %}&pound;{{ "%.2f"|format(perf.this_week_avg) }} avg this week{% endif %}</div>
-        <div class="hero-description">Weekly avg vs prior week</div>
-    </div>
-    <div class="hero-stat">
-        {% if perf and perf.month_change is not none %}
-        <div class="hero-value {{ 'hero-value-up' if perf.month_change >= 0 else 'hero-value-down' }}" id="hero-month-change">{{ "+" if perf.month_change >= 0 }}{{ "%.1f"|format(perf.month_change) }}%</div>
-        {% else %}
-        <div class="hero-value" id="hero-month-change">&mdash;</div>
-        {% endif %}
-        <div class="hero-label">Avg day this month</div>
-        <div class="hero-sub-price" id="hero-month-avg">{% if perf and perf.this_month_avg %}&pound;{{ "%.2f"|format(perf.this_month_avg) }} avg this month{% endif %}</div>
-        <div class="hero-description">Monthly avg vs prior month</div>
-    </div>
-    <div class="hero-stat">
         {% if hero_vs_market is not none %}
         <div class="hero-value {{ 'hero-value-up' if hero_vs_market >= 0 else 'hero-value-down' }}" id="hero-vs-market">{{ "+" if hero_vs_market >= 0 }}{{ "%.1f"|format(hero_vs_market) }}%</div>
         {% else %}
@@ -1156,6 +1157,7 @@
 
 <!-- ═══ PERFORMANCE OVERVIEW — the bottom line ═══ -->
 {% if perf %}
+<div class="section-heading">Performance</div>
 <div id="section-performance" class="perf-card">
     <div class="perf-header">
         <div>
@@ -1237,6 +1239,7 @@
 
 <!-- ═══ SECTION: Highlights of Your Day ═══ -->
 {% if port_insights %}
+<div class="section-heading">Insights</div>
 <div id="section-insights" class="port-insights-card">
     <div class="insights-label">Highlights of Your Day</div>
     {% for insight in port_insights %}
@@ -1251,6 +1254,7 @@
 
 <!-- ═══ SECTION: Market Intelligence ═══ -->
 {% if market_insights %}
+<div class="section-heading">Market Position</div>
 <div id="section-position" class="insights-card">
     <div class="insights-label">Market Position</div>
     {% for insight in market_insights %}
@@ -1277,6 +1281,7 @@
 {% endif %}
 
 <!-- ═══ SECTION: Price Trends ═══ -->
+<div class="section-heading">Price Trends</div>
 <div id="section-chart" class="card card-chart">
     <div class="mini-summary">
         <div class="mini-stat" id="avgPriceStat">
@@ -1321,6 +1326,7 @@
 
 <!-- ═══ SECTION: Market Position & Month Summary ═══ -->
 {% if best_performers and (best_performers.strongest_species or best_performers.month_summary) %}
+<div class="section-heading">Best Performers</div>
 <div id="section-best" class="best-grid">
     <div class="best-panel">
         <h3>Strongest vs Market</h3>
@@ -1403,6 +1409,7 @@
 {% endif %}
 
 <!-- ═══ SECTION: Ask Quayside ═══ -->
+<div class="section-heading">Ask Quayside</div>
 <div id="section-chat" class="chat-card">
     <div class="chat-label">Ask Quayside</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Ask a plain-English question about your price history, market position, or trends — powered by your port's data.</p>
@@ -1419,12 +1426,15 @@
     <div class="chat-response" id="chatResponse">Ask a question about your prices, trends, or market position.</div>
 </div>
 
-<div id="section-prices" style="scroll-margin-top:80px;"></div>
+<div id="section-prices" style="scroll-margin-top:80px;">
+    <div class="section-heading" style="margin-top:32px;">Prices</div>
+</div>
 <div id="prices-wrapper">
 {% include 'prices_partial.html' %}
 </div>
 
 <!-- ═══ SECTION: Customize Your Dashboard ═══ -->
+<div class="section-heading">Customize</div>
 <div id="section-customize" class="customize-card">
     <div class="customize-header">
         <div>
