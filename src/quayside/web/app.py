@@ -723,14 +723,13 @@ def create_app() -> Flask:
             week_dates = []
             for day_offset in range(7):
                 d = monday + timedelta(days=day_offset)
-                if d > today:
-                    continue  # don't show future dates
                 week_dates.append({
                     "date_str": d.strftime("%Y-%m-%d"),
                     "dow_name": d.strftime("%a"),
                     "day_num": d.strftime("%d"),
                     "is_today": d.date() == today.date(),
                     "is_weekend": d.weekday() >= 5,
+                    "is_future": d > today,
                 })
             if week_dates:
                 label = f"w/c {monday.strftime('%d %b')}"
@@ -1041,6 +1040,12 @@ def create_app() -> Flask:
             "SELECT port, MAX(date) as last_data_date FROM prices GROUP BY port"
         ).fetchall()
         latest_data_date = {row["port"]: row["last_data_date"] for row in latest_data_date_rows}
+
+        # Refine status: scraper ran with no error but nothing published → "empty" not "failed"
+        for _pname, _s in today_scrape_summary.items():
+            if _s["status"] == "failed" and not _s["error_type"]:
+                _s["status"] = "empty"
+                _s["last_data_date"] = latest_data_date.get(_pname)
 
         conn.close()
 

@@ -550,8 +550,8 @@
                     {% if s %}
                         {% if s.status == 'success' %}
                         <span class="status-badge active">Success</span>
-                        {% elif s.status == 'stale' %}
-                        <span class="status-badge stale">No new data</span>
+                        {% elif s.status == 'empty' or s.status == 'stale' %}
+                        <span class="status-badge stale">Nothing published</span>
                         {% else %}
                         <span class="status-badge outreach">Failed</span>
                         {% endif %}
@@ -568,12 +568,12 @@
                 <td style="font-family:var(--font-mono);font-size:12px;">
                     {% if s and s.status == 'success' %}
                         <span style="color:var(--up);">{{ s.record_count }} records</span>
-                    {% elif s and s.status == 'stale' %}
-                        <span style="color:#a06010;">No data since {{ s.last_data_date_display }}</span>
+                    {% elif s and (s.status == 'empty' or s.status == 'stale') %}
+                        <span style="color:#a06010;">Nothing published since {{ s.last_data_date or '—' }}</span>
                     {% elif s and s.error_type %}
                         <span style="color:var(--down);">{{ s.error_type }}</span>
                     {% elif s %}
-                        <span style="color:var(--down);">failed</span>
+                        <span style="color:var(--down);">scraper error</span>
                     {% else %}
                         <span style="color:var(--muted);">not yet run</span>
                     {% endif %}
@@ -612,7 +612,6 @@
         </span>
         {% endif %}
         <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
-            <a href="/ops/quality-report" style="font-size:12px;font-weight:500;color:var(--catch);text-decoration:none;letter-spacing:0.02em;">Full Report →</a>
             <a href="/ops/quality-report/download" style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:0.02em;" title="Download Markdown report">↓ Download</a>
             <button id="run-quality-btn" onclick="runQualityCheck()"
                 style="font-size:12px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;
@@ -778,7 +777,7 @@ async function runQualityCheck() {
             <tr>
                 <th style="min-width:100px;"></th>
                 {% for dd in week.dates %}
-                <th>{{ dd.dow_name }}<br>{{ dd.day_num }}</th>
+                <th style="{% if dd.is_future %}color:transparent;{% endif %}">{{ dd.dow_name }}<br>{{ dd.day_num }}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -788,7 +787,9 @@ async function runQualityCheck() {
                 <td>{{ port_name }}</td>
                 {% for dd in week.dates %}
                 <td>
-                    {% if dd.is_weekend %}
+                    {% if dd.is_future %}
+                    <span class="cov-cell weekend"></span>
+                    {% elif dd.is_weekend %}
                     <span class="cov-cell weekend{% if dd.is_today %} today{% endif %}">—</span>
                     {% elif port_coverage.get(port_name, {}).get(dd.date_str) %}
                     <span class="cov-cell ok{% if dd.is_today %} today{% endif %}">{{ port_coverage[port_name][dd.date_str].species }}</span>
