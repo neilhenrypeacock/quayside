@@ -324,6 +324,28 @@ def get_all_time_market_stats() -> tuple[str | None, float | None]:
     return None, None
 
 
+def get_db_stats() -> dict:
+    """Returns headline counts for the data credentials card."""
+    conn = get_connection()
+    row = conn.execute(
+        """SELECT
+            COUNT(*) AS total_records,
+            COUNT(DISTINCT port) AS total_ports,
+            COUNT(DISTINCT date) AS total_trading_days,
+            MIN(date) AS earliest_date
+           FROM prices WHERE price_avg IS NOT NULL"""
+    ).fetchone()
+    conn.close()
+    if row and row[0]:
+        return {
+            "total_records": row[0],
+            "total_ports": row[1],
+            "total_trading_days": row[2],
+            "earliest_date": row[3],
+        }
+    return {"total_records": 0, "total_ports": 0, "total_trading_days": 0, "earliest_date": None}
+
+
 def get_trading_dates(start_date: str, end_date: str) -> list[str]:
     """Distinct dates with price data in a range, sorted ascending."""
     conn = get_connection()

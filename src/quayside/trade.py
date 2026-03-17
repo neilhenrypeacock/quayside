@@ -15,6 +15,7 @@ from quayside.db import (
     get_all_ports,
     get_all_prices_for_date,
     get_all_time_market_stats,
+    get_db_stats,
     get_market_averages_for_range,
     get_previous_date,
     get_prices_for_date_range,
@@ -755,6 +756,19 @@ def build_trade_data(date: str) -> dict:
         "ytd": _ctx(rows_ytd),
     }
 
+    # ── Database credential stats ─────────────────────────────────────────────
+    _raw_db_stats = get_db_stats()
+    db_stats = {
+        "total_records": _raw_db_stats["total_records"],
+        "total_ports": _raw_db_stats["total_ports"],
+        "total_trading_days": _raw_db_stats["total_trading_days"],
+        "total_species": len(canonical_names),
+        "earliest_date_display": (
+            datetime.strptime(_raw_db_stats["earliest_date"], "%Y-%m-%d").strftime("%b %Y")
+            if _raw_db_stats["earliest_date"] else "—"
+        ),
+    }
+
     # ── Date/display helpers ──────────────────────────────────────────────────
     dt_display = datetime.strptime(date, "%Y-%m-%d")
     date_display = dt_display.strftime("%A %d %B %Y")
@@ -780,5 +794,6 @@ def build_trade_data(date: str) -> dict:
         "ninety_days_ago": ninety_days_ago,
         "highlights": highlights,
         "timeframe_context": timeframe_context,
+        "db_stats": db_stats,
         "generated_at": datetime.now().strftime("%H:%M"),
     }
