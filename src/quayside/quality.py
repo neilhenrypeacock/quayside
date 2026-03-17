@@ -1,7 +1,10 @@
 """Data quality checks for Quayside.
 
-Runs five checks against the prices table and writes issues to quality_log.
-Designed to run 3× daily (10:00, 13:00, 16:00) via systemd timer.
+Runs six checks against the prices table and writes issues to quality_log.
+Check 6 (live_site) fetches each live port page and verifies displayed
+prices match the database — catching any display-layer bugs.
+
+Designed to run after every successful scrape and 3× daily as backstop.
 
 Usage:
     python -m quayside.quality
@@ -11,10 +14,16 @@ from __future__ import annotations
 
 import logging
 import math
+import os
+import re
+import urllib.request
 from datetime import date as date_type
 from datetime import datetime, timedelta
 
 from quayside.db import get_connection, init_db
+
+_LIVE_SITE_URL = os.getenv("QUAYSIDE_SITE_URL", "https://quaysidedata.duckdns.org")
+_SMOKE_TIMEOUT = 10  # seconds per port page fetch
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +65,7 @@ def run_quality_checks(date: str | None = None) -> dict:
     issues.extend(_check_stale_data(conn, date, checked_at, active_ports))
     issues.extend(_check_day_avg_spike(conn, date, checked_at, active_ports))
     issues.extend(_check_seeded_data(conn, date, checked_at, active_ports))
+    issues.extend(_check_live_site(conn, date, checked_at, active_ports))
 
     # Write all issues to quality_log
     conn.executemany(
@@ -269,6 +279,117 @@ def _check_seeded_data(conn, date: str, checked_at: str, active_ports: list[str]
                 value=count,
                 message=f"{port}: {count} records with seeded-data timestamp — likely a DB restore from a pre-cleanup backup",
             ))
+
+    return issues
+
+
+# ── Check 6: Live site smoke test ────────────────────────────────────────────
+
+def _check_live_site(conn, date: str, checked_at: str, active_ports: list[str]) -> list[dict]:
+    """Fetch each live port dashboard and verify the displayed avg price matches the DB.
+
+    This is the only check that tests the display layer — all other checks
+    only query the database. If the Flask route or Jinja template has a bug
+    that causes the wrong price to render, this catches it.
+    """
+    issues = []
+
+    # slug → port name from the ports table
+    slug_rows = conn.execute(
+        "SELECT slug, name FROM ports WHERE status='active' AND name != 'Demo Port'"
+    ).fetchall()
+    slug_map = {r[0]: r[1] for r in slug_rows}
+
+    # Compute DB avg price per port for today (same formula as Flask route)
+    db_avgs: dict[str, float | None] = {}
+    for port in active_ports:
+        row = conn.execute(
+            "SELECT AVG(price_avg) FROM prices WHERE port=? AND date=? AND price_avg IS NOT NULL",
+            (port, date),
+        ).fetchone()
+        db_avgs[port] = round(row[0], 2) if row and row[0] is not None else None
+
+    for slug, port_name in slug_map.items():
+        if port_name not in active_ports:
+            continue
+
+        url = f"{_LIVE_SITE_URL}/port/{slug}"
+        try:
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "Quayside-QualityCheck/1.0"}
+            )
+            with urllib.request.urlopen(req, timeout=_SMOKE_TIMEOUT) as resp:
+                html = resp.read().decode("utf-8", errors="replace")
+        except Exception as exc:
+            logger.warning("Live site check: %s unreachable — %s", url, exc)
+            issues.append(_issue(
+                checked_at, "live_site", "warn", port_name, date,
+                message=f"{port_name}: live page unreachable ({exc})",
+            ))
+            continue
+
+        # Parse the hero avg price from the rendered HTML
+        # Template: <div class="hero-value" id="hero-today-avg">&pound;X.XX</div>
+        m = re.search(r'id="hero-today-avg"[^>]*>(.*?)</div>', html, re.DOTALL)
+        db_avg = db_avgs.get(port_name)
+
+        if not m:
+            # Element only renders when today_data exists ({% if today_data %} block)
+            if db_avg is not None:
+                # DB has data but site isn't showing the hero strip — render bug
+                issues.append(_issue(
+                    checked_at, "live_site", "error", port_name, date,
+                    expected=db_avg,
+                    message=f"{port_name}: hero stats missing from live page but DB has £{db_avg:.2f}/kg avg — possible render error",
+                ))
+            else:
+                logger.info("Live site OK: %s shows no-data card (DB has no data today)", port_name)
+            continue
+
+        content = m.group(1).strip()
+
+        if "&pound;" in content:
+            # Site is showing a price
+            try:
+                displayed = round(float(content.replace("&pound;", "").strip()), 2)
+            except ValueError:
+                issues.append(_issue(
+                    checked_at, "live_site", "warn", port_name, date,
+                    message=f"{port_name}: could not parse displayed price '{content}'",
+                ))
+                continue
+
+            if db_avg is None:
+                issues.append(_issue(
+                    checked_at, "live_site", "warn", port_name, date,
+                    value=displayed,
+                    message=f"{port_name}: site shows £{displayed:.2f}/kg but DB has no data for today",
+                ))
+            elif abs(displayed - db_avg) > 0.02:
+                # Divergence > 2p — mismatch between DB and rendered page
+                issues.append(_issue(
+                    checked_at, "live_site", "error", port_name, date,
+                    value=displayed, expected=db_avg,
+                    message=(
+                        f"{port_name}: live site shows £{displayed:.2f}/kg "
+                        f"but DB avg is £{db_avg:.2f}/kg — display layer mismatch"
+                    ),
+                ))
+            else:
+                logger.info("Live site OK: %s shows £%.2f/kg (DB: £%.2f/kg)", port_name, displayed, db_avg)
+        else:
+            # Site is showing "—" (no data)
+            if db_avg is not None:
+                issues.append(_issue(
+                    checked_at, "live_site", "error", port_name, date,
+                    expected=db_avg,
+                    message=(
+                        f"{port_name}: live site shows '—' but DB avg is £{db_avg:.2f}/kg "
+                        f"— data exists but not rendering"
+                    ),
+                ))
+            else:
+                logger.info("Live site OK: %s shows '—', DB has no data for today", port_name)
 
     return issues
 

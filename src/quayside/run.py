@@ -269,6 +269,20 @@ def main() -> int:
             logger.exception("Email delivery failed")
 
     logger.info("Pipeline complete")
+
+    # Run quality checks immediately after every successful scrape
+    try:
+        from quayside.quality import run_quality_checks
+        q = run_quality_checks()
+        if q["errors"]:
+            logger.warning("Quality check: %d errors, %d warnings", q["errors"], q["warns"])
+        elif q["warns"]:
+            logger.info("Quality check: 0 errors, %d warnings", q["warns"])
+        else:
+            logger.info("Quality check: all clear")
+    except Exception:
+        logger.exception("Quality check failed — pipeline result unaffected")
+
     return 0
 
 

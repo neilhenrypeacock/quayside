@@ -1,5 +1,5 @@
 [Unit]
-Description=Quayside data quality check — 3× daily weekdays
+Description=Quayside data quality check — backstop 3× daily weekdays (also runs after every scrape)
 
 [Timer]
 OnCalendar=Mon..Fri *-*-* 10:00:00

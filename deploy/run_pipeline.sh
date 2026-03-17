@@ -10,6 +10,12 @@
 #       · If last_changed_at was < 60 min ago → ETag update check (fast mode)
 #       · Else if ≥ 60 min since last_attempted_at → ETag update check (hourly pulse)
 #       · Otherwise → skip this tick
+#
+# Data quality: run_quality_checks() is called automatically at the end of
+# every successful pipeline run (inside quayside/run.py). This includes a
+# live-site smoke test that fetches each port dashboard and verifies the
+# displayed price matches the database. The quayside-quality.timer is a
+# backstop for weekends and off-hours only.
 
 APP=/home/quayside/app
 PYTHON=$APP/venv/bin/python
