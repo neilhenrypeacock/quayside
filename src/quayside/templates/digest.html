@@ -1108,48 +1108,6 @@
 <body>
 <div class="email-wrap">
 
-  {% if web_view %}
-  <!-- ADMIN REFRESH BAR (web view only — not included in email) -->
-  <div id="refresh-bar" style="background:#0a1a24;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1a3a4a;">
-    <span style="font-family:'Courier New',monospace;font-size:9px;color:#4a7a8a;letter-spacing:0.1em;text-transform:uppercase;">Generated {{ generated_at[:16] }} &middot; Data current as of scrape run</span>
-    <button id="refresh-btn" onclick="runPipeline()" style="background:#c8401a;color:white;border:none;font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 14px;border-radius:2px;cursor:pointer;">&#8635; Refresh Data</button>
-  </div>
-  <div id="refresh-status" style="display:none;background:#1a3a4a;padding:8px 20px;font-family:'Courier New',monospace;font-size:10px;color:#7ab0c8;letter-spacing:0.05em;"></div>
-  <script>
-  function runPipeline() {
-    var btn = document.getElementById('refresh-btn');
-    var status = document.getElementById('refresh-status');
-    btn.disabled = true;
-    btn.textContent = 'Running...';
-    status.style.display = 'block';
-    status.textContent = 'Pipeline running — scraping all ports, please wait (up to 2 min)...';
-    fetch('/ops/run-pipeline', {method:'POST'})
-      .then(function(r){return r.json();})
-      .then(function(d){
-        if (d.ok) {
-          status.style.background = '#1a4a2a';
-          status.style.color = '#6db88a';
-          status.textContent = 'Pipeline complete. Reloading...';
-          setTimeout(function(){ window.location.reload(); }, 1500);
-        } else {
-          status.style.background = '#4a1a1a';
-          status.style.color = '#e87a5a';
-          status.textContent = 'Pipeline failed: ' + (d.error || d.stderr || 'unknown error');
-          btn.disabled = false;
-          btn.textContent = '\u21BB Refresh Data';
-        }
-      })
-      .catch(function(e){
-        status.style.background = '#4a1a1a';
-        status.style.color = '#e87a5a';
-        status.textContent = 'Request failed: ' + e.message;
-        btn.disabled = false;
-        btn.textContent = '\u21BB Refresh Data';
-      });
-  }
-  </script>
-  {% endif %}
-
   <!-- HEADER -->
   <div class="email-header">
     <div class="header-top">

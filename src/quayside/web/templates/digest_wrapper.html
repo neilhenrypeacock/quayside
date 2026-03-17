@@ -57,8 +57,47 @@
         <h1>Daily Digest</h1>
         <div class="meta">{{ date }} &middot; The same report sent to subscribers each morning</div>
     </div>
-    <span class="digest-note">Delivered every weekday morning</span>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;align-self:center;">
+        <span class="digest-note">Delivered every weekday morning</span>
+        <button id="refresh-btn" onclick="runPipeline()" style="background:var(--rust,#c8401a);color:white;border:none;font-family:var(--font-mono,'Courier New'),monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 16px;border-radius:2px;cursor:pointer;white-space:nowrap;">&#8635; Refresh Data</button>
+    </div>
 </div>
+<div id="refresh-status" style="display:none;margin-bottom:12px;padding:10px 16px;font-family:var(--font-mono,'Courier New'),monospace;font-size:11px;letter-spacing:0.04em;border-radius:2px;"></div>
+<script>
+function runPipeline() {
+    var btn = document.getElementById('refresh-btn');
+    var status = document.getElementById('refresh-status');
+    btn.disabled = true;
+    btn.textContent = 'Running...';
+    status.style.display = 'block';
+    status.style.background = '#e8f0f8';
+    status.style.color = '#1a3a6a';
+    status.textContent = 'Pipeline running — scraping all ports, please wait (up to 2 min)...';
+    fetch('/ops/run-pipeline', {method:'POST'})
+        .then(function(r){return r.json();})
+        .then(function(d){
+            if (d.ok) {
+                status.style.background = '#e8f4ec';
+                status.style.color = '#2e6b3e';
+                status.textContent = 'Pipeline complete. Reloading...';
+                setTimeout(function(){ window.location.reload(); }, 1500);
+            } else {
+                status.style.background = '#fdecea';
+                status.style.color = '#a83226';
+                status.textContent = 'Pipeline failed: ' + (d.error || d.stderr || 'unknown error');
+                btn.disabled = false;
+                btn.textContent = '\u21BB Refresh Data';
+            }
+        })
+        .catch(function(e){
+            status.style.background = '#fdecea';
+            status.style.color = '#a83226';
+            status.textContent = 'Request failed: ' + e.message;
+            btn.disabled = false;
+            btn.textContent = '\u21BB Refresh Data';
+        });
+}
+</script>
 <div class="digest-frame">
     {{ digest_html|safe }}
 </div>
