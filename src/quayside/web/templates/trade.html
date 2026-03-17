@@ -11,7 +11,7 @@
     grid-template-columns: 180px 1fr;
     align-items: start;
 }
-@media (max-width: 768px) {
+@media (max-width: 520px) {
     .trade-page { grid-template-columns: 1fr; }
 }
 
@@ -24,7 +24,7 @@
     border-right: 1px solid var(--rule);
     overflow-y: auto;
 }
-@media (max-width: 768px) {
+@media (max-width: 520px) {
     .trade-sidebar { display: none; }
 }
 .sidebar-logo {
@@ -1103,38 +1103,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 2: ASK QUAYSIDE                                              -->
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<div class="trade-section" id="section-chat">
-    <div class="chat-section-wrap">
-    <div class="section-heading">Ask Quayside</div>
-    <div class="section-desc">
-        Your AI market analyst, trained on all of Quayside's price data across every port and species.
-        Ask about today's prices, compare ports, spot trends over time, or get buying recommendations.
-        Try: "Where is cod cheapest today?" or "How has haddock trended this month?"
-    </div>
-    <div class="chat-container">
-        <div class="chat-messages" id="chat-messages">
-            <div class="chat-msg system-msg">Ask me anything about today's fish prices, trends, or market opportunities.</div>
-        </div>
-        <div class="chat-suggestions" id="chat-suggestions">
-            <button class="chat-suggestion" onclick="sendSuggestion(this)">Where is cod cheapest today?</button>
-            <button class="chat-suggestion" onclick="sendSuggestion(this)">Explain the biggest spread</button>
-            <button class="chat-suggestion" onclick="sendSuggestion(this)">Which species should I buy this week?</button>
-        </div>
-        <div class="chat-thinking" id="chat-thinking">Thinking&hellip;</div>
-        <div class="chat-input-row">
-            <input type="text" class="chat-input" id="chat-input"
-                   placeholder="Ask about prices, trends, opportunities&hellip;"
-                   onkeydown="if(event.key==='Enter')sendChat()">
-            <button class="chat-send" id="chat-send-btn" onclick="sendChat()">Send</button>
-        </div>
-    </div>
-    </div><!-- /chat-section-wrap -->
-</div>
-
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 3: MARKET OVERVIEW                                           -->
+<!-- SECTION 2: SPECIES INSIGHT                                            -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-overview">
     <div class="section-heading">Species Insight</div>
@@ -1229,7 +1198,75 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 4: TODAY'S PRICES                                            -->
+<!-- SECTION 3: PORT INSIGHT                                               -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="trade-section" id="section-intelligence">
+    <div class="section-heading">Port Insight</div>
+    <div class="section-desc">
+        How does each port compare to the wider market? Select a port to see which species
+        are priced below average &mdash; and where the buying opportunities are.
+    </div>
+
+    <!-- Port selector tabs -->
+    <div class="overview-filter" id="port-intel-tabs"></div>
+
+    <!-- Species filter -->
+    <div class="overview-filter" id="port-intel-species-filter" style="margin-top:12px;">
+        <button class="overview-filter-btn active" onclick="filterPortIntel('all', this)">All Species</button>
+        <button class="overview-filter-btn" onclick="filterPortIntel('favourites', this)">My Favourites</button>
+        <button class="overview-filter-btn" onclick="filterPortIntel('demersal', this)">Demersal</button>
+        <button class="overview-filter-btn" onclick="filterPortIntel('flatfish', this)">Flatfish</button>
+        <button class="overview-filter-btn" onclick="filterPortIntel('shellfish', this)">Shellfish</button>
+        <button class="overview-filter-btn" onclick="filterPortIntel('pelagic', this)">Pelagic</button>
+        <select id="port-intel-species-select" onchange="filterPortIntelBySpecies(this.value)" style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:6px 10px;color:var(--muted);cursor:pointer;">
+            <option value="">Individual species...</option>
+            {% for row in matrix|sort(attribute='species') %}
+            <option value="{{ row.species }}">{{ row.species }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Port intelligence content (rendered by JS) -->
+    <div id="port-intel-content" style="margin-top:20px;">
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);padding:20px 0;">
+            Select a port above to see its market position.
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 4: ASK QUAYSIDE                                              -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="trade-section" id="section-chat">
+    <div class="chat-section-wrap">
+    <div class="section-heading">Ask Quayside</div>
+    <div class="section-desc">
+        Your AI market analyst, trained on all of Quayside's price data across every port and species.
+        Ask about today's prices, compare ports, spot trends over time, or get buying recommendations.
+        Try: "Where is cod cheapest today?" or "How has haddock trended this month?"
+    </div>
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+            <div class="chat-msg system-msg">Ask me anything about today's fish prices, trends, or market opportunities.</div>
+        </div>
+        <div class="chat-suggestions" id="chat-suggestions">
+            <button class="chat-suggestion" onclick="sendSuggestion(this)">Where is cod cheapest today?</button>
+            <button class="chat-suggestion" onclick="sendSuggestion(this)">Explain the biggest spread</button>
+            <button class="chat-suggestion" onclick="sendSuggestion(this)">Which species should I buy this week?</button>
+        </div>
+        <div class="chat-thinking" id="chat-thinking">Thinking&hellip;</div>
+        <div class="chat-input-row">
+            <input type="text" class="chat-input" id="chat-input"
+                   placeholder="Ask about prices, trends, opportunities&hellip;"
+                   onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="chat-send" id="chat-send-btn" onclick="sendChat()">Send</button>
+        </div>
+    </div>
+    </div><!-- /chat-section-wrap -->
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 5: TODAY'S PRICES                                            -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-prices">
     <div class="section-heading">Today's Prices</div>
@@ -1441,44 +1478,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 7: PORT INTELLIGENCE                                         -->
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<div class="trade-section" id="section-intelligence">
-    <div class="section-heading">Port Insight</div>
-    <div class="section-desc">
-        How does each port compare to the wider market? Select a port to see which species
-        are priced below average &mdash; and where the buying opportunities are.
-    </div>
-
-    <!-- Port selector tabs -->
-    <div class="overview-filter" id="port-intel-tabs"></div>
-
-    <!-- Species filter -->
-    <div class="overview-filter" id="port-intel-species-filter" style="margin-top:12px;">
-        <button class="overview-filter-btn active" onclick="filterPortIntel('all', this)">All Species</button>
-        <button class="overview-filter-btn" onclick="filterPortIntel('favourites', this)">My Favourites</button>
-        <button class="overview-filter-btn" onclick="filterPortIntel('demersal', this)">Demersal</button>
-        <button class="overview-filter-btn" onclick="filterPortIntel('flatfish', this)">Flatfish</button>
-        <button class="overview-filter-btn" onclick="filterPortIntel('shellfish', this)">Shellfish</button>
-        <button class="overview-filter-btn" onclick="filterPortIntel('pelagic', this)">Pelagic</button>
-        <select id="port-intel-species-select" onchange="filterPortIntelBySpecies(this.value)" style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:6px 10px;color:var(--muted);cursor:pointer;">
-            <option value="">Individual species...</option>
-            {% for row in matrix|sort(attribute='species') %}
-            <option value="{{ row.species }}">{{ row.species }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <!-- Port intelligence content (rendered by JS) -->
-    <div id="port-intel-content" style="margin-top:20px;">
-        <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);padding:20px 0;">
-            Select a port above to see its market position.
-        </div>
-    </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 8: TOOLS & FEEDBACK                                          -->
+<!-- SECTION 7: TOOLS & FEEDBACK                                          -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-tools">
     <div class="section-heading">Tools &amp; Feedback</div>
