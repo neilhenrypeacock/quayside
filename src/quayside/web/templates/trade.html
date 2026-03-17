@@ -391,7 +391,7 @@
 /* ── Market Overview ── */
 .pulse-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 14px;
     margin-bottom: 24px;
 }
@@ -1150,13 +1150,9 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         <button class="overview-filter-btn" onclick="filterOverview('pelagic', this)">Pelagic</button>
     </div>
 
-    <!-- 4 KPI pulse cards -->
+    <!-- 6 KPI pulse cards (3x2 grid) -->
     <div class="pulse-grid">
-        <div class="pulse-card">
-            <div class="pulse-value">{{ pulse.ports_reporting }}/{{ pulse.ports_total }}</div>
-            <div class="pulse-sub">ports live today</div>
-            <div class="pulse-label">Coverage</div>
-        </div>
+        <!-- Row 1: Market comparisons -->
         <div class="pulse-card">
             {% if pulse.market_direction_pct is not none %}
             <div class="pulse-value {{ pulse.market_direction_label }}">
@@ -1167,7 +1163,44 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             <div class="pulse-value" style="color:var(--rule);">&mdash;</div>
             <div class="pulse-sub">no prev data</div>
             {% endif %}
-            <div class="pulse-label">Market Direction</div>
+            <div class="pulse-label">vs Yesterday</div>
+        </div>
+        <div class="pulse-card">
+            {% if pulse.vs_30d_market_pct is not none %}
+            <div class="pulse-value {{ pulse.vs_30d_market_label }}">
+                {% if pulse.vs_30d_market_pct > 0 %}+{% endif %}{{ "%.1f"|format(pulse.vs_30d_market_pct) }}%
+            </div>
+            <div class="pulse-sub">vs 30-day average</div>
+            {% else %}
+            <div class="pulse-value" style="color:var(--rule);">&mdash;</div>
+            <div class="pulse-sub">insufficient data</div>
+            {% endif %}
+            <div class="pulse-label">vs 30-Day Avg</div>
+        </div>
+        <div class="pulse-card">
+            {% if pulse.vs_7w_market_pct is not none %}
+            <div class="pulse-value {{ pulse.vs_7w_market_label }}">
+                {% if pulse.vs_7w_market_pct > 0 %}+{% endif %}{{ "%.1f"|format(pulse.vs_7w_market_pct) }}%
+            </div>
+            <div class="pulse-sub">vs 7-week average</div>
+            {% else %}
+            <div class="pulse-value" style="color:var(--rule);">&mdash;</div>
+            <div class="pulse-sub">insufficient data</div>
+            {% endif %}
+            <div class="pulse-label">vs 7-Week Avg</div>
+        </div>
+        <!-- Row 2: Insights -->
+        <div class="pulse-card">
+            {% if pulse.has_last_year_data and pulse.vs_last_year_pct is not none %}
+            <div class="pulse-value {{ pulse.vs_last_year_label }}">
+                {% if pulse.vs_last_year_pct > 0 %}+{% endif %}{{ "%.1f"|format(pulse.vs_last_year_pct) }}%
+            </div>
+            <div class="pulse-sub">vs same week last year</div>
+            {% else %}
+            <div class="pulse-value" style="color:var(--rule);">&mdash;</div>
+            <div class="pulse-sub">no data last year</div>
+            {% endif %}
+            <div class="pulse-label">vs Last Year</div>
         </div>
         <div class="pulse-card">
             {% if pulse.biggest_mover_species %}

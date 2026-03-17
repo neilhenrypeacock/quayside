@@ -560,6 +560,46 @@ def build_trade_data(date: str) -> dict:
     market_direction_label = "up" if (market_direction_pct and market_direction_pct > 0) else ("down" if (market_direction_pct and market_direction_pct < 0) else "flat")
     market_direction_arrow = "▲" if market_direction_label == "up" else ("▼" if market_direction_label == "down" else "—")
 
+    # Market vs 30-day average (aggregate across all species)
+    today_prices_all = [r["market_avg"] for r in matrix]
+    thirty_day_prices_all = [r["thirty_day_avg"] for r in matrix if r["thirty_day_avg"] is not None]
+    today_grand_avg = round(sum(today_prices_all) / len(today_prices_all), 2) if today_prices_all else None
+    thirty_day_grand_avg = round(sum(thirty_day_prices_all) / len(thirty_day_prices_all), 2) if thirty_day_prices_all else None
+    vs_30d_market_pct: float | None = None
+    vs_30d_market_label = "flat"
+    if today_grand_avg and thirty_day_grand_avg and thirty_day_grand_avg > 0:
+        vs_30d_market_pct = round((today_grand_avg - thirty_day_grand_avg) / thirty_day_grand_avg * 100, 1)
+        vs_30d_market_label = "up" if vs_30d_market_pct > 0 else ("down" if vs_30d_market_pct < 0 else "flat")
+
+    # Market vs 7-week average (use 90-day data we already fetched, take last 49 days)
+    start_7w = (dt - timedelta(days=49)).strftime("%Y-%m-%d")
+    seven_week_prices: list[float] = []
+    for d, _port, raw_sp, _grade, _low, _high, avg in rows_90d:
+        if avg is not None and d >= start_7w and d < date:
+            seven_week_prices.append(avg)
+    seven_week_grand_avg = round(sum(seven_week_prices) / len(seven_week_prices), 2) if seven_week_prices else None
+    vs_7w_market_pct: float | None = None
+    vs_7w_market_label = "flat"
+    if today_grand_avg and seven_week_grand_avg and seven_week_grand_avg > 0:
+        vs_7w_market_pct = round((today_grand_avg - seven_week_grand_avg) / seven_week_grand_avg * 100, 1)
+        vs_7w_market_label = "up" if vs_7w_market_pct > 0 else ("down" if vs_7w_market_pct < 0 else "flat")
+
+    # Market vs same day last year
+    last_year_date = f"{dt.year - 1}-{dt.month:02d}-{dt.day:02d}"
+    last_year_window_start = (datetime.strptime(last_year_date, "%Y-%m-%d") - timedelta(days=3)).strftime("%Y-%m-%d")
+    last_year_window_end = (datetime.strptime(last_year_date, "%Y-%m-%d") + timedelta(days=3)).strftime("%Y-%m-%d")
+    last_year_rows = get_prices_for_date_range(last_year_window_start, last_year_window_end)
+    last_year_prices: list[float] = []
+    for _d, _port, _raw_sp, _grade, _low, _high, avg in last_year_rows:
+        if avg is not None:
+            last_year_prices.append(avg)
+    last_year_grand_avg = round(sum(last_year_prices) / len(last_year_prices), 2) if last_year_prices else None
+    vs_last_year_pct: float | None = None
+    vs_last_year_label = "flat"
+    if today_grand_avg and last_year_grand_avg and last_year_grand_avg > 0:
+        vs_last_year_pct = round((today_grand_avg - last_year_grand_avg) / last_year_grand_avg * 100, 1)
+        vs_last_year_label = "up" if vs_last_year_pct > 0 else ("down" if vs_last_year_pct < 0 else "flat")
+
     # Best value port: lowest avg price across all species today
     port_all_avgs: dict[str, list[float]] = defaultdict(list)
     for row in matrix:
@@ -595,6 +635,13 @@ def build_trade_data(date: str) -> dict:
         "market_direction_pct": market_direction_pct,
         "market_direction_label": market_direction_label,
         "market_direction_arrow": market_direction_arrow,
+        "vs_30d_market_pct": vs_30d_market_pct,
+        "vs_30d_market_label": vs_30d_market_label,
+        "vs_7w_market_pct": vs_7w_market_pct,
+        "vs_7w_market_label": vs_7w_market_label,
+        "vs_last_year_pct": vs_last_year_pct,
+        "vs_last_year_label": vs_last_year_label,
+        "has_last_year_data": last_year_grand_avg is not None,
         "best_value_port": best_value_port,
         "best_value_port_avg": best_value_port_avg,
         "biggest_mover_species": biggest_mover["species"] if biggest_mover else None,
