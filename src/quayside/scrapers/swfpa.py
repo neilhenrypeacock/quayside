@@ -139,7 +139,11 @@ def scrape_prices(xls_url: str | None = None, xls_bytes: bytes | None = None) ->
         col1 = str(sheet.cell_value(row_idx, 1)).strip()
 
         # Skip the header row and empty/footer rows
+        # If the header row also carries a species name (e.g. "Cod" in col0),
+        # capture it before skipping so the grade rows below are attributed correctly.
         if col1 == "Grade/Size" or "Supplied By" in col0:
+            if col1 == "Grade/Size" and col0:
+                current_species = col0
             continue
 
         # Check for "RND" prefix (round variant)
