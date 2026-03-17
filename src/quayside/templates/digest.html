@@ -167,10 +167,13 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: rgba(255,255,255,0.5);
-    padding: 16px 0 0;
+    padding: 16px 8px 16px;
     border-right: 1px solid rgba(255,255,255,0.12);
     border-bottom: 1px solid rgba(255,255,255,0.12);
-    padding-right: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
   .intro-stat:nth-child(3n) { border-right: none; }
   .intro-stat:nth-child(4),
@@ -1105,6 +1108,46 @@
 <body>
 <div class="email-wrap">
 
+  <!-- ADMIN REFRESH BAR -->
+  <div id="refresh-bar" style="background:#0a1a24;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1a3a4a;">
+    <span style="font-family:'Courier New',monospace;font-size:9px;color:#4a7a8a;letter-spacing:0.1em;text-transform:uppercase;">Generated {{ generated_at[:16] }} &middot; Data current as of scrape run</span>
+    <button id="refresh-btn" onclick="runPipeline()" style="background:#c8401a;color:white;border:none;font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 14px;border-radius:2px;cursor:pointer;">&#8635; Refresh Data</button>
+  </div>
+  <div id="refresh-status" style="display:none;background:#1a3a4a;padding:8px 20px;font-family:'Courier New',monospace;font-size:10px;color:#7ab0c8;letter-spacing:0.05em;"></div>
+  <script>
+  function runPipeline() {
+    var btn = document.getElementById('refresh-btn');
+    var status = document.getElementById('refresh-status');
+    btn.disabled = true;
+    btn.textContent = 'Running...';
+    status.style.display = 'block';
+    status.textContent = 'Pipeline running — scraping all ports, please wait (up to 2 min)...';
+    fetch('/ops/run-pipeline', {method:'POST'})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if (d.ok) {
+          status.style.background = '#1a4a2a';
+          status.style.color = '#6db88a';
+          status.textContent = 'Pipeline complete. Reloading...';
+          setTimeout(function(){ window.location.reload(); }, 1500);
+        } else {
+          status.style.background = '#4a1a1a';
+          status.style.color = '#e87a5a';
+          status.textContent = 'Pipeline failed: ' + (d.error || d.stderr || 'unknown error');
+          btn.disabled = false;
+          btn.textContent = '\u21BB Refresh Data';
+        }
+      })
+      .catch(function(e){
+        status.style.background = '#4a1a1a';
+        status.style.color = '#e87a5a';
+        status.textContent = 'Request failed: ' + e.message;
+        btn.disabled = false;
+        btn.textContent = '\u21BB Refresh Data';
+      });
+  }
+  </script>
+
   <!-- HEADER -->
   <div class="email-header">
     <div class="header-top">
@@ -1163,8 +1206,8 @@
         <a href="#" class="inline-cta-btn share">Share this digest &rarr;</a>
       </div>
       <div class="inline-cta-col">
-        <div class="inline-cta-eyebrow">Free trial</div>
-        <div class="inline-cta-headline">7 days. No card.<br>See the full picture.</div>
+        <div class="inline-cta-eyebrow">Quayside Trade Membership</div>
+        <div class="inline-cta-headline">7 days free.<br>No card required.</div>
         <div class="inline-cta-body">Quayside Trade Membership &mdash; 90-day history, every port, every morning.</div>
         <a href="#" class="inline-cta-btn trial">Start free trial &rarr;</a>
       </div>
@@ -1194,8 +1237,9 @@
 
     <!-- TRADE ACCOUNT ADVERT -->
     <div class="trade-band" style="padding:28px 32px 32px;">
-      <div class="trade-band-label">Quayside Trade Membership</div>
-      <div class="trade-band-headline" style="font-size:22px;margin:8px 0 10px;">&ldquo;The market intelligence your competitors already have.&rdquo;</div>
+      <div class="trade-band-label" style="font-size:10px;letter-spacing:0.25em;margin-bottom:4px;">Quayside</div>
+      <div class="trade-band-headline" style="font-size:26px;margin:0 0 6px;color:#ffffff;letter-spacing:-0.02em;">Trade Membership</div>
+      <div style="font-family:Georgia,serif;font-size:15px;color:rgba(255,255,255,0.6);font-style:italic;margin-bottom:16px;">&ldquo;The market intelligence your competitors already have.&rdquo;</div>
       <p style="font-size:13px;color:rgba(255,255,255,0.7);margin:0 0 20px;line-height:1.6;max-width:520px;">Quayside Trade gives you the full picture: live prices from every UK port, how your favourite species have moved over the last 90 days, and the ability to compare port by port &mdash; every morning before you start trading. Custom data and analysis available on request.</p>
       <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
         <ul class="trade-band-features" style="flex:1;min-width:220px;">
@@ -1310,8 +1354,9 @@
 
     <!-- KILLER OFFER BLOCK -->
     <div class="upgrade-band" style="padding:36px 32px;text-align:center;">
-      <div class="upgrade-label" style="margin-bottom:12px;">Quayside Trade Membership &mdash; Start today</div>
-      <div class="upgrade-headline" style="font-size:28px;margin:0 0 8px;">Join the fish buyers who already<br>know what the market is doing.</div>
+      <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.25em;color:#4a7a8a;text-transform:uppercase;margin-bottom:4px;">Quayside</div>
+      <div style="font-family:Georgia,serif;font-size:32px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;margin-bottom:8px;">Trade Membership</div>
+      <div class="upgrade-headline" style="font-size:18px;margin:0 0 12px;font-weight:400;color:rgba(255,255,255,0.7);font-style:italic;">Join the fish buyers who already know what the market is doing.</div>
       <p style="font-size:13px;color:rgba(255,255,255,0.6);margin:0 auto 28px;line-height:1.7;max-width:400px;">7-day free trial. No card required. 2 minutes to set up. Cancel any time.</p>
       <span class="upgrade-price" style="font-size:42px;">&pound;95</span>
       <span class="upgrade-period" style="display:block;margin-bottom:6px;">per month &mdash; or &pound;912/yr &nbsp;<strong style="color:#f0ebe0;font-family:'Courier New',monospace;font-size:9px;">save 20%</strong></span>
