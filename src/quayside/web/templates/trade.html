@@ -449,27 +449,18 @@
 .overview-filter-btn:hover { background: var(--salt); color: var(--ink); }
 .overview-filter-btn.active { background: var(--tide); color: var(--paper); border-color: var(--tide); }
 
-/* ── Port status pills ── */
-.port-status-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-}
-.port-pill {
+/* ── Context bar ── */
+.context-bar {
     font-family: var(--font-mono);
     font-size: 11px;
-    padding: 6px 12px;
-    border-radius: 2px;
-    border: 1px solid var(--rule);
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 20px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rule);
 }
-.port-pill.reporting { background: rgba(109,184,138,0.12); border-color: rgba(109,184,138,0.4); color: #3a7a5a; }
-.port-pill.missing { background: rgba(224,112,96,0.08); border-color: rgba(224,112,96,0.3); color: var(--down); }
-.port-pill-code { font-weight: 500; letter-spacing: 0.08em; }
-.port-pill-count { opacity: 0.7; font-size: 9px; }
+#ctx-datasets { color: var(--ink); font-weight: 500; }
+#ctx-ports { color: var(--tide); letter-spacing: 0.1em; text-transform: uppercase; }
 
 /* ── Highlights tabs ── */
 .highlights-tabs {
@@ -583,6 +574,28 @@
     cursor: pointer;
 }
 .port-check-label:hover { color: var(--ink); }
+
+/* Chart port filter */
+.chart-port-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 0 14px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 14px;
+}
+.chart-port-cb-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.chart-port-cb-label:hover { color: var(--ink); }
 
 /* Cat tabs */
 .cat-tabs { display: flex; gap: 0; margin-bottom: 16px; }
@@ -756,47 +769,6 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     gap: 5px;
 }
 
-/* ── Compare section ── */
-.compare-controls {
-    display: flex;
-    gap: 14px;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    padding: 14px 18px;
-    background: var(--foam);
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    margin-bottom: 16px;
-}
-.compare-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.compare-table thead th {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    border-bottom: 2px solid var(--tide);
-    padding: 8px 10px;
-    text-align: right;
-    white-space: nowrap;
-}
-.compare-table thead th.species-col { text-align: left; }
-.compare-table thead .date-a-head { color: var(--tide); }
-.compare-table thead .date-b-head { color: var(--muted); }
-.compare-table tbody tr { border-bottom: 1px solid var(--salt); }
-.compare-cell { font-family: var(--font-mono); text-align: right; padding: 8px 10px; font-size: 12px; }
-.compare-delta.up { color: var(--up); font-weight: 500; }
-.compare-delta.down { color: var(--down); font-weight: 500; }
-.compare-loading {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--muted);
-    padding: 28px;
-    text-align: center;
-}
 
 /* ── Port Insight section ── */
 .port-intel-summary {
@@ -1060,12 +1032,11 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     <nav>
         <ul class="sidebar-nav">
             <li><a href="#section-dashboard" class="active">Your Dashboard</a></li>
-            <li><a href="#section-chat">Ask Quayside</a></li>
             <li><a href="#section-overview">Species Insight</a></li>
+            <li><a href="#section-intelligence">Port Insight</a></li>
+            <li><a href="#section-chat">Ask Quayside</a></li>
             <li><a href="#section-prices">Today's Prices</a></li>
             <li><a href="#section-chart">Price History</a></li>
-            <li><a href="#section-compare">Compare Dates</a></li>
-            <li><a href="#section-intelligence">Port Insight</a></li>
             <li><a href="#section-tools">Tools</a></li>
         </ul>
     </nav>
@@ -1225,19 +1196,10 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         </div>
     </div>
 
-    <!-- Port status pills -->
-    <div class="port-status-row">
-        {% for ps in port_status %}
-        <div class="port-pill {{ 'reporting' if ps.reporting else 'missing' }}">
-            <span class="port-pill-code">{{ ps.code }}</span>
-            {{ ps.port }}
-            {% if ps.reporting %}
-            <span class="port-pill-count">{{ ps.species_count }} sp</span>
-            {% else %}
-            <span class="port-pill-count">not reporting</span>
-            {% endif %}
-        </div>
-        {% endfor %}
+    <!-- Context bar (updates per highlights tab) -->
+    <div class="context-bar" id="context-bar">
+        <span id="ctx-datasets">&mdash;</span> datasets &middot;
+        <span id="ctx-ports">&mdash;</span>
     </div>
 
     <!-- Highlights with time tabs -->
@@ -1436,6 +1398,15 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             <button class="overview-filter-btn" onclick="setChartGroup('pelagic', this)">Pelagic</button>
             <button class="overview-filter-btn" onclick="setChartGroup('all', this)">All Species</button>
         </div>
+        <div class="chart-port-filter" id="chart-port-filter">
+            {% for port in all_ports %}
+            <label class="chart-port-cb-label">
+                <input type="checkbox" class="chart-port-cb" value="{{ port }}" checked
+                       onchange="toggleChartPort('{{ port }}', this.checked)">
+                {{ port_codes.get(port, port[:3].upper()) }}
+            </label>
+            {% endfor %}
+        </div>
         <div class="chart-header">
             <div>
                 <div class="chart-species-name" id="chart-species-label">
@@ -1468,31 +1439,6 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 6: COMPARE DATES                                             -->
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<div class="trade-section" id="section-compare">
-    <div class="section-heading">Compare Dates</div>
-    <div class="section-desc">
-        See how prices have changed between two dates &mdash; useful for tracking
-        week-on-week or month-on-month trends.
-    </div>
-    <div class="compare-controls">
-        <div class="ctrl-group">
-            <label>Compare date</label>
-            <input type="date" id="compare-date-a" value="{{ date }}">
-        </div>
-        <div style="padding-bottom:2px;font-family:var(--font-mono);font-size:14px;color:var(--muted);">vs</div>
-        <div class="ctrl-group">
-            <label>Comparison date</label>
-            <input type="date" id="compare-date-b" value="{{ recent_dates[7] if recent_dates|length > 7 else recent_dates[-1] if recent_dates else date }}">
-        </div>
-        <button onclick="loadCompare()" class="btn btn-primary" style="font-size:10px;padding:8px 18px;">Compare</button>
-    </div>
-    <div id="compare-result">
-        <div class="compare-loading">Select two dates and click Compare to see side-by-side prices.</div>
-    </div>
-</div>
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <!-- SECTION 7: PORT INTELLIGENCE                                         -->
@@ -1651,6 +1597,7 @@ const PORT_COLORS = {
 const TRADE_DATE = "{{ date }}";
 const MATRIX_DATA = {{ matrix | tojson }};
 const HIGHLIGHTS_DATA = {{ highlights | tojson }};
+const TIMEFRAME_CONTEXT = {{ timeframe_context | tojson }};
 
 // ── State ─────────────────────────────────────────────────────────────────
 let currentSpecies = null;
@@ -1659,6 +1606,7 @@ let tradeChart = null;
 let chartGroup = 'single';
 let activeCat = 'all';
 let activePorts = new Set(ALL_PORTS);
+let chartActivePorts = new Set(ALL_PORTS);
 let mySpecies = new Set(JSON.parse(localStorage.getItem('quayside_my_species') || '[]'));
 let myPorts = new Set(JSON.parse(localStorage.getItem('quayside_my_ports') || '[]'));
 
@@ -1891,11 +1839,20 @@ function closePortPicker() {
 }
 
 // ── Highlights ────────────────────────────────────────────────────────────
+function updateContextBar(frame) {
+    const ctx = TIMEFRAME_CONTEXT[frame];
+    if (!ctx) return;
+    document.getElementById('ctx-datasets').textContent = ctx.datasets;
+    document.getElementById('ctx-ports').textContent =
+        ctx.ports.map(p => PORT_CODES[p] || p.slice(0, 3).toUpperCase()).join('  ·  ');
+}
+
 function switchHighlights(frame, btn) {
     document.querySelectorAll('.highlights-tab').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.highlights-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('hl-panel-' + frame).classList.add('active');
+    updateContextBar(frame);
 }
 
 function highlightSelectSpecies(species) {
@@ -2030,6 +1987,13 @@ function selectSpecies(species) {
     rebuildChart();
 }
 
+// ── Chart port filter ─────────────────────────────────────────────────────
+function toggleChartPort(port, active) {
+    if (active) chartActivePorts.add(port);
+    else chartActivePorts.delete(port);
+    rebuildChart();
+}
+
 // ── Chart ─────────────────────────────────────────────────────────────────
 function setRange(days, btn) {
     currentRange = days;
@@ -2052,7 +2016,7 @@ function rebuildChart() {
 
     const datasets = [];
     for (const port of ALL_PORTS) {
-        if (!activePorts.has(port)) continue;
+        if (!chartActivePorts.has(port)) continue;
         const portData = data.ports && data.ports[port];
         if (!portData) continue;
         datasets.push({
@@ -2270,73 +2234,6 @@ function rebuildChartGroup() {
             }
         }
     });
-}
-
-// ── Compare view ──────────────────────────────────────────────────────────
-async function loadCompare() {
-    const dateA = document.getElementById('compare-date-a').value;
-    const dateB = document.getElementById('compare-date-b').value;
-    if (!dateA || !dateB) return;
-
-    const container = document.getElementById('compare-result');
-    container.innerHTML = '<div class="compare-loading">Loading comparison&hellip;</div>';
-
-    try {
-        const resp = await fetch(`/trade/compare?date_a=${dateA}&date_b=${dateB}`);
-        if (!resp.ok) throw new Error('Request failed');
-        const data = await resp.json();
-        renderCompare(data, dateA, dateB);
-    } catch(e) {
-        container.innerHTML = '<div class="compare-loading" style="color:var(--down);">Error loading comparison data.</div>';
-    }
-}
-
-function renderCompare(data, dateA, dateB) {
-    const ports = data.all_ports || [];
-    const pCodes = data.port_codes || {};
-    const rows = data.rows || [];
-
-    let html = `<div class="matrix-scroll"><table class="compare-table">
-        <thead><tr>
-            <th class="species-col">Species</th>`;
-
-    for (const port of ports) {
-        const code = pCodes[port] || port.substring(0, 3).toUpperCase();
-        html += `<th class="date-a-head" title="${port} on ${dateA}">${code}<br><span style="font-size:7px;font-weight:300;">${dateA.slice(5)}</span></th>`;
-        html += `<th class="date-b-head" title="${port} on ${dateB}">${code}<br><span style="font-size:7px;font-weight:300;">${dateB.slice(5)}</span></th>`;
-    }
-    html += `<th class="date-a-head">Mkt ${dateA.slice(5)}</th>
-             <th class="date-b-head">Mkt ${dateB.slice(5)}</th>
-             <th>\u0394</th>
-        </tr></thead><tbody>`;
-
-    for (const row of rows) {
-        html += `<tr>
-            <td class="species-name-cell" style="padding:8px 10px;">
-                <span class="species-name">${row.species}</span>
-            </td>`;
-        for (const port of ports) {
-            const priceA = row.ports_a[port];
-            const priceB = row.ports_b[port];
-            html += `<td class="compare-cell">${priceA != null ? '\u00a3' + priceA.toFixed(2) : '\u2014'}</td>`;
-            html += `<td class="compare-cell" style="color:var(--muted);">${priceB != null ? '\u00a3' + priceB.toFixed(2) : '\u2014'}</td>`;
-        }
-        const mktA = row.mkt_a;
-        const mktB = row.mkt_b;
-        html += `<td class="compare-cell" style="font-weight:500;color:var(--tide);">${mktA != null ? '\u00a3' + mktA.toFixed(2) : '\u2014'}</td>`;
-        html += `<td class="compare-cell" style="color:var(--muted);">${mktB != null ? '\u00a3' + mktB.toFixed(2) : '\u2014'}</td>`;
-        if (row.delta_pct != null) {
-            const cls = row.delta_pct > 0 ? 'up' : row.delta_pct < 0 ? 'down' : '';
-            const sign = row.delta_pct > 0 ? '+' : '';
-            html += `<td class="compare-cell compare-delta ${cls}">${sign}${row.delta_pct.toFixed(1)}%</td>`;
-        } else {
-            html += `<td class="compare-cell" style="color:var(--rule);">\u2014</td>`;
-        }
-        html += '</tr>';
-    }
-
-    html += '</tbody></table></div>';
-    document.getElementById('compare-result').innerHTML = html;
 }
 
 // ── Chatbot ───────────────────────────────────────────────────────────────
@@ -2647,6 +2544,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Render Your Dashboard section
     renderYourDashboard();
+
+    // Init context bar for today tab
+    updateContextBar('today');
 
     // Init sidebar scroll tracking
     initSidebarNav();

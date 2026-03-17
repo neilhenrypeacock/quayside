@@ -735,6 +735,26 @@ def build_trade_data(date: str) -> dict:
     # ── Highlights ────────────────────────────────────────────────────────────
     highlights = build_highlights(date, matrix, port_code_map, species_7d)
 
+    # ── Per-timeframe context (datasets + ports per highlights tab) ───────────
+    start_30d = (dt - timedelta(days=30)).strftime("%Y-%m-%d")
+    jan_1 = f"{dt.year}-01-01"
+
+    def _ctx(row_source: list[tuple]) -> dict:
+        datasets = len(row_source)
+        ports = sorted({r[1] for r in row_source if r[1]})
+        return {"datasets": datasets, "ports": ports}
+
+    rows_week = [(d, p, s, g, l, h, a) for d, p, s, g, l, h, a in rows_90d if d >= start_7d_raw and d < date]
+    rows_month = [(d, p, s, g, l, h, a) for d, p, s, g, l, h, a in rows_90d if d >= start_30d and d < date]
+    rows_ytd = [(d, p, s, g, l, h, a) for d, p, s, g, l, h, a in rows_90d if d >= jan_1 and d < date]
+
+    timeframe_context = {
+        "today": _ctx(rows),
+        "week": _ctx(rows_week),
+        "month": _ctx(rows_month),
+        "ytd": _ctx(rows_ytd),
+    }
+
     # ── Date/display helpers ──────────────────────────────────────────────────
     dt_display = datetime.strptime(date, "%Y-%m-%d")
     date_display = dt_display.strftime("%A %d %B %Y")
@@ -759,5 +779,6 @@ def build_trade_data(date: str) -> dict:
         "chart_data": chart_data,
         "ninety_days_ago": ninety_days_ago,
         "highlights": highlights,
+        "timeframe_context": timeframe_context,
         "generated_at": datetime.now().strftime("%H:%M"),
     }
