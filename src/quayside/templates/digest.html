@@ -157,11 +157,9 @@
   .intro-body strong { font-weight: 600; color: #ffffff; }
   .intro-stats {
     margin-top: 20px;
-    display: flex;
-    gap: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     border-top: 1px solid rgba(255,255,255,0.15);
-    padding-top: 16px;
-    flex-wrap: wrap;
   }
   .intro-stat {
     font-family: 'Courier New', monospace;
@@ -169,11 +167,15 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: rgba(255,255,255,0.5);
-    padding-right: 24px;
-    margin-right: 24px;
-    border-right: 1px solid rgba(255,255,255,0.15);
+    padding: 16px 0 0;
+    border-right: 1px solid rgba(255,255,255,0.12);
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    padding-right: 16px;
   }
-  .intro-stat:last-child { border-right: none; margin-right: 0; }
+  .intro-stat:nth-child(3n) { border-right: none; }
+  .intro-stat:nth-child(4),
+  .intro-stat:nth-child(5),
+  .intro-stat:nth-child(6) { border-bottom: none; }
   .intro-stat strong {
     display: block;
     font-family: Georgia, serif;
@@ -1135,26 +1137,18 @@
   <div class="intro-block">
     <div class="intro-headline">The UK fish market.<br>Every morning. One digest.</div>
     <p class="intro-body">Every major UK fish auction, normalised into a single benchmark and delivered before you start trading. <strong>{{ total_ports }} ports on the platform</strong> &mdash; {{ ports_reporting|length }} published data today. The UK fish trade finally has a price benchmark worth trusting.</p>
+    {% set mover_count = benchmark_snapshot | selectattr('change') | list | length %}
     <div class="intro-stats">
       <span class="intro-stat"><strong>{{ total_ports }}</strong>Ports live<span class="intro-stat-sub">data published daily</span></span>
       <span class="intro-stat"><strong>{{ ports_reporting|length }}</strong>Publishing today</span>
       <span class="intro-stat"><strong>{{ total_species }}</strong>Species tracked</span>
       <span class="intro-stat"><strong>{{ total_rows }}</strong>Prices today</span>
-      {% if fx_rate %}<span class="intro-stat"><strong>{{ fx_rate.rate }}</strong>GBP/EUR<span class="intro-stat-sub">exchange rate</span></span>{% endif %}
+      {% if fx_rate %}<span class="intro-stat"><strong>{{ fx_rate.rate }}</strong>GBP/EUR<span class="intro-stat-sub">exchange rate</span></span>{% else %}<span class="intro-stat"><strong>&mdash;</strong>Exchange rate<span class="intro-stat-sub">unavailable</span></span>{% endif %}
+      <span class="intro-stat"><strong>{{ mover_count }}</strong>Price movers<span class="intro-stat-sub">vs yesterday</span></span>
     </div>
   </div>
 
   <div class="email-body">
-
-    <!-- 3. MARKET SUMMARY -->
-    {% if market_summary %}
-    <div class="section-label">Today's Market</div>
-    <div class="market-summary">
-      {% for line in market_summary %}
-      <p class="market-summary-line">{{ line }}</p>
-      {% endfor %}
-    </div>
-    {% endif %}
 
     <!-- 5. KEY SPECIES BAR CHARTS (10 benchmark species) -->
     {% if benchmark_snapshot %}
@@ -1169,9 +1163,9 @@
         <a href="#" class="inline-cta-btn share">Share this digest &rarr;</a>
       </div>
       <div class="inline-cta-col">
-        <div class="inline-cta-eyebrow">Trade account &mdash; 7-day free trial</div>
-        <div class="inline-cta-headline">The full picture. Every port. Every morning.</div>
-        <div class="inline-cta-body">Full price dashboard, species history, port comparisons and AI queries. 2 minutes to set up. No card required.</div>
+        <div class="inline-cta-eyebrow">Free trial</div>
+        <div class="inline-cta-headline">7 days. No card.<br>See the full picture.</div>
+        <div class="inline-cta-body">Quayside Trade Membership &mdash; 90-day history, every port, every morning.</div>
         <a href="#" class="inline-cta-btn trial">Start free trial &rarr;</a>
       </div>
     </div>
@@ -1200,7 +1194,7 @@
 
     <!-- TRADE ACCOUNT ADVERT -->
     <div class="trade-band" style="padding:28px 32px 32px;">
-      <div class="trade-band-label">Trade Account &mdash; 2 minutes to set up</div>
+      <div class="trade-band-label">Quayside Trade Membership</div>
       <div class="trade-band-headline" style="font-size:22px;margin:8px 0 10px;">&ldquo;The market intelligence your competitors already have.&rdquo;</div>
       <p style="font-size:13px;color:rgba(255,255,255,0.7);margin:0 0 20px;line-height:1.6;max-width:520px;">Quayside Trade gives you the full picture: live prices from every UK port, how your favourite species have moved over the last 90 days, and the ability to compare port by port &mdash; every morning before you start trading. Custom data and analysis available on request.</p>
       <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
@@ -1213,7 +1207,7 @@
           <li style="font-size:11px;color:rgba(255,255,255,0.8);">Custom data and analysis available on request &mdash; just ask</li>
         </ul>
         <div style="min-width:200px;flex-shrink:0;">
-          <!-- CSS dashboard mockup -->
+          <!-- SVG sparkline chart mockup -->
           <div class="dash-mockup">
             <div class="dash-tabs">
               <span class="dash-tab active">PTH</span>
@@ -1222,25 +1216,42 @@
               <span class="dash-tab">SCR</span>
               <span class="dash-tab">LWK</span>
             </div>
-            <div class="dash-row">
-              <span class="dash-species">Haddock</span>
-              <div class="dash-bar-track"><div class="dash-bar-fill" style="width:72%"></div></div>
-              <span class="dash-price">&pound;5.52</span>
-              <span class="dash-change up">&#9650; +1%</span>
+            <svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;margin-bottom:6px;">
+              <!-- Grid lines -->
+              <line x1="0" y1="20" x2="200" y2="20" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+              <line x1="0" y1="40" x2="200" y2="40" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+              <line x1="0" y1="60" x2="200" y2="60" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+              <!-- Haddock area fill -->
+              <path d="M0,52 C20,50 35,45 55,42 C75,39 90,44 110,40 C130,36 150,38 170,35 C185,33 195,32 200,30 L200,80 L0,80 Z" fill="rgba(74,122,138,0.2)"/>
+              <!-- Haddock line -->
+              <path d="M0,52 C20,50 35,45 55,42 C75,39 90,44 110,40 C130,36 150,38 170,35 C185,33 195,32 200,30" fill="none" stroke="#7ab0c8" stroke-width="1.5" stroke-linecap="round"/>
+              <!-- Cod area fill -->
+              <path d="M0,38 C15,36 30,30 50,28 C70,26 85,22 105,20 C125,18 145,16 165,14 C180,12 192,11 200,10 L200,80 L0,80 Z" fill="rgba(109,184,138,0.15)"/>
+              <!-- Cod line -->
+              <path d="M0,38 C15,36 30,30 50,28 C70,26 85,22 105,20 C125,18 145,16 165,14 C180,12 192,11 200,10" fill="none" stroke="#6db88a" stroke-width="1.5" stroke-linecap="round"/>
+              <!-- Monkfish area fill -->
+              <path d="M0,18 C15,20 30,24 50,28 C65,31 80,35 100,38 C120,41 145,44 165,50 C180,55 192,58 200,62 L200,80 L0,80 Z" fill="rgba(232,122,90,0.15)"/>
+              <!-- Monkfish line (falling) -->
+              <path d="M0,18 C15,20 30,24 50,28 C65,31 80,35 100,38 C120,41 145,44 165,50 C180,55 192,58 200,62" fill="none" stroke="#e87a5a" stroke-width="1.5" stroke-linecap="round"/>
+              <!-- End dots -->
+              <circle cx="200" cy="30" r="2.5" fill="#7ab0c8"/>
+              <circle cx="200" cy="10" r="2.5" fill="#6db88a"/>
+              <circle cx="200" cy="62" r="2.5" fill="#e87a5a"/>
+              <!-- Price labels at right -->
+              <text x="196" y="27" text-anchor="end" font-family="Courier New" font-size="6" fill="#7ab0c8">£5.52</text>
+              <text x="196" y="7" text-anchor="end" font-family="Courier New" font-size="6" fill="#6db88a">£7.34</text>
+              <text x="196" y="59" text-anchor="end" font-family="Courier New" font-size="6" fill="#e87a5a">£10.88</text>
+              <!-- X-axis label -->
+              <text x="2" y="78" font-family="Courier New" font-size="5" fill="rgba(255,255,255,0.2)">90 days ago</text>
+              <text x="168" y="78" font-family="Courier New" font-size="5" fill="rgba(255,255,255,0.2)">today</text>
+            </svg>
+            <!-- Legend -->
+            <div style="display:flex;gap:10px;margin-bottom:6px;">
+              <span style="font-family:'Courier New',monospace;font-size:7px;color:#7ab0c8;">&#9632; Haddock</span>
+              <span style="font-family:'Courier New',monospace;font-size:7px;color:#6db88a;">&#9632; Cod</span>
+              <span style="font-family:'Courier New',monospace;font-size:7px;color:#e87a5a;">&#9632; Monkfish</span>
             </div>
-            <div class="dash-row">
-              <span class="dash-species">Cod</span>
-              <div class="dash-bar-track"><div class="dash-bar-fill" style="width:55%"></div></div>
-              <span class="dash-price">&pound;7.34</span>
-              <span class="dash-change up">&#9650; +6%</span>
-            </div>
-            <div class="dash-row">
-              <span class="dash-species">Monkfish</span>
-              <div class="dash-bar-track"><div class="dash-bar-fill" style="width:90%"></div></div>
-              <span class="dash-price">&pound;10.88</span>
-              <span class="dash-change down">&#9660; &minus;14%</span>
-            </div>
-            <div class="dash-subtitle">90-day trend &middot; port comparison &middot; species filter</div>
+            <div class="dash-subtitle">90-day price trend &middot; all 5 ports &middot; species filter</div>
           </div>
           <span class="trade-band-price">&pound;95</span>
           <span class="trade-band-period">per month &mdash; or &pound;912/yr <strong style="color:#f0ebe0">save 20%</strong></span>
@@ -1298,28 +1309,13 @@
     </div>
 
     <!-- KILLER OFFER BLOCK -->
-    <div class="upgrade-band" style="padding:36px 32px;">
-      <div class="upgrade-label">Trade Account &mdash; 7-day free trial, no card required</div>
-      <div class="upgrade-headline" style="font-size:26px;margin:10px 0 6px;">The market intelligence<br>your competitors already have.</div>
-      <p style="font-size:13px;color:rgba(255,255,255,0.7);margin:0 0 24px;line-height:1.6;max-width:480px;">Every fish buyer, processor and auctioneer making the right calls is working from better data. Quayside Trade gives you the same edge &mdash; live prices, 90-day history, port comparisons and AI queries, every morning before the market opens.</p>
-      <div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap;">
-        <ul class="upgrade-features" style="flex:1;min-width:220px;columns:1;">
-          <li>Full price dashboard &mdash; 90-day history, all {{ total_ports }} ports</li>
-          <li>Track your favourite species &amp; see how prices move over time</li>
-          <li>Ask the market anything &mdash; AI queries in plain English</li>
-          <li>Port-by-port species price comparison</li>
-          <li>CSV export for your procurement and finance team</li>
-          <li>Custom data and analysis available on request &mdash; just ask</li>
-          <li>Cancel any time &mdash; no contracts, no lock-in</li>
-        </ul>
-        <div class="upgrade-cta" style="min-width:180px;border-left:1px solid rgba(255,255,255,0.12);padding-left:32px;">
-          <span class="upgrade-price">&pound;95</span>
-          <span class="upgrade-period">per month</span>
-          <span style="display:block;font-family:'Courier New',monospace;font-size:10px;color:#c8401a;letter-spacing:0.06em;margin:6px 0 16px;">&mdash; or &mdash;<br>&pound;912 / year &nbsp;<strong style="color:#f0ebe0">save 20%</strong></span>
-          <a href="#" class="upgrade-btn" style="display:block;text-align:center;margin-bottom:10px;">Start free trial &rarr;</a>
-          <span style="display:block;font-family:'Courier New',monospace;font-size:8px;color:#4a7a8a;letter-spacing:0.06em;text-align:center;line-height:1.8;">7 days free<br>No card required<br>2 minutes to set up</span>
-        </div>
-      </div>
+    <div class="upgrade-band" style="padding:36px 32px;text-align:center;">
+      <div class="upgrade-label" style="margin-bottom:12px;">Quayside Trade Membership &mdash; Start today</div>
+      <div class="upgrade-headline" style="font-size:28px;margin:0 0 8px;">Join the fish buyers who already<br>know what the market is doing.</div>
+      <p style="font-size:13px;color:rgba(255,255,255,0.6);margin:0 auto 28px;line-height:1.7;max-width:400px;">7-day free trial. No card required. 2 minutes to set up. Cancel any time.</p>
+      <span class="upgrade-price" style="font-size:42px;">&pound;95</span>
+      <span class="upgrade-period" style="display:block;margin-bottom:6px;">per month &mdash; or &pound;912/yr &nbsp;<strong style="color:#f0ebe0;font-family:'Courier New',monospace;font-size:9px;">save 20%</strong></span>
+      <a href="#" class="upgrade-btn" style="display:inline-block;padding:14px 40px;font-size:11px;letter-spacing:0.14em;margin-top:16px;">Start 7-day free trial &rarr;</a>
     </div>
 
     <!-- SHARE + PORT CTA -->
