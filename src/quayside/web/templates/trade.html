@@ -93,9 +93,12 @@
     .trade-content { padding: 24px 20px 40px; }
 }
 
-/* ── Section spacing ── */
+/* ── Section tabs ── */
 .trade-section {
-    margin-bottom: 56px;
+    display: none;
+}
+.trade-section.active-tab {
+    display: block;
 }
 
 /* ── Section headings ── */
@@ -1069,13 +1072,13 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     <div class="sidebar-logo">Trade Dashboard</div>
     <nav>
         <ul class="sidebar-nav">
-            <li><a href="#section-dashboard" class="active">Your Dashboard</a></li>
-            <li><a href="#section-overview">Species Insight</a></li>
-            <li><a href="#section-intelligence">Port Insight</a></li>
-            <li><a href="#section-chat">Ask Quayside</a></li>
-            <li><a href="#section-prices">Today's Prices</a></li>
-            <li><a href="#section-chart">Price History</a></li>
-            <li><a href="#section-tools">Tools</a></li>
+            <li><a href="#" onclick="showTab('section-dashboard');return false;">Your Dashboard</a></li>
+            <li><a href="#" onclick="showTab('section-overview');return false;">Species Insight</a></li>
+            <li><a href="#" onclick="showTab('section-intelligence');return false;">Port Insight</a></li>
+            <li><a href="#" onclick="showTab('section-chat');return false;">Ask Quayside</a></li>
+            <li><a href="#" onclick="showTab('section-prices');return false;">Today's Prices</a></li>
+            <li><a href="#" onclick="showTab('section-chart');return false;">Price History</a></li>
+            <li><a href="#" onclick="showTab('section-tools');return false;">Tools</a></li>
         </ul>
     </nav>
     <div class="sidebar-favs">
@@ -1419,7 +1422,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             data-change="{{ row.vs_yesterday_pct or 0 }}"
             data-market-avg="{{ row.market_avg or 0 }}"
             data-species="{{ row.species }}"
-            onclick="selectSpecies('{{ row.species | e }}')">
+            onclick="selectSpecies('{{ row.species | e }}');showTab('section-chart');"
             <td class="species-name-cell" style="display:flex;align-items:center;gap:0;">
                 <button class="star-btn" data-species="{{ row.species | e }}"
                         onclick="event.stopPropagation();toggleStar('{{ row.species | e }}', this)"
@@ -1677,29 +1680,20 @@ function navigateDate(d) {
     window.location.href = '/trade/' + d;
 }
 
-// ── Sidebar scroll tracking ──────────────────────────────────────────────
-function initSidebarNav() {
-    const sections = document.querySelectorAll('.trade-section[id]');
-    const navLinks = document.querySelectorAll('.sidebar-nav a');
-    const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                navLinks.forEach(a => a.classList.remove('active'));
-                const link = document.querySelector(`.sidebar-nav a[href="#${entry.target.id}"]`);
-                if (link) link.classList.add('active');
-            }
-        });
-    }, { rootMargin: '-20% 0px -70% 0px' });
-    sections.forEach(s => observer.observe(s));
+// ── Tab navigation ────────────────────────────────────────────────────────
+function showTab(id) {
+    document.querySelectorAll('.trade-section').forEach(s => s.classList.remove('active-tab'));
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    const section = document.getElementById(id);
+    if (section) { section.classList.add('active-tab'); window.scrollTo(0, 0); }
+    const link = document.querySelector(`.sidebar-nav a[onclick*="${id}"]`);
+    if (link) link.classList.add('active');
+    // Rebuild chart if switching to Price History (chart needs visible canvas)
+    if (id === 'section-chart' && currentSpecies) rebuildChart();
+}
 
-    // Smooth scroll on click
-    navLinks.forEach(a => {
-        a.addEventListener('click', e => {
-            e.preventDefault();
-            const target = document.querySelector(a.getAttribute('href'));
-            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-    });
+function initSidebarNav() {
+    // Tab-based nav — active state managed by showTab()
 }
 
 // ── Your Dashboard ───────────────────────────────────────────────────────
@@ -1920,8 +1914,7 @@ function switchHighlights(frame, btn) {
 function highlightSelectSpecies(species) {
     if (!species) return;
     selectSpecies(species);
-    const section = document.getElementById('section-chart');
-    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    showTab('section-chart');
 }
 
 // ── My Species (stars + pinned rows) ──────────────────────────────────────
@@ -2580,7 +2573,7 @@ function renderPortIntel() {
                 badge = '<span class="port-intel-badge above-avg">Above Avg</span>';
             }
             const esc = r.species.replace(/'/g, "\\'");
-            html += `<tr onclick="selectSpecies('${esc}');document.getElementById('section-chart').scrollIntoView({behavior:'smooth',block:'start'});">
+            html += `<tr onclick="selectSpecies('${esc}');showTab('section-chart');">
                 <td>${r.species}</td>
                 <td>\u00a3${r.portPrice.toFixed(2)}</td>
                 <td style="color:var(--muted);">\u00a3${r.marketAvg.toFixed(2)}</td>
@@ -2610,15 +2603,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Init context bar for today tab
     updateContextBar('today');
 
-    // Init sidebar scroll tracking
-    initSidebarNav();
-
     // Init port intelligence tabs
     initPortIntelTabs();
 
-    // Auto-select first species for chart
+    // Auto-select first species for chart (pre-loads chart data for when user switches to Price History)
     const first = document.querySelector('#matrix-tbody .matrix-row');
     if (first) selectSpecies(first.dataset.species);
+
+    // Show default tab (Species Insight — data-rich landing)
+    showTab('section-overview');
 });
 </script>
 {% endblock %}
