@@ -978,6 +978,33 @@ def create_app() -> Flask:
             except Exception:
                 pass
 
+        # Today's scrape summary: per-port first attempt time, success time, record count
+        today_scrape_summary: dict[str, dict] = {}
+        for row in reversed(scrape_log_rows):  # reversed = chronological (earliest first)
+            if not row["ran_at"].startswith(today_str_for_log):
+                continue
+            port_name = row["port"]
+            try:
+                from datetime import datetime as _dt5
+                ts = _dt5.fromisoformat(row["ran_at"])
+                time_str = ts.strftime("%H:%M")
+                if port_name not in today_scrape_summary:
+                    today_scrape_summary[port_name] = {
+                        "first_attempt": time_str,
+                        "last_success": None,
+                        "status": "failed",
+                        "record_count": 0,
+                        "error_type": None,
+                    }
+                if row["success"]:
+                    today_scrape_summary[port_name]["last_success"] = time_str
+                    today_scrape_summary[port_name]["status"] = "success"
+                    today_scrape_summary[port_name]["record_count"] = row["record_count"]
+                elif today_scrape_summary[port_name]["status"] != "success":
+                    today_scrape_summary[port_name]["error_type"] = row["error_type"]
+            except Exception:
+                pass
+
         conn.close()
 
         today_str = today.strftime("%Y-%m-%d")
@@ -1013,6 +1040,7 @@ def create_app() -> Flask:
             scrape_slots=_SCRAPE_SLOTS,
             today_str=today_str,
             today_is_weekday=today_is_weekday,
+            today_scrape_summary=today_scrape_summary,
         )
 
     @app.route("/port/<slug>/export")

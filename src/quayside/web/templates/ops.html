@@ -488,32 +488,59 @@
     <span class="ops-badge">Internal</span>
 </div>
 
-<!-- Data History -->
+<!-- Today's Pipeline -->
 <div class="card" style="margin-bottom:16px;">
     <div class="section-head">
-        Data History
-        <span class="count">last successful scrape &amp; today's scrape checks per port</span>
+        Today's Pipeline
+        <span class="count">{{ today_str }}</span>
     </div>
-    <table class="port-table data-history-table">
+    {% if not today_is_weekday %}
+    <div style="padding:20px;font-family:var(--font-mono);font-size:12px;color:var(--muted);text-align:center;">
+        Weekend — no auctions scheduled
+    </div>
+    {% else %}
+    <table class="port-table">
         <thead>
             <tr>
                 <th>Port</th>
-                <th>Last scrape</th>
-                <th>Day</th>
-                <th style="min-width:320px;">Today's checks (09:00–17:30)</th>
+                <th>Status</th>
+                <th>Attempted</th>
+                <th>Completed</th>
+                <th>Records</th>
+                <th style="min-width:240px;">Checks today (09:00–17:30)</th>
             </tr>
         </thead>
         <tbody>
             {% for port in live_ports %}
-            {% set info = last_scrape_info.get(port.name, {}) %}
+            {% set s = today_scrape_summary.get(port.name) %}
             {% set timeline = today_timeline.get(port.name, {}) %}
             <tr>
                 <td><span class="port-name">{{ port.name }}</span></td>
-                <td style="font-family:var(--font-mono);font-size:12px;">
-                    {{ info.date if info.date else '—' }}
+                <td>
+                    {% if s %}
+                        {% if s.status == 'success' %}
+                        <span class="status-badge active">Success</span>
+                        {% else %}
+                        <span class="status-badge outreach">Failed</span>
+                        {% endif %}
+                    {% else %}
+                    <span class="status-badge future">Pending</span>
+                    {% endif %}
                 </td>
-                <td style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">
-                    {{ info.day if info.day else '—' }}
+                <td style="font-family:var(--font-mono);font-size:12px;">
+                    {{ s.first_attempt if s else '—' }}
+                </td>
+                <td style="font-family:var(--font-mono);font-size:12px;">
+                    {% if s and s.status == 'success' %}{{ s.last_success }}{% else %}—{% endif %}
+                </td>
+                <td style="font-family:var(--font-mono);font-size:12px;">
+                    {% if s and s.status == 'success' %}
+                        {{ s.record_count }} rec
+                    {% elif s and s.error_type %}
+                        <span style="color:var(--down);">{{ s.error_type }}</span>
+                    {% else %}
+                        —
+                    {% endif %}
                 </td>
                 <td>
                     <div class="scrape-timeline">
@@ -535,16 +562,17 @@
             {% endfor %}
         </tbody>
     </table>
+    {% endif %}
 </div>
 
-<!-- Scrape Alerts — prominent at top -->
-<div class="alert-banner {% if scrape_alerts|length == 0 %}clear{% endif %}">
+<!-- Missing data alerts -->
+<div class="alert-banner {% if scrape_alerts|length == 0 %}clear{% endif %}" style="margin-bottom:16px;">
     <div class="alert-title">
         <span class="alert-dot"></span>
         {% if scrape_alerts|length == 0 %}
-            All scrapes healthy — no missing data
+            All scrapes healthy — no missing data in the last 2 weeks
         {% else %}
-            {{ scrape_alerts|length }} missing data point{{ 's' if scrape_alerts|length != 1 }} (last 2 weeks)
+            {{ scrape_alerts|length }} missing data point{{ 's' if scrape_alerts|length != 1 }} in the last 2 weeks
         {% endif %}
     </div>
     {% if scrape_alerts %}
@@ -560,25 +588,6 @@
     </div>
     {% endif %}
 </div>
-
-<!-- Today's Scrape Status -->
-{% if today_is_weekday %}
-<div class="today-strip">
-    <span class="today-strip-label">Today</span>
-    {% for port_name in active_port_names %}
-    {% set today_data = port_coverage.get(port_name, {}).get(today_str) %}
-    <span class="today-port-pill {% if today_data %}ok{% else %}miss{% endif %}">
-        <span class="today-pill-dot"></span>
-        {{ port_name }}
-        {% if today_data %}
-        <span class="today-pill-count">{{ today_data.species }} spp</span>
-        {% else %}
-        <span class="today-pill-count">no data</span>
-        {% endif %}
-    </span>
-    {% endfor %}
-</div>
-{% endif %}
 
 <!-- Stats strip -->
 <div class="stats-strip">
