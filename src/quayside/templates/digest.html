@@ -1108,7 +1108,8 @@
 <body>
 <div class="email-wrap">
 
-  <!-- ADMIN REFRESH BAR -->
+  {% if web_view %}
+  <!-- ADMIN REFRESH BAR (web view only — not included in email) -->
   <div id="refresh-bar" style="background:#0a1a24;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1a3a4a;">
     <span style="font-family:'Courier New',monospace;font-size:9px;color:#4a7a8a;letter-spacing:0.1em;text-transform:uppercase;">Generated {{ generated_at[:16] }} &middot; Data current as of scrape run</span>
     <button id="refresh-btn" onclick="runPipeline()" style="background:#c8401a;color:white;border:none;font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 14px;border-radius:2px;cursor:pointer;">&#8635; Refresh Data</button>
@@ -1147,6 +1148,7 @@
       });
   }
   </script>
+  {% endif %}
 
   <!-- HEADER -->
   <div class="email-header">

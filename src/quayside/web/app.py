@@ -122,7 +122,7 @@ def create_app() -> Flask:
 
         data = build_report_data(date)
         digest_template = _digest_env.get_template("digest.html")
-        digest_html = digest_template.render(**data)
+        digest_html = digest_template.render(**data, web_view=True)
         # Wrap in a simple page with nav
         return render_template("digest_wrapper.html", digest_html=digest_html, date=date)
 
