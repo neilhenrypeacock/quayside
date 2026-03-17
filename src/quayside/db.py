@@ -417,10 +417,10 @@ def get_all_ports(status: str | None = None) -> list[dict]:
 
 
 def get_total_port_count() -> int:
-    """Return count of all registered ports, excluding the demo port."""
+    """Return count of live (active) ports, excluding the demo port."""
     conn = get_connection()
     row = conn.execute(
-        "SELECT COUNT(*) FROM ports WHERE slug != 'demo'"
+        "SELECT COUNT(*) FROM ports WHERE status = 'active' AND slug != 'demo'"
     ).fetchone()
     conn.close()
     return row[0] if row else 0
