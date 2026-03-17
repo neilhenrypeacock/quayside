@@ -75,6 +75,16 @@ def init_db() -> None:
             corrected_value TEXT,
             corrected_at TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS scrape_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ran_at TEXT NOT NULL,
+            port TEXT NOT NULL,
+            success INTEGER NOT NULL,
+            record_count INTEGER DEFAULT 0,
+            error_type TEXT,
+            error_msg TEXT
+        );
     """)
 
     # Migrations: add columns that were introduced after initial deploy
@@ -92,7 +102,40 @@ def _migrate(conn: sqlite3.Connection) -> None:
     existing_landings = {row[1] for row in conn.execute("PRAGMA table_info(landings)").fetchall()}
     if existing_landings and "scraped_at" not in existing_landings:
         conn.execute("ALTER TABLE landings ADD COLUMN scraped_at TEXT NOT NULL DEFAULT ''")
+    # scrape_log table (created in init_db for new DBs; add for existing DBs)
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS scrape_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ran_at TEXT NOT NULL,
+                port TEXT NOT NULL,
+                success INTEGER NOT NULL,
+                record_count INTEGER DEFAULT 0,
+                error_type TEXT,
+                error_msg TEXT
+            )
+        """)
+    except Exception:
+        pass
     conn.commit()
+
+
+def log_scrape_attempt(
+    port: str,
+    success: bool,
+    record_count: int = 0,
+    error_type: str | None = None,
+    error_msg: str | None = None,
+) -> None:
+    """Record a scrape attempt result in scrape_log."""
+    conn = get_connection()
+    conn.execute(
+        """INSERT INTO scrape_log (ran_at, port, success, record_count, error_type, error_msg)
+           VALUES (datetime('now'), ?, ?, ?, ?, ?)""",
+        (port, 1 if success else 0, record_count, error_type, error_msg),
+    )
+    conn.commit()
+    conn.close()
 
 
 def upsert_prices(records: list[PriceRecord]) -> int:

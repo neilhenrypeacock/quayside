@@ -181,6 +181,20 @@
         vertical-align: middle;
     }
     .port-table tr:hover { background: var(--foam); }
+    .scrape-timeline {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 3px;
+        align-items: center;
+    }
+    .scrape-dot {
+        font-size: 11px;
+        line-height: 1;
+        cursor: default;
+    }
+    .scrape-dot.success { color: var(--up); }
+    .scrape-dot.fail { color: var(--down); }
+    .scrape-dot.pending { color: var(--rule); }
     .port-name {
         font-family: var(--font-serif);
         font-weight: 700;
@@ -474,6 +488,55 @@
     <span class="ops-badge">Internal</span>
 </div>
 
+<!-- Data History -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="section-head">
+        Data History
+        <span class="count">last successful scrape &amp; today's scrape checks per port</span>
+    </div>
+    <table class="port-table data-history-table">
+        <thead>
+            <tr>
+                <th>Port</th>
+                <th>Last scrape</th>
+                <th>Day</th>
+                <th style="min-width:320px;">Today's checks (09:00–17:30)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for port in live_ports %}
+            {% set info = last_scrape_info.get(port.name, {}) %}
+            {% set timeline = today_timeline.get(port.name, {}) %}
+            <tr>
+                <td><span class="port-name">{{ port.name }}</span></td>
+                <td style="font-family:var(--font-mono);font-size:12px;">
+                    {{ info.date if info.date else '—' }}
+                </td>
+                <td style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">
+                    {{ info.day if info.day else '—' }}
+                </td>
+                <td>
+                    <div class="scrape-timeline">
+                        {% for slot in scrape_slots %}
+                        {% set slot_data = timeline.get(slot, {}) %}
+                        {% if slot_data.attempted %}
+                            {% if slot_data.success %}
+                            <span class="scrape-dot success" title="{{ slot }} — {{ slot_data.record_count }} records">●</span>
+                            {% else %}
+                            <span class="scrape-dot fail" title="{{ slot }} — failed: {{ slot_data.error_type or 'unknown' }}">●</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="scrape-dot pending" title="{{ slot }}">○</span>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 <!-- Scrape Alerts — prominent at top -->
 <div class="alert-banner {% if scrape_alerts|length == 0 %}clear{% endif %}">
     <div class="alert-title">
@@ -596,7 +659,7 @@
                 <th>Last data</th>
                 <th>Success</th>
                 <th>Fails</th>
-                <th>Port value</th>
+                <th>Records</th>
             </tr>
         </thead>
         <tbody>
@@ -639,10 +702,10 @@
                 <td style="font-family:var(--font-mono);font-size:12px;{% if fails_per_port.get(port.name, 0) > 0 %}color:var(--down);{% else %}color:var(--muted);{% endif %}">
                     {{ fails_per_port.get(port.name, '—') }}
                 </td>
-                <td style="font-family:var(--font-mono);font-size:12px;">
-                    {% set pv = port_value.get(port.name) %}
-                    {% if pv %}
-                        £{{ '{:,.0f}'.format(pv) }}
+                <td style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">
+                    {% set pr = port_records.get(port.name) %}
+                    {% if pr %}
+                        {{ '{:,}'.format(pr) }}
                     {% else %}
                         —
                     {% endif %}

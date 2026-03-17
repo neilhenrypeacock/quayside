@@ -19,7 +19,7 @@ import logging
 import sys
 import traceback
 
-from quayside.db import init_db, upsert_prices
+from quayside.db import init_db, log_scrape_attempt, upsert_prices
 from quayside.export import export_prices_csv
 from quayside.http_cache import cached_fetch
 from quayside.ports import seed_ports
@@ -85,6 +85,10 @@ def main() -> int:
     scraper_status["Peterhead prices"] = {
         "records": len(prices), "error": err, "source": "SWFPA XLS",
     }
+    log_scrape_attempt("Peterhead", success=err is None and len(prices) > 0,
+                       record_count=len(prices),
+                       error_type=err["type"] if err else None,
+                       error_msg=err["error"] if err else None)
     all_prices += prices
 
     # --- Lerwick (prices from SSA portal XLSX) ---
@@ -96,6 +100,10 @@ def main() -> int:
         "records": len(lerwick_prices), "error": err,
         "source": "ssawebportal.azurewebsites.net",
     }
+    log_scrape_attempt("Lerwick", success=err is None and len(lerwick_prices) > 0,
+                       record_count=len(lerwick_prices),
+                       error_type=err["type"] if err else None,
+                       error_msg=err["error"] if err else None)
     all_prices += lerwick_prices
 
     # --- Fraserburgh (prices only — dormant, SWFPA stopped publishing) ---
@@ -116,6 +124,10 @@ def main() -> int:
     scraper_status["Brixham prices"] = {
         "records": len(brixham_prices), "error": err, "source": "SWFPA PDF",
     }
+    log_scrape_attempt("Brixham", success=err is None and len(brixham_prices) > 0,
+                       record_count=len(brixham_prices),
+                       error_type=err["type"] if err else None,
+                       error_msg=err["error"] if err else None)
     all_prices += brixham_prices
 
     # --- Newlyn (SWFPA primary, CFPO fallback) ---
@@ -140,6 +152,10 @@ def main() -> int:
     scraper_status["Newlyn prices"] = {
         "records": len(newlyn_prices), "error": err, "source": newlyn_source,
     }
+    log_scrape_attempt("Newlyn", success=err is None and len(newlyn_prices) > 0,
+                       record_count=len(newlyn_prices),
+                       error_type=err["type"] if err else None,
+                       error_msg=err["error"] if err else None)
     all_prices += newlyn_prices
 
     # --- Scrabster ---
@@ -147,6 +163,10 @@ def main() -> int:
     scraper_status["Scrabster prices"] = {
         "records": len(scrabster_prices), "error": err, "source": "scrabster.co.uk",
     }
+    log_scrape_attempt("Scrabster", success=err is None and len(scrabster_prices) > 0,
+                       record_count=len(scrabster_prices),
+                       error_type=err["type"] if err else None,
+                       error_msg=err["error"] if err else None)
     all_prices += scrabster_prices
 
     # --- Scraper health summary ---

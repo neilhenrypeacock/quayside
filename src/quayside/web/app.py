@@ -753,19 +753,12 @@ def create_app() -> Flask:
                 d_iter += timedelta(days=1)
             fails_per_port[port_name] = max(0, weekday_count - success_days_per_port.get(port_name, 0))
 
-        # Port value: sum(boxes * price_avg) joining landings and prices on date/port/species
-        port_value = {}
-        try:
-            for row in conn.execute(
-                """SELECT l.port, SUM(l.boxes * p.price_avg) as total_value
-                   FROM landings l
-                   JOIN prices p ON l.date = p.date AND l.port = p.port AND l.species = p.species
-                   GROUP BY l.port"""
-            ).fetchall():
-                if row["total_value"] is not None:
-                    port_value[row["port"]] = row["total_value"]
-        except Exception:
-            pass
+        # Price records per port (total count, used in Live Ports table)
+        port_records = {}
+        for row in conn.execute(
+            "SELECT port, COUNT(*) as record_count FROM prices GROUP BY port"
+        ).fetchall():
+            port_records[row["port"]] = row["record_count"]
 
         # Total records
         totals = conn.execute(
@@ -901,6 +894,77 @@ def create_app() -> Flask:
             "SELECT COUNT(*) FROM extraction_corrections"
         ).fetchone()[0]
 
+        # --- Scrape log: last 7 days of attempts per port ---
+        scrape_log_rows = []
+        try:
+            scrape_log_rows = conn.execute(
+                """SELECT port, ran_at, success, record_count, error_type, error_msg
+                   FROM scrape_log
+                   WHERE ran_at >= datetime('now', '-7 days')
+                   ORDER BY ran_at DESC"""
+            ).fetchall()
+        except Exception:
+            pass
+
+        # Last successful scrape date/day per port (from scrape_log, fallback to prices.scraped_at)
+        last_scrape_info: dict[str, dict] = {}
+        for row in scrape_log_rows:
+            port_name = row["port"]
+            if row["success"] and port_name not in last_scrape_info:
+                ran_at_str = row["ran_at"]
+                try:
+                    from datetime import datetime as _dt2
+                    ts = _dt2.fromisoformat(ran_at_str)
+                    last_scrape_info[port_name] = {
+                        "date": ts.strftime("%Y-%m-%d"),
+                        "day": ts.strftime("%a"),
+                    }
+                except Exception:
+                    pass
+
+        # Fallback: use MAX(scraped_at) from prices for ports not yet in scrape_log
+        fallback_rows = conn.execute(
+            "SELECT port, MAX(scraped_at) as last_scraped FROM prices GROUP BY port"
+        ).fetchall()
+        for row in fallback_rows:
+            if row["port"] not in last_scrape_info and row["last_scraped"]:
+                try:
+                    from datetime import datetime as _dt3
+                    ts = _dt3.fromisoformat(row["last_scraped"])
+                    last_scrape_info[row["port"]] = {
+                        "date": ts.strftime("%Y-%m-%d"),
+                        "day": ts.strftime("%a"),
+                    }
+                except Exception:
+                    pass
+
+        # Today's intraday scrape timeline per port: 30-min slots 09:00–17:00
+        today_str_for_log = today.strftime("%Y-%m-%d")
+        _SCRAPE_SLOTS = [f"{h:02d}:{m:02d}" for h in range(9, 18) for m in (0, 30)]
+        # Build: {port: {slot: {"attempted": bool, "success": bool}}}
+        today_timeline: dict[str, dict[str, dict]] = {}
+        for row in scrape_log_rows:
+            if not row["ran_at"].startswith(today_str_for_log):
+                continue
+            port_name = row["port"]
+            try:
+                from datetime import datetime as _dt4
+                ts = _dt4.fromisoformat(row["ran_at"])
+                # Round down to nearest 30-min slot
+                slot_min = 0 if ts.minute < 30 else 30
+                slot = f"{ts.hour:02d}:{slot_min:02d}"
+                if port_name not in today_timeline:
+                    today_timeline[port_name] = {}
+                # Keep last result for the slot (most recent wins)
+                today_timeline[port_name][slot] = {
+                    "attempted": True,
+                    "success": bool(row["success"]),
+                    "record_count": row["record_count"],
+                    "error_type": row["error_type"],
+                }
+            except Exception:
+                pass
+
         conn.close()
 
         today_str = today.strftime("%Y-%m-%d")
@@ -929,7 +993,10 @@ def create_app() -> Flask:
             first_data_per_port=first_data_per_port,
             success_days_per_port=success_days_per_port,
             fails_per_port=fails_per_port,
-            port_value=port_value,
+            port_records=port_records,
+            last_scrape_info=last_scrape_info,
+            today_timeline=today_timeline,
+            scrape_slots=_SCRAPE_SLOTS,
             today_str=today_str,
             today_is_weekday=today_is_weekday,
         )
