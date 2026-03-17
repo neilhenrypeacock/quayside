@@ -1,0 +1,590 @@
+{% extends "base.html" %}
+{% block title %}Quality Report — {{ date }} — Quayside{% endblock %}
+
+{% block head %}
+<style>
+    .qr-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    .qr-header {
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+        margin-bottom: 8px;
+    }
+    .qr-header h1 {
+        font-family: var(--font-serif);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    .qr-date {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--muted);
+    }
+    .qr-meta {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 28px;
+    }
+    .qr-meta a {
+        color: var(--catch);
+        text-decoration: none;
+    }
+    /* Summary strip */
+    .qr-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--rule);
+        border: 1px solid var(--rule);
+        margin-bottom: 32px;
+    }
+    .qr-strip-cell {
+        background: var(--foam);
+        padding: 18px 20px;
+        text-align: center;
+    }
+    .qr-strip-cell .val {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1;
+    }
+    .qr-strip-cell .val.green { color: var(--up); }
+    .qr-strip-cell .val.red { color: var(--down); }
+    .qr-strip-cell .val.amber { color: var(--catch); }
+    .qr-strip-cell .lbl {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+    /* Sections */
+    .qr-section {
+        margin-bottom: 40px;
+    }
+    .qr-section-head {
+        font-family: var(--font-serif);
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--rule);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .qr-section-head .badge {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        font-weight: 400;
+    }
+    /* Port cards */
+    .port-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 12px;
+    }
+    .port-card {
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        background: var(--foam);
+        padding: 16px 18px;
+    }
+    .port-card .pc-name {
+        font-family: var(--font-serif);
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .port-card .pc-name .status-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--up);
+        flex-shrink: 0;
+    }
+    .port-card .pc-name .status-dot.no-data { background: var(--down); }
+    .port-card table {
+        width: 100%;
+        font-size: 12px;
+        border-collapse: collapse;
+    }
+    .port-card table td {
+        padding: 3px 0;
+    }
+    .port-card table td:first-child {
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        width: 45%;
+    }
+    .port-card table td:last-child {
+        font-weight: 500;
+        text-align: right;
+    }
+    .null-expected { color: var(--muted); font-style: italic; }
+    .null-unexpected { color: var(--down); font-weight: 600; }
+    .up-val { color: var(--up); }
+    .down-val { color: var(--down); }
+    /* Tables */
+    .qr-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    .qr-table th {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .qr-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid rgba(0,0,0,0.04);
+        vertical-align: top;
+    }
+    .qr-table tr:last-child td { border-bottom: none; }
+    /* Badges */
+    .badge-error {
+        display: inline-block; padding: 2px 7px; border-radius: 3px;
+        font-size: 10px; font-weight: 600;
+        background: rgba(224,112,96,0.12); color: var(--down);
+        font-family: var(--font-mono);
+    }
+    .badge-warn {
+        display: inline-block; padding: 2px 7px; border-radius: 3px;
+        font-size: 10px; font-weight: 600;
+        background: rgba(224,183,96,0.15); color: #8a6800;
+        font-family: var(--font-mono);
+    }
+    .badge-ok {
+        display: inline-block; padding: 2px 7px; border-radius: 3px;
+        font-size: 10px; font-weight: 600;
+        background: rgba(109,184,138,0.12); color: var(--up);
+        font-family: var(--font-mono);
+    }
+    /* Info / alert blocks */
+    .qr-banner {
+        padding: 12px 16px;
+        border-radius: 4px;
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+    .qr-banner.ok { background: rgba(109,184,138,0.08); border: 1px solid rgba(109,184,138,0.25); color: var(--up); }
+    .qr-banner.warn { background: rgba(224,183,96,0.08); border: 1px solid rgba(224,183,96,0.25); color: #8a6800; }
+    .qr-banner.error { background: rgba(224,112,96,0.08); border: 1px solid rgba(224,112,96,0.25); color: var(--down); }
+    .qr-banner.info { background: var(--foam); border: 1px solid var(--rule); color: var(--muted); }
+    /* Two-col layout for ops health */
+    .ops-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .ops-block {
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        padding: 14px 16px;
+    }
+    .ops-block h4 {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 8px;
+    }
+    .ops-block ul {
+        margin: 0; padding: 0; list-style: none;
+    }
+    .ops-block ul li {
+        font-size: 13px;
+        padding: 2px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .dot-ok { color: var(--up); font-size: 10px; }
+    .dot-fail { color: var(--down); font-size: 10px; }
+    .dot-warn { color: var(--catch); font-size: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="qr-container">
+
+    <div class="qr-header">
+        <h1>Quality Report</h1>
+        <span class="qr-date">{{ date }}</span>
+    </div>
+    <div class="qr-meta">
+        Generated {{ report.generated_at[:16].replace('T', ' ') }} UTC &nbsp;·&nbsp;
+        <a href="/ops">← Back to Ops</a>
+        &nbsp;·&nbsp;
+        <a href="/ops/quality-report?date={{ date }}">Refresh</a>
+    </div>
+
+    {# ── Summary strip ─────────────────────────────────────────────────────── #}
+    {% set ports_with_data = report.port_dashboards | selectattr('has_today_data') | list %}
+    {% set total_errors = report.quality_issues | selectattr('severity', 'equalto', 'error') | list | length %}
+    {% set total_warns = report.quality_issues | selectattr('severity', 'equalto', 'warn') | list | length %}
+    <div class="qr-strip">
+        <div class="qr-strip-cell">
+            <div class="val {% if ports_with_data|length == report.port_dashboards|length %}green{% elif ports_with_data|length == 0 %}red{% else %}amber{% endif %}">
+                {{ ports_with_data|length }}/{{ report.port_dashboards|length }}
+            </div>
+            <div class="lbl">Ports with data today</div>
+        </div>
+        <div class="qr-strip-cell">
+            <div class="val {% if report.digest_preview.benchmark_species_available >= 8 %}green{% elif report.digest_preview.benchmark_species_available >= 5 %}amber{% else %}red{% endif %}">
+                {{ report.digest_preview.benchmark_species_available }}/10
+            </div>
+            <div class="lbl">Benchmark species</div>
+        </div>
+        <div class="qr-strip-cell">
+            <div class="val {% if total_errors == 0 and total_warns == 0 %}green{% elif total_errors > 0 %}red{% else %}amber{% endif %}">
+                {{ total_errors }}
+            </div>
+            <div class="lbl">Quality errors (7d)</div>
+        </div>
+        <div class="qr-strip-cell">
+            <div class="val {% if total_warns == 0 %}green{% else %}amber{% endif %}">
+                {{ total_warns }}
+            </div>
+            <div class="lbl">Quality warnings (7d)</div>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════════════
+       Section 1: Port Dashboard Preview
+    ═══════════════════════════════════════════════════════════════════════ #}
+    <div class="qr-section">
+        <div class="qr-section-head">
+            Port Dashboards
+            <span class="badge">What each port dashboard will display for {{ date }}</span>
+        </div>
+
+        {% if not report.port_dashboards %}
+        <div class="qr-banner info">No active ports found.</div>
+        {% else %}
+        <div class="port-grid">
+        {% for p in report.port_dashboards %}
+        <div class="port-card">
+            <div class="pc-name">
+                <span class="status-dot {% if not p.has_today_data %}no-data{% endif %}"></span>
+                <a href="/port/{{ p.port | lower }}" style="color:inherit;text-decoration:none;">{{ p.port }}</a>
+                {% if not p.has_today_data %}
+                <span class="badge-warn" style="margin-left:auto;">NO DATA</span>
+                {% endif %}
+            </div>
+            <table>
+                <tr>
+                    <td>Records today</td>
+                    <td>{{ p.record_count if p.record_count else '—' }}</td>
+                </tr>
+                <tr>
+                    <td>Today avg price</td>
+                    <td>
+                        {% if p.today_avg %}
+                            £{{ "%.2f"|format(p.today_avg) }}/kg
+                        {% else %}
+                            <span class="{% if p.hero_null_expected %}null-expected{% else %}null-unexpected{% endif %}">—
+                            {% if not p.hero_null_expected %} (unexpected){% endif %}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>vs last week</td>
+                    <td>
+                        {% if p.vs_last_week_pct is not none %}
+                            <span class="{% if p.vs_last_week_pct >= 0 %}up-val{% else %}down-val{% endif %}">
+                                {% if p.vs_last_week_pct >= 0 %}+{% endif %}{{ "%.1f"|format(p.vs_last_week_pct) }}%
+                            </span>
+                            {% if p.last_week_price %}
+                            <span style="color:var(--muted);font-size:11px;"> (was £{{ "%.2f"|format(p.last_week_price) }})</span>
+                            {% endif %}
+                        {% elif 'vs_last_week' in p.hero_nulls %}
+                            <span class="{% if p.hero_null_expected %}null-expected{% else %}null-unexpected{% endif %}">—
+                            {% if not p.hero_null_expected %} (no prior-week data){% else %} (expected — {{ p.history_days }}d history){% endif %}</span>
+                        {% else %}
+                            <span class="null-expected">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>vs market</td>
+                    <td>
+                        {% if p.vs_market_pct is not none %}
+                            <span class="{% if p.vs_market_pct >= 0 %}up-val{% else %}down-val{% endif %}">
+                                {% if p.vs_market_pct >= 0 %}+{% endif %}{{ "%.1f"|format(p.vs_market_pct) }}%
+                            </span>
+                        {% else %}
+                            <span class="null-expected">— (no market benchmark)</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>This week avg</td>
+                    <td>{% if p.this_week_avg %}£{{ "%.2f"|format(p.this_week_avg) }}/kg{% else %}<span class="null-expected">—</span>{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>This month avg</td>
+                    <td>{% if p.this_month_avg %}£{{ "%.2f"|format(p.this_month_avg) }}/kg{% else %}<span class="null-expected">—</span>{% endif %}</td>
+                </tr>
+                {% if p.species_no_benchmark %}
+                <tr>
+                    <td>No benchmark</td>
+                    <td style="font-size:11px;color:var(--muted);">{{ p.species_no_benchmark | join(', ') }}{% if p.species_no_benchmark|length == 10 %}…{% endif %}</td>
+                </tr>
+                {% endif %}
+                {% if p.hero_nulls | reject('equalto', 'vs_last_week') | list %}
+                <tr>
+                    <td>Hero nulls</td>
+                    <td>
+                        {% for n in p.hero_nulls %}
+                        <span class="{% if p.hero_null_expected %}null-expected{% else %}null-unexpected{% endif %}">{{ n }}</span>{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+        {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════════════
+       Section 2: Digest Preview
+    ═══════════════════════════════════════════════════════════════════════ #}
+    <div class="qr-section">
+        <div class="qr-section-head">
+            Today's Digest
+            <span class="badge">What the daily digest will contain for {{ date }}</span>
+        </div>
+
+        {% set dp = report.digest_preview %}
+
+        {% if dp.error %}
+        <div class="qr-banner warn">
+            <strong>Could not build digest preview:</strong> {{ dp.error }}
+        </div>
+        {% else %}
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div class="ops-block">
+                <h4>Ports in digest</h4>
+                {% if dp.ports_reporting %}
+                <ul>
+                {% for port in dp.ports_reporting %}
+                <li><span class="dot-ok">●</span> {{ port }}</li>
+                {% endfor %}
+                </ul>
+                {% else %}
+                <div style="font-size:13px;color:var(--muted);">No ports reporting</div>
+                {% endif %}
+            </div>
+            <div class="ops-block">
+                <h4>Missing from digest</h4>
+                {% if dp.missing_from_digest %}
+                <ul>
+                {% for port in dp.missing_from_digest %}
+                <li><span class="dot-warn">●</span> {{ port }}</li>
+                {% endfor %}
+                </ul>
+                {% else %}
+                <div style="font-size:13px;color:var(--up);">All active ports reporting</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <table class="qr-table" style="margin-bottom:16px;">
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Notes</th>
+            </tr>
+            <tr>
+                <td>Total species</td>
+                <td><strong>{{ dp.total_species }}</strong></td>
+                <td style="color:var(--muted);font-size:12px;">Across all reporting ports</td>
+            </tr>
+            <tr>
+                <td>Benchmark species available</td>
+                <td>
+                    <strong {% if dp.benchmark_species_available < 5 %}style="color:var(--down)"{% elif dp.benchmark_species_available < 8 %}style="color:var(--catch)"{% else %}style="color:var(--up)"{% endif %}>
+                        {{ dp.benchmark_species_available }}/10
+                    </strong>
+                </td>
+                <td style="color:var(--muted);font-size:12px;">
+                    {% if dp.benchmark_species_missing %}Missing: {{ dp.benchmark_species_missing | join(', ') }}{% else %}All 10 available{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Price movers</td>
+                <td><strong>{{ dp.movers_count }}</strong></td>
+                <td style="color:var(--muted);font-size:12px;">
+                    {% if dp.top_mover %}
+                        Top: {{ dp.top_mover.species }} @ {{ dp.top_mover.port }}
+                        ({% if dp.top_mover.change_pct >= 0 %}+{% endif %}{{ "%.1f"|format(dp.top_mover.change_pct) }}%)
+                    {% else %}No movers{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Digest file</td>
+                <td>
+                    {% if dp.digest_already_generated %}
+                    <span class="badge-ok">GENERATED</span>
+                    {% else %}
+                    <span class="badge-warn">NOT YET</span>
+                    {% endif %}
+                </td>
+                <td style="color:var(--muted);font-size:12px;">
+                    {% if dp.digest_path %}{{ dp.digest_path | replace('/home/quayside/app/', '') }}{% endif %}
+                </td>
+            </tr>
+        </table>
+
+        {% endif %}
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════════════
+       Section 3: Ops Health
+    ═══════════════════════════════════════════════════════════════════════ #}
+    <div class="qr-section">
+        <div class="qr-section-head">
+            Ops Health
+            <span class="badge">Pipeline status for {{ date }}</span>
+        </div>
+
+        {% set oh = report.ops_health %}
+
+        <div class="ops-cols" style="margin-bottom:16px;">
+            <div class="ops-block">
+                <h4>Scrape status today</h4>
+                {% if oh.ports_succeeded %}
+                <ul>
+                {% for port in oh.ports_succeeded %}
+                <li><span class="dot-ok">●</span> {{ port }}</li>
+                {% endfor %}
+                </ul>
+                {% else %}
+                <div style="font-size:13px;color:var(--muted);">No successful scrapes logged yet</div>
+                {% endif %}
+                {% if oh.ports_failed %}
+                <ul style="margin-top:8px;">
+                {% for port in oh.ports_failed %}
+                <li><span class="dot-fail">●</span> {{ port }} — failed</li>
+                {% endfor %}
+                </ul>
+                {% endif %}
+                {% if oh.ports_not_attempted %}
+                <ul style="margin-top:8px;">
+                {% for port in oh.ports_not_attempted %}
+                <li><span class="dot-warn">●</span> {{ port }} — not attempted</li>
+                {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            <div class="ops-block">
+                <h4>Coverage health</h4>
+                <ul>
+                    <li>
+                        <span class="{% if oh.historical_gap_count == 0 %}dot-ok{% else %}dot-warn{% endif %}">●</span>
+                        {{ oh.historical_gap_count }} historical gap{{ 's' if oh.historical_gap_count != 1 }} (last 14 days)
+                    </li>
+                    <li>
+                        <span class="{% if oh.coverage_holes|length == 0 %}dot-ok{% else %}dot-warn{% endif %}">●</span>
+                        {{ oh.coverage_holes|length }} coverage hole{{ 's' if oh.coverage_holes|length != 1 }}
+                        {% if oh.coverage_holes %}
+                        — {{ oh.coverage_holes | map(attribute='port') | join(', ') }}
+                        {% endif %}
+                    </li>
+                    <li>
+                        <span class="{% if oh.quality_issues_7d.errors == 0 %}dot-ok{% else %}dot-fail{% endif %}">●</span>
+                        {{ oh.quality_issues_7d.errors }} quality error{{ 's' if oh.quality_issues_7d.errors != 1 }},
+                        {{ oh.quality_issues_7d.warns }} warning{{ 's' if oh.quality_issues_7d.warns != 1 }} (7d)
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════════════
+       Section 4: Quality Issues (last 7 days)
+    ═══════════════════════════════════════════════════════════════════════ #}
+    <div class="qr-section">
+        <div class="qr-section-head">
+            Quality Issues
+            <span class="badge">Last 7 days — {{ report.quality_issues | length }} issue{{ 's' if report.quality_issues | length != 1 }}</span>
+        </div>
+
+        {% if not report.quality_issues %}
+        <div class="qr-banner ok">
+            <strong>No quality issues in the last 7 days.</strong> All port data within expected ranges.
+        </div>
+        {% else %}
+        <table class="qr-table">
+            <thead>
+                <tr>
+                    <th>Port</th>
+                    <th>Date</th>
+                    <th>Check</th>
+                    <th></th>
+                    <th>Species / Grade</th>
+                    <th>Value → Expected</th>
+                    <th>Message</th>
+                    <th>Checked</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for issue in report.quality_issues %}
+            <tr>
+                <td style="font-weight:500;">{{ issue.port }}</td>
+                <td style="font-family:var(--font-mono);font-size:12px;">{{ issue.date }}</td>
+                <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">{{ issue.check_type }}</td>
+                <td>
+                    {% if issue.severity == 'error' %}
+                    <span class="badge-error">ERROR</span>
+                    {% else %}
+                    <span class="badge-warn">WARN</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:12px;color:var(--muted);">
+                    {{ issue.species or '' }}{% if issue.grade %} ({{ issue.grade }}){% endif %}
+                </td>
+                <td style="font-family:var(--font-mono);font-size:11px;">
+                    {% if issue.value is not none %}
+                    {{ "%.2f"|format(issue.value) }}
+                    {% if issue.expected is not none %} → {{ "%.2f"|format(issue.expected) }}{% endif %}
+                    {% endif %}
+                </td>
+                <td style="font-size:13px;">{{ issue.message }}</td>
+                <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:nowrap;">
+                    {{ issue.checked_at[:16].replace('T', ' ') }}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

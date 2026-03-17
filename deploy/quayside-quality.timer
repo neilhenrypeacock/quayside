@@ -2,9 +2,9 @@
 Description=Quayside data quality check — 3× daily weekdays
 
 [Timer]
-OnCalendar=Mon..Fri *-*-* 09:30:00
-OnCalendar=Mon..Fri *-*-* 13:30:00
-OnCalendar=Mon..Fri *-*-* 17:30:00
+OnCalendar=Mon..Fri *-*-* 10:00:00
+OnCalendar=Mon..Fri *-*-* 13:00:00
+OnCalendar=Mon..Fri *-*-* 16:00:00
 Persistent=true
 
 [Install]

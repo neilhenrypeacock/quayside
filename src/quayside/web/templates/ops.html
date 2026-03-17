@@ -597,16 +597,25 @@
         Data Quality
         <span class="count">last 7 days</span>
         {% if quality_summary.last_checked_at %}
-        <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:auto;">
+        <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:8px;">
             last checked {{ quality_summary.last_checked_at[:16].replace('T',' ') }} UTC
         </span>
         {% endif %}
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+            <a href="/ops/quality-report" style="font-size:12px;font-weight:500;color:var(--catch);text-decoration:none;letter-spacing:0.02em;">Full Report →</a>
+            <button id="run-quality-btn" onclick="runQualityCheck()"
+                style="font-size:12px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;
+                       padding:5px 14px;border:1px solid var(--rule);border-radius:3px;
+                       background:var(--foam);color:var(--ink);">
+                Run Check
+            </button>
+        </span>
     </div>
 
     {# ── Summary banner ─────────────────────────────────────────────────── #}
     {% if not quality_summary.last_checked_at %}
     <div style="padding:14px 20px;font-size:13px;color:var(--muted);">
-        No quality checks run yet. Schedule: Mon–Fri at 09:30, 13:30, 17:30.
+        No quality checks run yet. Schedule: Mon–Fri at 10:00, 13:00, 16:00.
     </div>
     {% elif quality_summary.open_errors > 0 %}
     <div style="padding:14px 20px;background:rgba(224,112,96,0.08);border-bottom:1px solid rgba(224,112,96,0.3);font-size:13px;color:var(--down);">
@@ -658,6 +667,34 @@
     </table>
     {% endif %}
 </div>
+
+<script>
+async function runQualityCheck() {
+    const btn = document.getElementById('run-quality-btn');
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+    try {
+        const r = await fetch('/ops/run-quality-check', {method: 'POST'});
+        if (!r.ok) throw new Error('Server error ' + r.status);
+        const d = await r.json();
+        if (d.errors > 0) {
+            btn.textContent = d.errors + ' error' + (d.errors !== 1 ? 's' : '') + ' found';
+            btn.style.color = 'var(--down)';
+        } else if (d.warns > 0) {
+            btn.textContent = d.warns + ' warning' + (d.warns !== 1 ? 's' : '');
+            btn.style.color = '#8a6800';
+        } else {
+            btn.textContent = '✓ All clear';
+            btn.style.color = 'var(--up)';
+        }
+        setTimeout(() => window.location.reload(), 1400);
+    } catch(e) {
+        btn.textContent = 'Error — check logs';
+        btn.style.color = 'var(--down)';
+        btn.disabled = false;
+    }
+}
+</script>
 
 <!-- Historical data gaps -->
 <div class="alert-banner {% if historical_alerts|length == 0 %}clear{% endif %}" style="margin-bottom:16px;">

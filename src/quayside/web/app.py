@@ -1080,6 +1080,22 @@ def create_app() -> Flask:
             quality_summary=quality_summary,
         )
 
+    @app.route("/ops/run-quality-check", methods=["POST"])
+    def ops_run_quality_check():
+        """Run quality checks now and return JSON summary."""
+        from quayside.quality import run_quality_checks
+        summary = run_quality_checks()
+        return jsonify({"ok": True, "errors": summary["errors"], "warns": summary["warns"]})
+
+    @app.route("/ops/quality-report")
+    def ops_quality_report():
+        """Comprehensive quality report — port dashboards, digest preview, ops health."""
+        from datetime import date as _date_type
+        from quayside.quality import build_comprehensive_report
+        date_param = request.args.get("date") or _date_type.today().isoformat()
+        report = build_comprehensive_report(date_param)
+        return render_template("quality_report.html", report=report, date=date_param)
+
     @app.route("/port/<slug>/export")
     def export_port_data(slug: str):
         """Download all price data for this port as CSV."""
