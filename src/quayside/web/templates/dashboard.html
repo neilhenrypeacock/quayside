@@ -85,31 +85,78 @@
         font-size: 14px;
     }
 
-    /* Fixed prices jump tab */
-    .prices-jump-tab {
-        position: fixed;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        writing-mode: vertical-rl;
-        text-orientation: mixed;
-        background: var(--tide);
-        color: #d0e8f0;
-        font-family: var(--font-mono);
-        font-size: 9px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        padding: 14px 6px;
-        border-radius: 0 2px 2px 0;
-        cursor: pointer;
-        text-decoration: none;
-        white-space: nowrap;
-        z-index: 1000;
-        transition: background 0.15s;
-        display: block;
+    /* ═══ Sidebar layout ═══ */
+    .container { display: none; }
+    .port-page {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        align-items: start;
+        max-width: 1340px;
+        margin: 0 auto;
+        padding: 0;
     }
-    .prices-jump-tab:hover { background: var(--catch); color: #fff; }
-    @media (max-width: 768px) { .prices-jump-tab { display: none; } }
+    .port-sidebar {
+        position: sticky;
+        top: 60px;
+        height: calc(100vh - 60px);
+        overflow-y: auto;
+        padding: 24px 0;
+        border-right: 1px solid var(--rule);
+    }
+    .port-sidebar .sidebar-logo {
+        font-family: var(--font-serif);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+        padding: 0 16px 16px;
+        border-bottom: 1px solid var(--rule);
+        margin-bottom: 12px;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .port-sidebar .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 0 8px;
+        list-style: none;
+        margin: 0;
+    }
+    .port-sidebar .sidebar-nav li { padding: 0; margin: 0; }
+    .port-sidebar .sidebar-nav a {
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 7px 8px;
+        border-radius: 2px;
+        border-left: 2px solid transparent;
+        transition: all 0.15s;
+    }
+    .port-sidebar .sidebar-nav a:hover {
+        color: var(--ink);
+        background: rgba(26,58,74,0.05);
+    }
+    .port-sidebar .sidebar-nav a.active {
+        color: var(--ink);
+        border-left-color: var(--catch);
+        background: rgba(26,58,74,0.05);
+        font-weight: 500;
+    }
+    .port-content {
+        padding: 36px 40px 60px;
+        min-width: 0;
+    }
+    [id^="section-"] { scroll-margin-top: 80px; }
+    @media (max-width: 768px) {
+        .port-page { grid-template-columns: 1fr; }
+        .port-sidebar { display: none; }
+        .port-content { padding: 20px 16px; }
+    }
 
     /* ═══ Hero summary strip ═══ */
     .hero-strip {
@@ -968,7 +1015,9 @@
 </style>
 {% endblock %}
 
-{% block content %}
+{% block content %}{% endblock %}
+
+{% block main %}
 
 <!-- Welcome banner (dismissible) -->
 <div class="welcome-banner" id="welcomeBanner" style="display:none;">
@@ -976,8 +1025,30 @@
     <button onclick="dismissWelcome()" aria-label="Dismiss">&times;</button>
 </div>
 
+<div class="port-page">
+
+<!-- ══ SIDEBAR NAV ═══════════════════════════════════════════════════════ -->
+<aside class="port-sidebar">
+    <div class="sidebar-logo">{{ port.name }}</div>
+    <ul class="sidebar-nav">
+        <li><a href="#section-overview" class="active">Overview</a></li>
+        <li><a href="#section-performance">Performance</a></li>
+        <li><a href="#section-insights">Insights</a></li>
+        <li><a href="#section-position">Market Position</a></li>
+        <li><a href="#section-gaps">Species Gaps</a></li>
+        <li><a href="#section-chart">Price Trends</a></li>
+        <li><a href="#section-best">Best Performers</a></li>
+        <li><a href="#section-chat">Ask Quayside</a></li>
+        <li><a href="#section-prices">Prices</a></li>
+        <li><a href="#section-customize">Customize</a></li>
+    </ul>
+</aside>
+
+<!-- ══ MAIN CONTENT ═══════════════════════════════════════════════════════ -->
+<main class="port-content">
+
 <!-- Port Header -->
-<div class="port-header">
+<div id="section-overview" class="port-header">
     <div>
         <h1>{{ port.name }}</h1>
         <div class="port-meta">
@@ -1085,7 +1156,7 @@
 
 <!-- ═══ PERFORMANCE OVERVIEW — the bottom line ═══ -->
 {% if perf %}
-<div class="perf-card">
+<div id="section-performance" class="perf-card">
     <div class="perf-header">
         <div>
             <div class="perf-title">Price History & Market Position</div>
@@ -1166,7 +1237,7 @@
 
 <!-- ═══ SECTION: Highlights of Your Day ═══ -->
 {% if port_insights %}
-<div class="port-insights-card">
+<div id="section-insights" class="port-insights-card">
     <div class="insights-label">Highlights of Your Day</div>
     {% for insight in port_insights %}
     <div class="insight-item">
@@ -1180,7 +1251,7 @@
 
 <!-- ═══ SECTION: Market Intelligence ═══ -->
 {% if market_insights %}
-<div class="insights-card">
+<div id="section-position" class="insights-card">
     <div class="insights-label">Market Position</div>
     {% for insight in market_insights %}
     <div class="insight-item">
@@ -1194,7 +1265,7 @@
 
 <!-- ═══ SECTION: Species Availability Gaps ═══ -->
 {% if species_gaps %}
-<div class="gaps-card">
+<div id="section-gaps" class="gaps-card">
     <div class="gaps-label">Not Seen Recently</div>
     <div class="gaps-list">
         {% for sp in species_gaps %}
@@ -1206,7 +1277,7 @@
 {% endif %}
 
 <!-- ═══ SECTION: Price Trends ═══ -->
-<div class="card card-chart">
+<div id="section-chart" class="card card-chart">
     <div class="mini-summary">
         <div class="mini-stat" id="avgPriceStat">
             <div class="stat-value">&pound;{{ "%.2f"|format(hero_avg_price) if hero_avg_price else '—' }}</div>
@@ -1250,7 +1321,7 @@
 
 <!-- ═══ SECTION: Market Position & Month Summary ═══ -->
 {% if best_performers and (best_performers.strongest_species or best_performers.month_summary) %}
-<div class="best-grid">
+<div id="section-best" class="best-grid">
     <div class="best-panel">
         <h3>Strongest vs Market</h3>
         {% if best_performers.strongest_species %}
@@ -1332,7 +1403,7 @@
 {% endif %}
 
 <!-- ═══ SECTION: Ask Quayside ═══ -->
-<div class="chat-card">
+<div id="section-chat" class="chat-card">
     <div class="chat-label">Ask Quayside</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Ask a plain-English question about your price history, market position, or trends — powered by your port's data.</p>
     <div class="chat-pills">
@@ -1348,14 +1419,13 @@
     <div class="chat-response" id="chatResponse">Ask a question about your prices, trends, or market position.</div>
 </div>
 
-<a href="#prices-wrapper" class="prices-jump-tab" onclick="document.getElementById('prices-wrapper').scrollIntoView({behavior:'smooth'});return false;">Prices Today</a>
-
+<div id="section-prices" style="scroll-margin-top:80px;"></div>
 <div id="prices-wrapper">
 {% include 'prices_partial.html' %}
 </div>
 
 <!-- ═══ SECTION: Customize Your Dashboard ═══ -->
-<div class="customize-card">
+<div id="section-customize" class="customize-card">
     <div class="customize-header">
         <div>
             <div class="customize-title">Customize Your Dashboard</div>
@@ -1395,6 +1465,10 @@
 
 </div><!-- /.dashboard-content -->
 {% endif %}
+
+</main><!-- /.port-content -->
+</div><!-- /.port-page -->
+
 {% endblock %}
 
 {% block scripts %}
@@ -1939,6 +2013,28 @@ function scrollActiveDateTab() {
     });
 
     document.addEventListener('DOMContentLoaded', scrollActiveDateTab);
+})();
+</script>
+
+<script>
+// Sidebar active state via IntersectionObserver
+(function() {
+    var sections = document.querySelectorAll('[id^="section-"]');
+    var navLinks = document.querySelectorAll('.port-sidebar .sidebar-nav a');
+    if (!sections.length || !navLinks.length) return;
+
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                var id = entry.target.id;
+                navLinks.forEach(function(link) {
+                    link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+                });
+            }
+        });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+
+    sections.forEach(function(section) { observer.observe(section); });
 })();
 </script>
 {% endblock %}
