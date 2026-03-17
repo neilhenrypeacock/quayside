@@ -612,8 +612,9 @@ def build_trade_data(date: str) -> dict:
         for port in row["ports"]:
             port_species_count[port] += 1
 
-    # Include all active ports, even those not reporting today
-    status_ports = sorted(set(active_port_names) | ports_today)
+    # Include all active ports, even those not reporting today (exclude demo)
+    demo_names = {p["name"] for p in active_ports if p.get("data_method") == "demo"}
+    status_ports = sorted((set(active_port_names) | ports_today) - demo_names)
     port_status = []
     for port in status_ports:
         reporting = port in ports_today

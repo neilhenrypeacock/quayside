@@ -9,7 +9,7 @@
 .trade-page {
     display: grid;
     grid-template-columns: 180px 1fr;
-    min-height: calc(100vh - 60px);
+    align-items: start;
 }
 @media (max-width: 768px) {
     .trade-page { grid-template-columns: 1fr; }
@@ -283,6 +283,13 @@
 .hl-dot.context { background: var(--muted); }
 
 /* ── Chat section ── */
+.chat-section-wrap {
+    background: var(--tide);
+    border-radius: 2px;
+    padding: 32px;
+}
+.chat-section-wrap .section-heading { color: var(--paper); }
+.chat-section-wrap .section-desc { color: rgba(208,232,240,0.8); }
 .chat-container {
     background: var(--foam);
     border: 1px solid var(--rule);
@@ -418,6 +425,28 @@
     text-transform: uppercase;
     color: var(--rule);
 }
+
+/* ── Overview filter tabs ── */
+.overview-filter {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+}
+.overview-filter-btn {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 6px 14px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--muted);
+    cursor: pointer;
+    border-right: none;
+    transition: background 0.12s, color 0.12s;
+}
+.overview-filter-btn:last-child { border-right: 1px solid var(--rule); }
+.overview-filter-btn:hover { background: var(--salt); color: var(--ink); }
+.overview-filter-btn.active { background: var(--tide); color: var(--paper); border-color: var(--tide); }
 
 /* ── Port status pills ── */
 .port-status-row {
@@ -962,6 +991,27 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 }
 .picker-item .check { opacity: 0; }
 .picker-item.selected .check { opacity: 1; }
+.picker-quick-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+.picker-quick-btn {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.12s;
+}
+.picker-quick-btn:hover { border-color: var(--tide); color: var(--tide); }
+.picker-quick-btn.active { background: var(--tide); color: var(--paper); border-color: var(--tide); }
 .picker-actions {
     display: flex;
     justify-content: flex-end;
@@ -1056,10 +1106,12 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 <!-- SECTION 2: ASK QUAYSIDE                                              -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-chat">
+    <div class="chat-section-wrap">
     <div class="section-heading">Ask Quayside</div>
     <div class="section-desc">
-        Ask anything about today's market in plain English.
-        Try: "Where is cod cheapest today?" or "Should I buy haddock this week?"
+        Your AI market analyst, trained on all of Quayside's price data across every port and species.
+        Ask about today's prices, compare ports, spot trends over time, or get buying recommendations.
+        Try: "Where is cod cheapest today?" or "How has haddock trended this month?"
     </div>
     <div class="chat-container">
         <div class="chat-messages" id="chat-messages">
@@ -1078,6 +1130,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             <button class="chat-send" id="chat-send-btn" onclick="sendChat()">Send</button>
         </div>
     </div>
+    </div><!-- /chat-section-wrap -->
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
@@ -1085,7 +1138,17 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-overview">
     <div class="section-heading">Market Overview</div>
-    <div class="section-desc">A snapshot of today's market across all reporting ports.</div>
+    <div class="section-desc">A snapshot of today's market across all reporting ports. Filter by your favourites or by category.</div>
+
+    <!-- Species filter for overview -->
+    <div class="overview-filter" id="overview-filter">
+        <button class="overview-filter-btn active" onclick="filterOverview('all', this)">All Species</button>
+        <button class="overview-filter-btn" onclick="filterOverview('favourites', this)">My Favourites</button>
+        <button class="overview-filter-btn" onclick="filterOverview('demersal', this)">Demersal</button>
+        <button class="overview-filter-btn" onclick="filterOverview('flatfish', this)">Flatfish</button>
+        <button class="overview-filter-btn" onclick="filterOverview('shellfish', this)">Shellfish</button>
+        <button class="overview-filter-btn" onclick="filterOverview('pelagic', this)">Pelagic</button>
+    </div>
 
     <!-- 4 KPI pulse cards -->
     <div class="pulse-grid">
@@ -1318,16 +1381,26 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 <div class="trade-section" id="section-chart">
     <div class="section-heading">Price History</div>
     <div class="section-desc">
-        90-day price trend for the selected species.
-        Click a row in the price table to change the species shown here.
+        Price trends for the selected species across all ports.
+        Click a row in the price table above, or choose a species below to change the view.
     </div>
     <div class="chart-card">
         <div class="chart-header">
-            <div class="chart-species-name" id="chart-species-label">
-                <span style="color:var(--rule);font-family:var(--font-mono);font-size:12px;font-style:normal;">Select a species from the table above</span>
+            <div>
+                <div class="chart-species-name" id="chart-species-label">
+                    <span style="color:var(--rule);font-family:var(--font-mono);font-size:12px;font-style:normal;">Select a species from the table above</span>
+                </div>
             </div>
             <div class="chart-controls">
+                <select id="chart-species-select" onchange="selectSpecies(this.value)" style="font-family:var(--font-mono);font-size:11px;background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:5px 8px;color:var(--ink);cursor:pointer;">
+                    <option value="">Choose species...</option>
+                    {% for row in matrix %}
+                    <option value="{{ row.species }}">{{ row.species }}</option>
+                    {% endfor %}
+                </select>
                 <div class="range-btns">
+                    <button class="range-btn" onclick="setRange(7,this)">7d</button>
+                    <button class="range-btn" onclick="setRange(14,this)">14d</button>
                     <button class="range-btn active" onclick="setRange(30,this)">30d</button>
                     <button class="range-btn" onclick="setRange(60,this)">60d</button>
                     <button class="range-btn" onclick="setRange(90,this)">90d</button>
@@ -1519,6 +1592,14 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     <div class="picker-modal">
         <div class="picker-title">Choose Your Species</div>
         <div class="picker-desc">Select the species you buy or sell most. These will appear in your personalised dashboard.</div>
+        <div class="picker-quick-btns">
+            <button class="picker-quick-btn" onclick="pickerSelectAll('species')">Select All</button>
+            <button class="picker-quick-btn" onclick="pickerSelectNone('species')">Clear All</button>
+            <button class="picker-quick-btn" onclick="pickerSelectCategory('demersal')">Demersal</button>
+            <button class="picker-quick-btn" onclick="pickerSelectCategory('flatfish')">Flatfish</button>
+            <button class="picker-quick-btn" onclick="pickerSelectCategory('shellfish')">Shellfish</button>
+            <button class="picker-quick-btn" onclick="pickerSelectCategory('pelagic')">Pelagic</button>
+        </div>
         <div class="picker-grid" id="species-picker-grid"></div>
         <div class="picker-actions">
             <button class="btn btn-secondary" onclick="closeSpeciesPicker()">Cancel</button>
@@ -1532,6 +1613,10 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     <div class="picker-modal">
         <div class="picker-title">Choose Your Ports</div>
         <div class="picker-desc">Select the ports you care about most. Leave empty to see all ports.</div>
+        <div class="picker-quick-btns">
+            <button class="picker-quick-btn" onclick="pickerSelectAll('ports')">Select All</button>
+            <button class="picker-quick-btn" onclick="pickerSelectNone('ports')">Clear All</button>
+        </div>
         <div class="picker-grid" id="port-picker-grid"></div>
         <div class="picker-actions">
             <button class="btn btn-secondary" onclick="closePortPicker()">Cancel</button>
@@ -1678,19 +1763,28 @@ function updateSidebarFavsSummary() {
 
 // ── Species picker ───────────────────────────────────────────────────────
 let pickerSpeciesSelection = new Set();
+// Build a category lookup from MATRIX_DATA
+const SPECIES_CATEGORIES = {};
+MATRIX_DATA.forEach(row => { SPECIES_CATEGORIES[row.species] = row.category; });
+
 function showSpeciesPicker() {
     pickerSpeciesSelection = new Set(mySpecies);
+    renderSpeciesPickerGrid();
+    document.getElementById('species-picker-overlay').classList.add('open');
+}
+function renderSpeciesPickerGrid() {
     const grid = document.getElementById('species-picker-grid');
     let html = '';
     MATRIX_DATA.forEach(row => {
         const sel = pickerSpeciesSelection.has(row.species) ? 'selected' : '';
-        html += `<div class="picker-item ${sel}" onclick="togglePickerSpecies(this, '${row.species.replace(/'/g, "\\'")}')">
+        const esc = row.species.replace(/'/g, "\\'");
+        html += `<div class="picker-item ${sel}" data-species="${esc}" data-category="${row.category}" onclick="togglePickerSpecies(this, '${esc}')">
             <span class="check">&#10003;</span>
             ${row.species}
+            <span style="font-size:8px;color:var(--muted);margin-left:auto;text-transform:uppercase;letter-spacing:0.08em;">${row.category}</span>
         </div>`;
     });
     grid.innerHTML = html;
-    document.getElementById('species-picker-overlay').classList.add('open');
 }
 function togglePickerSpecies(el, sp) {
     if (pickerSpeciesSelection.has(sp)) {
@@ -1700,6 +1794,34 @@ function togglePickerSpecies(el, sp) {
         pickerSpeciesSelection.add(sp);
         el.classList.add('selected');
     }
+}
+function pickerSelectAll(type) {
+    if (type === 'species') {
+        MATRIX_DATA.forEach(row => pickerSpeciesSelection.add(row.species));
+        renderSpeciesPickerGrid();
+    } else if (type === 'ports') {
+        ALL_PORTS.forEach(p => pickerPortSelection.add(p));
+        renderPortPickerGrid();
+    }
+}
+function pickerSelectNone(type) {
+    if (type === 'species') {
+        pickerSpeciesSelection.clear();
+        renderSpeciesPickerGrid();
+    } else if (type === 'ports') {
+        pickerPortSelection.clear();
+        renderPortPickerGrid();
+    }
+}
+function pickerSelectCategory(cat) {
+    // Toggle: if all species of this category are selected, deselect them; else select all
+    const catSpecies = MATRIX_DATA.filter(r => r.category === cat).map(r => r.species);
+    const allSelected = catSpecies.every(sp => pickerSpeciesSelection.has(sp));
+    catSpecies.forEach(sp => {
+        if (allSelected) pickerSpeciesSelection.delete(sp);
+        else pickerSpeciesSelection.add(sp);
+    });
+    renderSpeciesPickerGrid();
 }
 function saveSpeciesPicker() {
     mySpecies = new Set(pickerSpeciesSelection);
@@ -1720,6 +1842,10 @@ function closeSpeciesPicker() {
 let pickerPortSelection = new Set();
 function showPortPicker() {
     pickerPortSelection = new Set(myPorts);
+    renderPortPickerGrid();
+    document.getElementById('port-picker-overlay').classList.add('open');
+}
+function renderPortPickerGrid() {
     const grid = document.getElementById('port-picker-grid');
     let html = '';
     ALL_PORTS.forEach(port => {
@@ -1731,7 +1857,6 @@ function showPortPicker() {
         </div>`;
     });
     grid.innerHTML = html;
-    document.getElementById('port-picker-overlay').classList.add('open');
 }
 function togglePickerPort(el, port) {
     if (pickerPortSelection.has(port)) {
@@ -1877,6 +2002,9 @@ function selectSpecies(species) {
     document.querySelectorAll('.matrix-row').forEach(r => {
         r.classList.toggle('selected-row', r.dataset.species === species);
     });
+    // Sync chart species dropdown
+    const sel = document.getElementById('chart-species-select');
+    if (sel) sel.value = species;
     rebuildChart();
 }
 
@@ -2148,6 +2276,25 @@ async function submitFeedback() {
             setTimeout(() => { ok.style.display = 'none'; }, 4000);
         }
     } catch(e) { /* silent */ }
+}
+
+// ── Overview species filter ───────────────────────────────────────────────
+let overviewFilter = 'all';
+function filterOverview(filter, btn) {
+    overviewFilter = filter;
+    document.querySelectorAll('.overview-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Filter highlights
+    document.querySelectorAll('.hl-item').forEach(item => {
+        const sp = item.dataset.species;
+        if (!sp) { item.style.display = ''; return; }
+        const cat = SPECIES_CATEGORIES[sp] || 'other';
+        let show = false;
+        if (filter === 'all') show = true;
+        else if (filter === 'favourites') show = mySpecies.has(sp);
+        else show = (cat === filter);
+        item.style.display = show ? '' : 'none';
+    });
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
