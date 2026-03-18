@@ -1,180 +1,236 @@
 {% extends "base.html" %}
 
-{% block title %}About — Quayside{% endblock %}
+{% block title %}About Us — Quayside{% endblock %}
 
 {% block head %}
 <style>
   html { scroll-behavior: smooth; }
   body { overflow-x: hidden; }
 
-  /* ── SHARED ── */
-  .section-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 48px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--rule);
-    max-width: 200px;
-  }
   .fade-up {
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    transform: translateY(20px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
   }
   .fade-up.visible { opacity: 1; transform: translateY(0); }
 
   /* ── HERO ── */
   .about-hero {
-    padding: 96px 48px 80px;
+    padding: 80px 48px 72px;
     border-bottom: 1px solid var(--rule);
+    max-width: 760px;
   }
-  .about-hero-eyebrow {
+  .about-eyebrow {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--catch);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
     gap: 12px;
   }
-  .about-hero-eyebrow::before {
-    content: '';
-    display: block;
-    width: 32px;
-    height: 1px;
-    background: var(--catch);
-  }
+  .about-eyebrow::before { content: ''; display: block; width: 28px; height: 1px; background: var(--catch); }
   .about-hero h1 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(36px, 4.5vw, 60px);
+    font-size: clamp(32px, 4vw, 54px);
     font-weight: 900;
-    line-height: 1.05;
+    line-height: 1.07;
     letter-spacing: -0.03em;
-    margin-bottom: 28px;
-    max-width: 700px;
+    margin-bottom: 24px;
   }
   .about-hero h1 em { font-style: italic; color: var(--tide); }
-  .about-hero-sub {
-    font-size: 18px;
-    line-height: 1.75;
+  .about-hero p {
+    font-size: 17px;
+    line-height: 1.8;
     color: #4a4438;
-    max-width: 580px;
+    max-width: 560px;
   }
 
-  /* ── VALUE SECTIONS ── */
-  .value-section {
+  /* ── THREE-WAY OVERVIEW ── */
+  .overview-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .overview-card {
+    background: var(--paper);
+    padding: 36px 36px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .overview-card.mid { background: var(--foam); }
+  .overview-card.dark { background: var(--tide); }
+  .overview-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    align-self: flex-start;
+  }
+  .tag-free { background: rgba(109,184,138,0.15); color: #4a9468; border: 1px solid rgba(109,184,138,0.3); }
+  .tag-trade { background: rgba(200,64,26,0.12); color: var(--catch); border: 1px solid rgba(200,64,26,0.2); }
+  .tag-port { background: rgba(255,255,255,0.1); color: #a8c8d8; border: 1px solid rgba(255,255,255,0.15); }
+  .overview-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .overview-card.dark h3 { color: var(--paper); }
+  .overview-card p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #5a5448;
+    margin-bottom: 20px;
+    flex: 1;
+  }
+  .overview-card.dark p { color: #7ab0c8; }
+  .overview-link {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: gap 0.2s;
+  }
+  .overview-link:hover { gap: 10px; }
+  .overview-card:not(.dark) .overview-link { color: var(--tide); }
+  .overview-card.dark .overview-link { color: #6db88a; }
+
+  /* ── TIER SECTIONS ── */
+  .tier-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
     border-bottom: 1px solid var(--rule);
     align-items: stretch;
   }
-  .value-section-content {
-    padding: 80px 48px;
+  .tier-section-content {
+    padding: 72px 48px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
   }
-  .value-section-visual {
-    background: var(--foam);
-    border-left: 1px solid var(--rule);
+  .tier-section-visual {
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding: 80px 48px;
+    padding: 72px 48px;
     overflow: hidden;
+    border-left: 1px solid var(--rule);
   }
-  .value-section.flip .value-section-content { order: 2; border-left: 1px solid var(--rule); }
-  .value-section.flip .value-section-visual { order: 1; border-left: none; border-right: 1px solid var(--rule); background: var(--tide); }
-  .value-eyebrow {
+  .tier-section.flip .tier-section-content { order: 2; border-left: 1px solid var(--rule); }
+  .tier-section.flip .tier-section-visual { order: 1; border-left: none; }
+
+  /* backgrounds per tier */
+  .tier-free .tier-section-visual { background: var(--foam); }
+  .tier-trade { background: var(--ink); }
+  .tier-trade .tier-section-content h2 { color: var(--paper); }
+  .tier-trade .tier-section-content p { color: #7a7060; }
+  .tier-trade .tier-section-visual { background: #161410; border-left-color: #2a2820; }
+  .tier-trade.flip .tier-section-content { border-left-color: #2a2820; }
+  .tier-port { background: var(--paper); }
+  .tier-port .tier-section-visual { background: var(--tide); border-left-color: #0a1a24; }
+
+  .tier-eyebrow {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
+    font-size: 9px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--catch);
     margin-bottom: 20px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    align-self: flex-start;
   }
-  .value-eyebrow::before {
-    content: '';
-    display: block;
-    width: 24px;
-    height: 1px;
-    background: var(--catch);
-  }
-  .value-section-content h2 {
+  .tier-section-content h2 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(28px, 3vw, 40px);
+    font-size: clamp(26px, 2.8vw, 36px);
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.1;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
-  .value-section-content h2 em { font-style: italic; color: var(--tide); }
-  .value-section.flip .value-section-content h2 em { color: var(--catch); }
-  .value-section-content p {
+  .tier-section-content h2 em { font-style: italic; }
+  .tier-free .tier-section-content h2 em { color: var(--tide); }
+  .tier-trade .tier-section-content h2 em { color: var(--catch); }
+  .tier-port .tier-section-content h2 em { color: var(--catch); }
+  .tier-section-content > p {
     font-size: 15px;
     line-height: 1.8;
     color: #4a4438;
-    margin-bottom: 32px;
-    max-width: 440px;
+    margin-bottom: 28px;
+    max-width: 420px;
   }
-  /* feature card grid replaces bullet list */
+  .tier-trade .tier-section-content > p { color: #7a7060; }
+
+  /* ── FEATURE CARDS ── */
   .feature-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1px;
     background: var(--rule);
     border: 1px solid var(--rule);
-    margin-bottom: 36px;
+    margin-bottom: 32px;
   }
   .feature-card {
     background: var(--paper);
-    padding: 20px 20px 22px;
+    padding: 18px 18px 20px;
   }
   .feature-card-title {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
+    font-size: 9px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--tide);
-    margin-bottom: 8px;
+    margin-bottom: 7px;
   }
   .feature-card p {
     font-size: 13px;
-    line-height: 1.65;
+    line-height: 1.6;
     color: #5a5448;
-    margin-bottom: 0;
+    margin: 0;
     max-width: none;
   }
-  /* dark variant for ports section */
-  .feature-grid.dark {
+  /* dark for trade section */
+  .feature-grid.ink {
+    background: #2a2820;
+    border-color: #2a2820;
+  }
+  .feature-grid.ink .feature-card { background: #1a1810; }
+  .feature-grid.ink .feature-card-title { color: var(--catch); }
+  .feature-grid.ink .feature-card p { color: #5a5448; }
+  /* teal for port section */
+  .feature-grid.teal {
     background: #0a1a24;
     border-color: #0a1a24;
   }
-  .feature-grid.dark .feature-card {
-    background: #1e3d4d;
-  }
-  .feature-grid.dark .feature-card-title { color: #6db88a; }
-  .feature-grid.dark .feature-card p { color: #7ab0c8; }
+  .feature-grid.teal .feature-card { background: #1e3d4d; }
+  .feature-grid.teal .feature-card-title { color: #6db88a; }
+  .feature-grid.teal .feature-card p { color: #7ab0c8; }
 
-  .btn-primary {
+  /* ── BUTTONS ── */
+  .btn-catch {
     background: var(--catch);
     color: white;
-    padding: 13px 28px;
+    padding: 12px 26px;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.1em;
@@ -185,228 +241,142 @@
     transition: background 0.2s;
     align-self: flex-start;
   }
-  .btn-primary:hover { background: #a83010; }
-  .btn-secondary {
-    background: var(--foam);
-    color: var(--tide);
-    padding: 13px 28px;
+  .btn-catch:hover { background: #a83010; }
+  .btn-ghost-light {
+    background: transparent;
+    color: var(--paper);
+    padding: 12px 26px;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     text-decoration: none;
     display: inline-block;
-    border: 1px solid var(--rule);
+    border: 1px solid #3a3428;
+    border-radius: 2px;
+    transition: border-color 0.2s, color 0.2s;
+    align-self: flex-start;
+  }
+  .btn-ghost-light:hover { border-color: #5a5448; color: #c0b8a8; }
+  .btn-tide {
+    background: var(--tide);
+    color: var(--paper);
+    padding: 12px 26px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-block;
     border-radius: 2px;
     transition: background 0.2s;
     align-self: flex-start;
   }
-  .btn-secondary:hover { background: var(--salt); }
+  .btn-tide:hover { background: #0f2a38; }
 
-  /* ── PRODUCT MOCKUP: DIGEST ── */
+  /* ── MOCKUP: DIGEST ── */
   .mockup-digest {
     background: var(--paper);
     border: 1px solid var(--rule);
     border-radius: 4px;
     width: 100%;
-    max-width: 420px;
-    box-shadow: 0 8px 32px rgba(15,14,12,0.10);
+    max-width: 400px;
+    box-shadow: 0 6px 24px rgba(15,14,12,0.10);
     overflow: hidden;
   }
   .mockup-titlebar {
     background: var(--foam);
     border-bottom: 1px solid var(--rule);
-    padding: 10px 16px;
+    padding: 9px 14px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
-  .mockup-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rule); }
-  .mockup-url {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-    margin-left: 8px;
-  }
-  .mockup-digest-header {
-    padding: 20px 20px 12px;
-    border-bottom: 1px solid var(--rule);
-  }
-  .mockup-digest-header h4 {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-  .mockup-digest-date {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
+  .mockup-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--rule); flex-shrink: 0; }
+  .mockup-url { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); margin-left: 6px; letter-spacing: 0.04em; }
+  .mockup-digest-header { padding: 16px 18px 12px; border-bottom: 1px solid var(--rule); }
+  .mockup-digest-header h4 { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+  .mockup-digest-date { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
   .mockup-digest-row {
     display: grid;
-    grid-template-columns: 1fr 72px 72px 72px;
-    gap: 0;
-    padding: 9px 20px;
-    border-bottom: 1px solid rgba(200,191,170,0.4);
+    grid-template-columns: 1fr 60px 60px 52px;
+    padding: 8px 18px;
+    border-bottom: 1px solid rgba(200,191,170,0.35);
     align-items: center;
   }
   .mockup-digest-row:last-child { border-bottom: none; }
-  .mockup-digest-row.header {
-    background: var(--foam);
-    padding: 7px 20px;
-  }
-  .mockup-col-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-align: right;
-  }
+  .mockup-digest-row.hdr { background: var(--foam); padding: 6px 18px; }
+  .mockup-col-label { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: right; }
   .mockup-col-label:first-child { text-align: left; }
-  .mockup-species {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--ink);
-  }
-  .mockup-price {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    text-align: right;
-    color: var(--ink);
-  }
+  .mockup-species { font-size: 12px; font-weight: 500; color: var(--ink); }
+  .mockup-price { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-align: right; color: var(--ink); }
   .mockup-price.up { color: #4a9468; }
-  .mockup-price.down { color: #c05040; }
-  .mockup-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.08em;
-    padding: 2px 6px;
-    border-radius: 2px;
-    text-align: center;
-  }
+  .mockup-price.dn { color: #c05040; }
+  .mockup-badge { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.06em; padding: 2px 5px; border-radius: 2px; text-align: center; }
   .mockup-badge.best { background: rgba(109,184,138,0.15); color: #4a9468; border: 1px solid rgba(109,184,138,0.3); }
-  .mockup-badge.avg  { background: rgba(122,112,96,0.10);  color: var(--muted);  border: 1px solid var(--rule); }
+  .mockup-badge.avg { background: rgba(122,112,96,0.10); color: var(--muted); border: 1px solid var(--rule); }
 
-  /* ── PRODUCT MOCKUP: PORT DASHBOARD ── */
+  /* ── MOCKUP: TRADE EMAIL ── */
+  .mockup-email {
+    background: #161410;
+    border: 1px solid #2a2820;
+    border-radius: 4px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+    overflow: hidden;
+  }
+  .mockup-email-header { padding: 16px 18px 12px; border-bottom: 1px solid #2a2820; }
+  .mockup-email-from { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #4a4438; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .mockup-email-subject { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--paper); margin-bottom: 4px; }
+  .mockup-email-sub { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #4a4438; letter-spacing: 0.05em; }
+  .mockup-email-body { padding: 14px 18px; }
+  .mockup-email-section { margin-bottom: 14px; }
+  .mockup-email-section:last-child { margin-bottom: 0; }
+  .mockup-email-sectionlabel { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; color: #4a4438; margin-bottom: 8px; }
+  .mockup-email-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #1e1c18; }
+  .mockup-email-row:last-child { border-bottom: none; }
+  .mockup-email-row span:first-child { font-size: 12px; color: #a8c8d8; }
+  .mockup-email-row span:last-child { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+  .mockup-email-row .pos { color: #6db88a; }
+  .mockup-email-row .neg { color: #e07060; }
+  .mockup-email-alert { background: rgba(200,64,26,0.12); border: 1px solid rgba(200,64,26,0.2); border-radius: 2px; padding: 8px 12px; display: flex; gap: 10px; align-items: flex-start; }
+  .mockup-email-alert-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--catch); flex-shrink: 0; margin-top: 4px; }
+  .mockup-email-alert p { font-size: 12px; color: #c8a090; margin: 0; line-height: 1.5; }
+
+  /* ── MOCKUP: PORT DASHBOARD ── */
   .mockup-port {
     background: #1e3d4d;
     border-radius: 4px;
     width: 100%;
-    max-width: 420px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    max-width: 400px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
     overflow: hidden;
   }
-  .mockup-port-header {
-    padding: 18px 20px 14px;
-    border-bottom: 1px solid #0a1a24;
-  }
-  .mockup-port-name {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--paper);
-    margin-bottom: 6px;
-  }
-  .mockup-port-date {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #4a7a94;
-  }
-  .mockup-stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: #0a1a24;
-    border-bottom: 1px solid #0a1a24;
-  }
-  .mockup-stat {
-    background: #1e3d4d;
-    padding: 14px 16px;
-    text-align: center;
-  }
-  .mockup-stat-val {
-    font-family: 'Playfair Display', serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--paper);
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-  .mockup-stat-val.green { color: #6db88a; }
-  .mockup-stat-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 8px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #4a7a94;
-  }
-  .mockup-rank-section { padding: 16px 20px; border-bottom: 1px solid #0a1a24; }
-  .mockup-rank-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #4a7a94;
-    margin-bottom: 10px;
-  }
-  .mockup-rank-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    gap: 10px;
-  }
-  .mockup-rank-species {
-    font-size: 12px;
-    color: #a8c8d8;
-    min-width: 72px;
-  }
-  .mockup-rank-bar-bg {
-    flex: 1;
-    height: 4px;
-    background: #0a1a24;
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .mockup-rank-bar { height: 100%; border-radius: 2px; background: #6db88a; }
-  .mockup-rank-pos {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    color: #6db88a;
-    min-width: 28px;
-    text-align: right;
-  }
-  .mockup-price-row {
-    display: grid;
-    grid-template-columns: 1fr 64px 64px;
-    padding: 9px 20px;
-    border-bottom: 1px solid #0a1a24;
-    align-items: center;
-    gap: 8px;
-  }
-  .mockup-price-row .species { font-size: 12px; color: #a8c8d8; }
-  .mockup-price-row .price {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: var(--paper);
-    text-align: right;
-  }
-  .mockup-price-row .vs {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    text-align: right;
-  }
+  .mockup-port-header { padding: 16px 18px 12px; border-bottom: 1px solid #0a1a24; }
+  .mockup-port-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--paper); margin-bottom: 4px; }
+  .mockup-port-date { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: #4a7a94; }
+  .mockup-stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #0a1a24; border-bottom: 1px solid #0a1a24; }
+  .mockup-stat { background: #1e3d4d; padding: 12px 14px; text-align: center; }
+  .mockup-stat-val { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--paper); line-height: 1; margin-bottom: 3px; }
+  .mockup-stat-val.g { color: #6db88a; }
+  .mockup-stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 7px; letter-spacing: 0.1em; text-transform: uppercase; color: #4a7a94; }
+  .mockup-rank-section { padding: 12px 18px; border-bottom: 1px solid #0a1a24; }
+  .mockup-rank-label { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: #4a7a94; margin-bottom: 8px; }
+  .mockup-rank-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .mockup-rank-species { font-size: 11px; color: #a8c8d8; min-width: 60px; }
+  .mockup-rank-bar-bg { flex: 1; height: 3px; background: #0a1a24; border-radius: 2px; overflow: hidden; }
+  .mockup-rank-bar { height: 100%; border-radius: 2px; }
+  .mockup-rank-pos { font-family: 'IBM Plex Mono', monospace; font-size: 9px; min-width: 22px; text-align: right; }
+  .mockup-price-row { display: grid; grid-template-columns: 1fr 56px 52px; padding: 7px 18px; border-bottom: 1px solid #0a1a24; align-items: center; gap: 6px; }
+  .mockup-price-row:last-child { border-bottom: none; }
+  .mockup-price-row .sp { font-size: 11px; color: #a8c8d8; }
+  .mockup-price-row .pr { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--paper); text-align: right; }
+  .mockup-price-row .vs { font-family: 'IBM Plex Mono', monospace; font-size: 9px; text-align: right; }
   .mockup-price-row .vs.pos { color: #6db88a; }
   .mockup-price-row .vs.neg { color: #e07060; }
 
-  /* ── HOW WE GET IT ── */
+  /* ── HOW WE GET DATA ── */
   .how-strip {
     background: var(--foam);
     padding: 56px 48px;
@@ -416,171 +386,64 @@
     align-items: flex-start;
     flex-wrap: wrap;
   }
-  .how-strip-intro {
-    flex: 0 0 260px;
-  }
-  .how-strip-intro h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    letter-spacing: -0.01em;
-  }
-  .how-strip-intro p {
-    font-size: 14px;
-    line-height: 1.8;
-    color: #5a5448;
-  }
-  .how-strip-steps {
-    flex: 1;
-    display: flex;
-    gap: 1px;
-    background: var(--rule);
-    border: 1px solid var(--rule);
-    min-width: 0;
-  }
-  .how-strip-step {
-    flex: 1;
-    background: var(--paper);
-    padding: 28px 24px;
-    min-width: 0;
-  }
-  .how-step-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--catch);
-    margin-bottom: 10px;
-  }
-  .how-strip-step h4 {
-    font-family: 'Playfair Display', serif;
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-  .how-strip-step p {
-    font-size: 12px;
-    line-height: 1.7;
-    color: #5a5448;
-  }
+  .how-strip-intro { flex: 0 0 240px; }
+  .how-strip-intro h3 { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.01em; }
+  .how-strip-intro p { font-size: 13px; line-height: 1.8; color: #5a5448; }
+  .how-strip-steps { flex: 1; display: flex; gap: 1px; background: var(--rule); border: 1px solid var(--rule); min-width: 0; }
+  .how-strip-step { flex: 1; background: var(--paper); padding: 24px 20px; min-width: 0; }
+  .how-step-num { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--catch); margin-bottom: 8px; }
+  .how-strip-step h4 { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; margin-bottom: 5px; }
+  .how-strip-step p { font-size: 12px; line-height: 1.65; color: #5a5448; }
 
-  /* ── PORT COVERAGE ── */
-  .coverage-section { padding: 80px 48px; border-bottom: 1px solid var(--rule); }
-  .coverage-section-inner { max-width: 900px; }
-  .coverage-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 1px solid var(--rule);
-    margin-top: 0;
-  }
-  .coverage-table th {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-align: left;
-    padding: 12px 20px;
-    background: var(--foam);
-    border-bottom: 1px solid var(--rule);
-    font-weight: 400;
-  }
-  .coverage-table td {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--rule);
-    font-size: 14px;
-    vertical-align: middle;
-  }
+  /* ── COVERAGE ── */
+  .coverage-section { padding: 72px 48px; border-bottom: 1px solid var(--rule); }
+  .coverage-section-inner { max-width: 860px; }
+  .section-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 40px; display: flex; align-items: center; gap: 16px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--rule); max-width: 180px; }
+  .coverage-table { width: 100%; border-collapse: collapse; border: 1px solid var(--rule); }
+  .coverage-table th { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 11px 18px; background: var(--foam); border-bottom: 1px solid var(--rule); font-weight: 400; }
+  .coverage-table td { padding: 14px 18px; border-bottom: 1px solid var(--rule); font-size: 14px; vertical-align: middle; }
   .coverage-table tr:last-child td { border-bottom: none; }
   .coverage-table tr:hover td { background: var(--foam); }
-  .port-name-link {
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--ink);
-    text-decoration: none;
-  }
+  .port-name-link { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15px; color: var(--ink); text-decoration: none; }
   .port-name-link:hover { color: var(--tide); }
-  .data-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 2px;
-    background: rgba(26,58,74,0.08);
-    color: var(--tide);
-    border: 1px solid rgba(26,58,74,0.15);
-  }
+  .data-badge { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 7px; border-radius: 2px; background: rgba(26,58,74,0.08); color: var(--tide); border: 1px solid rgba(26,58,74,0.15); }
 
-  /* ── DUAL CTA ── */
+  /* ── FOOTER CTA ── */
   .about-cta {
     background: var(--ink);
-    padding: 80px 48px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0;
+    padding: 72px 48px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--ink);
   }
-  .cta-half {
-    flex: 1;
-    max-width: 400px;
-    text-align: center;
-    padding: 0 48px;
-  }
-  .cta-half + .cta-half { border-left: 1px solid #2a2820; }
-  .cta-half h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--paper);
-    letter-spacing: -0.01em;
-    margin-bottom: 10px;
-  }
-  .cta-half h3 em { font-style: italic; color: #7ab0c8; }
-  .cta-half p { font-size: 14px; color: #4a4438; margin-bottom: 24px; line-height: 1.7; }
-  .btn-cta-primary {
-    background: var(--catch);
-    color: white;
-    padding: 13px 28px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-decoration: none;
-    display: inline-block;
-    border-radius: 2px;
-    transition: background 0.2s;
-  }
-  .btn-cta-primary:hover { background: #a83010; }
-  .btn-cta-ghost {
-    background: transparent;
-    color: var(--paper);
-    padding: 13px 28px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-decoration: none;
-    display: inline-block;
+  .about-cta-inner {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: #2a2820;
     border: 1px solid #2a2820;
-    border-radius: 2px;
-    transition: border-color 0.2s, color 0.2s;
   }
+  .cta-card {
+    background: var(--ink);
+    padding: 40px 36px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cta-card-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; margin-bottom: 16px; display: inline-block; }
+  .cta-card h3 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--paper); letter-spacing: -0.01em; margin-bottom: 10px; line-height: 1.2; }
+  .cta-card h3 em { font-style: italic; }
+  .cta-card p { font-size: 13px; color: #4a4438; margin-bottom: 24px; line-height: 1.7; flex: 1; }
+  .btn-cta-primary { background: var(--catch); color: white; padding: 11px 24px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; display: inline-block; border-radius: 2px; transition: background 0.2s; }
+  .btn-cta-primary:hover { background: #a83010; }
+  .btn-cta-ghost { background: transparent; color: #7a7060; padding: 11px 24px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; display: inline-block; border: 1px solid #2a2820; border-radius: 2px; transition: border-color 0.2s, color 0.2s; }
   .btn-cta-ghost:hover { border-color: #4a4438; color: #c0b8a8; }
 
   /* ── FOOTER ── */
-  footer {
-    background: var(--ink);
-    padding: 28px 48px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-    border-top: 1px solid #2a2820;
-  }
+  footer { background: var(--ink); padding: 28px 48px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; border-top: 1px solid #2a2820; }
   .footer-logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--paper); }
   .footer-logo span { color: var(--catch); }
   .footer-copy { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: #3a3428; }
@@ -588,20 +451,20 @@
   .footer-links a { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #3a3428; text-decoration: none; transition: color 0.2s; }
   .footer-links a:hover { color: var(--muted); }
 
-  @media (max-width: 900px) {
+  @media (max-width: 960px) {
     .about-hero { padding: 56px 24px 48px; }
-    .value-section { grid-template-columns: 1fr; }
-    .value-section-visual { padding: 48px 24px; order: -1 !important; align-items: center; }
-    .value-section-content { padding: 48px 24px; order: 1 !important; border-left: none !important; }
-    .value-section.flip .value-section-visual { border-right: none; }
+    .overview-strip { grid-template-columns: 1fr; }
+    .tier-section { grid-template-columns: 1fr; }
+    .tier-section-visual { padding: 48px 24px; order: -1 !important; align-items: center; border-left: none !important; border-bottom: 1px solid var(--rule); }
+    .tier-section-content { padding: 48px 24px; order: 1 !important; border-left: none !important; }
     .feature-grid { grid-template-columns: 1fr; }
-    .how-strip { padding: 48px 24px; flex-direction: column; gap: 32px; }
+    .how-strip { padding: 48px 24px; flex-direction: column; gap: 28px; }
     .how-strip-intro { flex: none; }
     .how-strip-steps { flex-direction: column; }
     .coverage-section { padding: 56px 24px; }
-    .about-cta { flex-direction: column; padding: 56px 24px; gap: 48px; }
-    .cta-half { max-width: 100%; padding: 0; border-left: none !important; }
-    .cta-half + .cta-half { border-top: 1px solid #2a2820; padding-top: 48px; }
+    .about-cta { padding: 0; }
+    .about-cta-inner { grid-template-columns: 1fr; }
+    .cta-card { padding: 36px 24px; }
     footer { padding: 24px; flex-direction: column; align-items: flex-start; }
   }
 </style>
@@ -611,44 +474,63 @@
 
 <!-- HERO -->
 <section style="background:var(--paper);border-bottom:1px solid var(--rule);">
-  <div class="about-hero">
-    <div class="about-hero-eyebrow">Quayside</div>
+  <div class="about-hero fade-up">
+    <div class="about-eyebrow">Quayside</div>
     <h1>Every UK fish auction,<br><em>in one place.</em></h1>
-    <p class="about-hero-sub">
-      Fish market data in the UK has always been fragmented — each port publishing prices in a different format, on a different schedule, using different species names. Quayside brings it together into a single, daily-updated feed that works for buyers, sellers, and ports alike.
-    </p>
+    <p>Fish market data in the UK has always been fragmented — each port publishing prices in a different format, on a different schedule. Quayside collects it, normalises it, and makes it usable. Whether you buy fish, sell it, or auction it, there&rsquo;s something here for you.</p>
   </div>
 </section>
 
-<!-- FOR BUYERS & SELLERS -->
-<div class="value-section">
-  <div class="value-section-content fade-up">
-    <div class="value-eyebrow">For buyers &amp; sellers</div>
-    <h2>Know where the best prices are.<br><em>Every morning.</em></h2>
-    <p>Stop calling round to find out where cod landed cheapest today. Quayside tracks prices across every major UK auction port and delivers a clear, comparable view — so you can act on information, not rumour. Your morning email is personalised to the species and ports you care about most.</p>
+<!-- THREE-WAY OVERVIEW -->
+<div class="overview-strip fade-up">
+  <div class="overview-card">
+    <span class="overview-tag tag-free">Free for everyone</span>
+    <h3>Daily price digest</h3>
+    <p>The UK&rsquo;s only aggregated daily fish price feed — all major ports, normalised species, published every morning. No account required.</p>
+    <a href="{{ url_for('digest_page') }}" class="overview-link">Browse today&rsquo;s prices &rarr;</a>
+  </div>
+  <div class="overview-card mid">
+    <span class="overview-tag tag-trade">Trade membership</span>
+    <h3>For buyers &amp; sellers</h3>
+    <p>A personalised daily email, the full trade dashboard, and 30-day cross-port history — so you always know where to buy and what&rsquo;s moving.</p>
+    <a href="{{ url_for('for_traders') }}" class="overview-link">Learn about membership &rarr;</a>
+  </div>
+  <div class="overview-card dark">
+    <span class="overview-tag tag-port">Free for ports</span>
+    <h3>Port dashboard</h3>
+    <p>A live market intelligence dashboard for auction operators — benchmarks, rankings, trends, and national marketing exposure. Always free.</p>
+    <a href="{{ url_for('for_ports') }}" class="overview-link">List your port &rarr;</a>
+  </div>
+</div>
+
+<!-- TIER 1: FREE DIGEST -->
+<div class="tier-section tier-free">
+  <div class="tier-section-content fade-up">
+    <span class="tier-eyebrow tag-free">Free for everyone</span>
+    <h2>The daily digest.<br><em>No account needed.</em></h2>
+    <p>Every morning, Quayside publishes a cross-port price summary — every major species, every covered port, all in one table. It&rsquo;s free, public, and updated before the market opens.</p>
     <div class="feature-grid">
       <div class="feature-card">
-        <div class="feature-card-title">Your daily email</div>
-        <p>A personalised digest every morning — cross-port prices, biggest movers, and a spotlight on the species you follow most.</p>
+        <div class="feature-card-title">Cross-port prices</div>
+        <p>Every covered port, every species, side by side. See the UK market at a glance.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-card-title">Cross-port comparison</div>
-        <p>See at a glance where each species is cheapest today. Which port to call first — answered before you start.</p>
+        <div class="feature-card-title">Biggest movers</div>
+        <p>Which species rose or fell most overnight — so you know what to watch before you start calling.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-card-title">Price history &amp; trends</div>
-        <p>30 days of comparable data across all ports. Spot seasonal patterns and track whether prices are moving your way.</p>
+        <div class="feature-card-title">Best port today</div>
+        <p>For each species, which port landed the highest price yesterday — updated daily.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-card-title">Weekly &amp; monthly reports</div>
-        <p>Longer-run market intelligence — volatility, top movers by species, and port reliability over time.</p>
+        <div class="feature-card-title">Weekly &amp; monthly</div>
+        <p>Longer-run summaries showing trends, seasonal patterns, and market-wide volatility.</p>
       </div>
     </div>
-    <a href="{{ url_for('login') }}" class="btn-primary">Get access &rarr;</a>
+    <a href="{{ url_for('digest_page') }}" class="btn-catch">View today&rsquo;s digest &rarr;</a>
   </div>
-  <div class="value-section-visual">
-    <!-- DIGEST MOCKUP -->
-    <div class="mockup-digest fade-up" style="transition-delay:0.15s;">
+  <div class="tier-section-visual">
+    <div class="mockup-digest fade-up" style="transition-delay:0.12s;">
       <div class="mockup-titlebar">
         <div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div>
         <span class="mockup-url">quaysidedata.duckdns.org/digest</span>
@@ -657,11 +539,11 @@
         <h4>Daily Digest</h4>
         <div class="mockup-digest-date">Wednesday 18 March 2026</div>
       </div>
-      <div class="mockup-digest-row header">
+      <div class="mockup-digest-row hdr">
         <div class="mockup-col-label">Species</div>
         <div class="mockup-col-label">Avg £/kg</div>
-        <div class="mockup-col-label">vs yesterday</div>
-        <div class="mockup-col-label">Best port</div>
+        <div class="mockup-col-label">vs yest.</div>
+        <div class="mockup-col-label">Best</div>
       </div>
       <div class="mockup-digest-row">
         <div class="mockup-species">Turbot</div>
@@ -672,7 +554,7 @@
       <div class="mockup-digest-row">
         <div class="mockup-species">Cod</div>
         <div class="mockup-price">£4.85</div>
-        <div class="mockup-price down">&minus;1.4%</div>
+        <div class="mockup-price dn">&minus;1.4%</div>
         <div class="mockup-badge best">PTH</div>
       </div>
       <div class="mockup-digest-row">
@@ -690,125 +572,168 @@
       <div class="mockup-digest-row">
         <div class="mockup-species">Lemon Sole</div>
         <div class="mockup-price">£5.60</div>
-        <div class="mockup-price down">&minus;2.1%</div>
+        <div class="mockup-price dn">&minus;2.1%</div>
         <div class="mockup-badge best">BRX</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- FOR PORTS -->
-<div class="value-section flip" style="background:var(--paper);">
-  <div class="value-section-content fade-up">
-    <div class="value-eyebrow">For ports &amp; auction operators</div>
-    <h2>Five minutes to set up.<br><em>Everything back, every day.</em></h2>
-    <p>Getting started takes five minutes — we already hold the publicly available data for most ports. After that, the daily loop is simple: send us your price sheet each morning (by email, upload, or direct feed), and you get a full market intelligence dashboard back.</p>
-    <p style="font-size:14px;color:#5a5448;line-height:1.75;margin-bottom:28px;">No software to install. No IT involvement. No cost — ever. Ports pay nothing. The dashboard, the benchmarks, the marketing exposure — permanently free.</p>
-    <div class="feature-grid dark">
+<!-- TIER 2: TRADE MEMBERSHIP -->
+<div class="tier-section tier-trade flip">
+  <div class="tier-section-content fade-up">
+    <span class="tier-eyebrow tag-trade">Trade membership</span>
+    <h2>Your daily edge.<br><em>Personalised.</em></h2>
+    <p>Trade members get more than the public digest. Your morning email is built around the species and ports you follow — so you see what matters to you, not everything at once. Plus full access to the trade dashboard and 30-day price history across all ports.</p>
+    <div class="feature-grid ink">
       <div class="feature-card">
-        <div class="feature-card-title">Your dashboard</div>
-        <p>See where your prices rank against every other UK port, species by species, updated the moment your data arrives.</p>
+        <div class="feature-card-title">Personalised email</div>
+        <p>Your daily digest highlights the species you buy and the ports you watch — tailored, not generic.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-card-title">National marketing</div>
-        <p>When you're cheapest for a species, buyers across the UK see it in their morning digest. Free reach you can't buy anywhere else.</p>
+        <div class="feature-card-title">Trade dashboard</div>
+        <p>Full cross-port analysis, species deep-dives, and port intelligence — all in one place.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-card-title">30-day trends</div>
-        <p>Track your price trajectory over time. Show your sellers data, not anecdote — how you compare to the wider market.</p>
+        <div class="feature-card-title">30-day history</div>
+        <p>See price trends over the past month across every port. Spot patterns before others do.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-card-title">You stay in control</div>
-        <p>Every day's data gets a confirmation step. One click to approve, one click to correct. We learn from every edit.</p>
+        <div class="feature-card-title">Port rankings</div>
+        <p>Which port is consistently cheapest for your key species? The data, not the rumour.</p>
       </div>
     </div>
-    <a href="{{ url_for('for_ports') }}" class="btn-primary">List your port &rarr;</a>
+    <a href="{{ url_for('login') }}" class="btn-catch">Get access &rarr;</a>
   </div>
-  <div class="value-section-visual">
-    <!-- PORT DASHBOARD MOCKUP -->
-    <div class="mockup-port fade-up" style="transition-delay:0.15s;">
-      <div class="mockup-port-header">
-        <div class="mockup-port-name">Peterhead</div>
-        <div class="mockup-port-date">Wednesday 18 March 2026</div>
+  <div class="tier-section-visual">
+    <div class="mockup-email fade-up" style="transition-delay:0.12s;">
+      <div class="mockup-email-header">
+        <div class="mockup-email-from">From: digest@quayside.fish</div>
+        <div class="mockup-email-subject">Your Quayside digest &mdash; Wed 18 Mar</div>
+        <div class="mockup-email-sub">Showing: Cod, Haddock, Turbot &bull; Ports: PTH, BRX, NLN</div>
       </div>
-      <div class="mockup-stats-row">
-        <div class="mockup-stat">
-          <div class="mockup-stat-val">£3.42</div>
-          <div class="mockup-stat-label">Avg £/kg</div>
+      <div class="mockup-email-body">
+        <div class="mockup-email-section">
+          <div class="mockup-email-sectionlabel">Your species this morning</div>
+          <div class="mockup-email-row">
+            <span>Cod &mdash; Peterhead</span><span class="pos">£5.10/kg &uarr;</span>
+          </div>
+          <div class="mockup-email-row">
+            <span>Haddock &mdash; Peterhead</span><span class="pos">£3.20/kg &uarr;</span>
+          </div>
+          <div class="mockup-email-row">
+            <span>Turbot &mdash; Newlyn</span><span class="neg">£36.40/kg &darr;</span>
+          </div>
         </div>
-        <div class="mockup-stat">
-          <div class="mockup-stat-val green">68%</div>
-          <div class="mockup-stat-label">Beating avg</div>
+        <div class="mockup-email-section">
+          <div class="mockup-email-sectionlabel">Market alert</div>
+          <div class="mockup-email-alert">
+            <div class="mockup-email-alert-dot"></div>
+            <p>Cod up +8.2% week-on-week across all ports. Peterhead leading at £5.10/kg vs UK avg £4.72/kg.</p>
+          </div>
         </div>
-        <div class="mockup-stat">
-          <div class="mockup-stat-val">12</div>
-          <div class="mockup-stat-label">Species today</div>
+        <div class="mockup-email-section">
+          <div class="mockup-email-sectionlabel">Cheapest for your species today</div>
+          <div class="mockup-email-row">
+            <span>Cod</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#4a7a94;">PTH &mdash; £4.85/kg</span>
+          </div>
+          <div class="mockup-email-row">
+            <span>Haddock</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#4a7a94;">PTH &mdash; £2.95/kg</span>
+          </div>
         </div>
-      </div>
-      <div class="mockup-rank-section">
-        <div class="mockup-rank-label">Your ranking vs UK ports</div>
-        <div class="mockup-rank-row">
-          <span class="mockup-rank-species">Haddock</span>
-          <div class="mockup-rank-bar-bg"><div class="mockup-rank-bar" style="width:90%"></div></div>
-          <span class="mockup-rank-pos">#1</span>
-        </div>
-        <div class="mockup-rank-row">
-          <span class="mockup-rank-species">Cod</span>
-          <div class="mockup-rank-bar-bg"><div class="mockup-rank-bar" style="width:60%;background:#7ab0c8;"></div></div>
-          <span class="mockup-rank-pos" style="color:#7ab0c8;">#2</span>
-        </div>
-        <div class="mockup-rank-row">
-          <span class="mockup-rank-species">Whiting</span>
-          <div class="mockup-rank-bar-bg"><div class="mockup-rank-bar" style="width:40%;background:#7ab0c8;"></div></div>
-          <span class="mockup-rank-pos" style="color:#7ab0c8;">#3</span>
-        </div>
-      </div>
-      <div class="mockup-price-row">
-        <span class="species">Haddock A1</span>
-        <span class="price">£3.20/kg</span>
-        <span class="vs pos">+£0.42</span>
-      </div>
-      <div class="mockup-price-row">
-        <span class="species">Cod A1</span>
-        <span class="price">£5.10/kg</span>
-        <span class="vs pos">+£0.25</span>
-      </div>
-      <div class="mockup-price-row">
-        <span class="species">Whiting A2</span>
-        <span class="price">£1.85/kg</span>
-        <span class="vs neg">&minus;£0.10</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- HOW WE GET THE DATA (brief strip) -->
+<!-- TIER 3: PORT DASHBOARD -->
+<div class="tier-section tier-port">
+  <div class="tier-section-content fade-up">
+    <span class="tier-eyebrow tag-port" style="background:rgba(26,58,74,0.1);color:var(--tide);border-color:rgba(26,58,74,0.2);">Free for ports</span>
+    <h2>Five minutes to set up.<br><em>Everything back, every day.</em></h2>
+    <p>We already hold the publicly available data for most ports, so getting started takes minutes. After that, the daily loop is simple: send us your price sheet each morning — by email, upload, or direct feed — and you get a full market intelligence dashboard back. No software to install. No IT involvement. No cost. Ever.</p>
+    <div class="feature-grid teal">
+      <div class="feature-card">
+        <div class="feature-card-title">Your ranking</div>
+        <p>See where you sit against every other UK port, species by species — updated the moment your data arrives.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">National exposure</div>
+        <p>When you&rsquo;re cheapest for a species, buyers across the UK see it in their morning digest. Free marketing you can&rsquo;t buy.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">30-day trends</div>
+        <p>Track your price trajectory over time. Show your sellers data, not anecdote.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">You stay in control</div>
+        <p>Every day&rsquo;s data gets a confirmation step. One click to approve, one to correct. We learn from every edit.</p>
+      </div>
+    </div>
+    <a href="{{ url_for('for_ports') }}" class="btn-tide">List your port &rarr;</a>
+  </div>
+  <div class="tier-section-visual">
+    <div class="mockup-port fade-up" style="transition-delay:0.12s;">
+      <div class="mockup-port-header">
+        <div class="mockup-port-name">Peterhead</div>
+        <div class="mockup-port-date">Wednesday 18 March 2026</div>
+      </div>
+      <div class="mockup-stats-row">
+        <div class="mockup-stat"><div class="mockup-stat-val">£3.42</div><div class="mockup-stat-label">Avg £/kg</div></div>
+        <div class="mockup-stat"><div class="mockup-stat-val g">68%</div><div class="mockup-stat-label">Beating avg</div></div>
+        <div class="mockup-stat"><div class="mockup-stat-val">12</div><div class="mockup-stat-label">Species today</div></div>
+      </div>
+      <div class="mockup-rank-section">
+        <div class="mockup-rank-label">Ranking vs UK ports</div>
+        <div class="mockup-rank-row">
+          <span class="mockup-rank-species">Haddock</span>
+          <div class="mockup-rank-bar-bg"><div class="mockup-rank-bar" style="width:92%;background:#6db88a;"></div></div>
+          <span class="mockup-rank-pos" style="color:#6db88a;">#1</span>
+        </div>
+        <div class="mockup-rank-row">
+          <span class="mockup-rank-species">Cod</span>
+          <div class="mockup-rank-bar-bg"><div class="mockup-rank-bar" style="width:62%;background:#7ab0c8;"></div></div>
+          <span class="mockup-rank-pos" style="color:#7ab0c8;">#2</span>
+        </div>
+        <div class="mockup-rank-row">
+          <span class="mockup-rank-species">Whiting</span>
+          <div class="mockup-rank-bar-bg"><div class="mockup-rank-bar" style="width:42%;background:#7ab0c8;"></div></div>
+          <span class="mockup-rank-pos" style="color:#7ab0c8;">#3</span>
+        </div>
+      </div>
+      <div class="mockup-price-row"><span class="sp">Haddock A1</span><span class="pr">£3.20/kg</span><span class="vs pos">+£0.42</span></div>
+      <div class="mockup-price-row"><span class="sp">Cod A1</span><span class="pr">£5.10/kg</span><span class="vs pos">+£0.25</span></div>
+      <div class="mockup-price-row"><span class="sp">Whiting A2</span><span class="pr">£1.85/kg</span><span class="vs neg">&minus;£0.10</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW WE GET THE DATA -->
 <div class="how-strip">
   <div class="how-strip-intro">
     <h3>How we get the data</h3>
-    <p>We collect publicly available auction data from each port's own website — automatically, every morning. But we're also building direct data partnerships with ports so the feed gets faster, more complete, and officially endorsed over time.</p>
-    <p style="margin-top:12px;font-size:13px;color:#5a5448;line-height:1.7;">Today, five ports feed into Quayside. More join regularly — either through our automated pipeline or by sending data directly.</p>
+    <p>We collect publicly available auction data from port websites automatically, every morning. But we&rsquo;re also building direct data partnerships with ports — so the feed gets faster, more complete, and officially endorsed over time.</p>
   </div>
   <div class="how-strip-steps">
     <div class="how-strip-step">
       <div class="how-step-num">Collect</div>
       <h4>Automated &amp; direct</h4>
-      <p>Scrapers run each morning. Ports with a direct feed send data straight to us — no scraping needed.</p>
+      <p>Daily scrapers plus direct port feeds — no manual downloading.</p>
     </div>
     <div class="how-strip-step">
       <div class="how-step-num">Normalise</div>
       <h4>One schema</h4>
-      <p>Species names, dates, and grades mapped to a common format so every port is comparable.</p>
+      <p>Species, dates, and grades mapped to a common format so every port is comparable.</p>
     </div>
     <div class="how-strip-step">
       <div class="how-step-num">Verify</div>
-      <h4>Quality checked</h4>
-      <p>Port operators review and confirm each day's data before it goes live — accuracy guaranteed.</p>
+      <h4>Port-confirmed</h4>
+      <p>Operators review and confirm each day&rsquo;s data before it goes live.</p>
     </div>
     <div class="how-strip-step">
       <div class="how-step-num">Publish</div>
       <h4>Before trading starts</h4>
-      <p>Clean data across dashboards, digests, and exports — updated before the market opens.</p>
+      <p>Live across dashboards, digests, and exports — before the market opens.</p>
     </div>
   </div>
 </div>
@@ -837,23 +762,33 @@
         {% endfor %}
       </tbody>
     </table>
-    <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:16px;letter-spacing:0.03em;">
-      More ports added regularly. &rarr; <a href="{{ url_for('for_ports') }}" style="color:var(--tide);">Get your port listed</a>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:14px;letter-spacing:0.03em;">
+      More ports join regularly. &rarr; <a href="{{ url_for('for_ports') }}" style="color:var(--tide);">Get your port listed</a>
     </p>
   </div>
 </section>
 
-<!-- DUAL CTA -->
+<!-- FOOTER CTA -->
 <div class="about-cta">
-  <div class="cta-half">
-    <h3>Buying or selling fish?<br><em>Start here.</em></h3>
-    <p>Get daily cross-port price intelligence delivered before the market opens.</p>
-    <a href="{{ url_for('login') }}" class="btn-cta-primary">Get access &rarr;</a>
-  </div>
-  <div class="cta-half">
-    <h3>Running a port?<br><em>It&rsquo;s free.</em></h3>
-    <p>Free dashboard, free benchmarks, free marketing to UK fish buyers. No catch.</p>
-    <a href="{{ url_for('for_ports') }}" class="btn-cta-ghost">List your port &rarr;</a>
+  <div class="about-cta-inner">
+    <div class="cta-card">
+      <span class="cta-card-tag tag-free">Free</span>
+      <h3>Browse the digest</h3>
+      <p>Today&rsquo;s UK fish prices across every covered port — no account needed.</p>
+      <a href="{{ url_for('digest_page') }}" class="btn-cta-primary">View today&rsquo;s digest &rarr;</a>
+    </div>
+    <div class="cta-card">
+      <span class="cta-card-tag tag-trade">Trade</span>
+      <h3>Get full access</h3>
+      <p>Personalised daily email, trade dashboard, 30-day history, and port rankings.</p>
+      <a href="{{ url_for('login') }}" class="btn-cta-primary">Sign up &rarr;</a>
+    </div>
+    <div class="cta-card">
+      <span class="cta-card-tag tag-port">Ports</span>
+      <h3>List your port</h3>
+      <p>Free dashboard, benchmarks, and marketing to UK buyers. Five minutes to get started.</p>
+      <a href="{{ url_for('for_ports') }}" class="btn-cta-ghost">Get listed &rarr;</a>
+    </div>
   </div>
 </div>
 
@@ -863,6 +798,7 @@
   <ul class="footer-links">
     <li><a href="{{ url_for('landing') }}">Home</a></li>
     <li><a href="{{ url_for('for_ports') }}">For Ports</a></li>
+    <li><a href="{{ url_for('for_traders') }}">For Traders</a></li>
     <li><a href="mailto:hello@quayside.fish">Contact</a></li>
   </ul>
   <div class="footer-copy">&copy; 2026 Quayside Data Ltd</div>
@@ -874,7 +810,7 @@
 <script>
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.08 });
+  }, { threshold: 0.07 });
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 </script>
 {% endblock %}
