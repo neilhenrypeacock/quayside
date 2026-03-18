@@ -77,22 +77,22 @@
   .value-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    min-height: 560px;
     border-bottom: 1px solid var(--rule);
+    align-items: stretch;
   }
   .value-section-content {
     padding: 80px 48px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
   }
   .value-section-visual {
     background: var(--foam);
     border-left: 1px solid var(--rule);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 48px 40px;
+    padding: 80px 48px;
     overflow: hidden;
   }
   .value-section.flip .value-section-content { order: 2; border-left: 1px solid var(--rule); }
@@ -132,30 +132,44 @@
     margin-bottom: 32px;
     max-width: 440px;
   }
-  .feature-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+  /* feature card grid replaces bullet list */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
     margin-bottom: 36px;
   }
-  .feature-list li {
-    font-size: 14px;
-    line-height: 1.6;
-    color: #4a4438;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
+  .feature-card {
+    background: var(--paper);
+    padding: 20px 20px 22px;
   }
-  .feature-list li::before {
-    content: '→';
+  .feature-card-title {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
     color: var(--tide);
-    flex-shrink: 0;
-    padding-top: 2px;
+    margin-bottom: 8px;
   }
-  .feature-list li strong { color: var(--ink); font-weight: 500; }
+  .feature-card p {
+    font-size: 13px;
+    line-height: 1.65;
+    color: #5a5448;
+    margin-bottom: 0;
+    max-width: none;
+  }
+  /* dark variant for ports section */
+  .feature-grid.dark {
+    background: #0a1a24;
+    border-color: #0a1a24;
+  }
+  .feature-grid.dark .feature-card {
+    background: #1e3d4d;
+  }
+  .feature-grid.dark .feature-card-title { color: #6db88a; }
+  .feature-grid.dark .feature-card p { color: #7ab0c8; }
 
   .btn-primary {
     background: var(--catch);
@@ -576,10 +590,11 @@
 
   @media (max-width: 900px) {
     .about-hero { padding: 56px 24px 48px; }
-    .value-section { grid-template-columns: 1fr; min-height: auto; }
-    .value-section-visual { min-height: 320px; order: -1 !important; }
+    .value-section { grid-template-columns: 1fr; }
+    .value-section-visual { padding: 48px 24px; order: -1 !important; align-items: center; }
     .value-section-content { padding: 48px 24px; order: 1 !important; border-left: none !important; }
     .value-section.flip .value-section-visual { border-right: none; }
+    .feature-grid { grid-template-columns: 1fr; }
     .how-strip { padding: 48px 24px; flex-direction: column; gap: 32px; }
     .how-strip-intro { flex: none; }
     .how-strip-steps { flex-direction: column; }
@@ -610,13 +625,25 @@
   <div class="value-section-content fade-up">
     <div class="value-eyebrow">For buyers &amp; sellers</div>
     <h2>Know where the best prices are.<br><em>Every morning.</em></h2>
-    <p>Stop calling round to find out where cod landed cheapest today. Quayside tracks prices across all major UK auction ports and delivers a clear, comparable view — so you can act on information, not rumour.</p>
-    <ul class="feature-list">
-      <li><strong>Daily digest</strong> — cross-port price tables, biggest movers, species-level benchmarks, delivered every morning</li>
-      <li><strong>30-day price history</strong> — track trends by species across multiple ports in one view</li>
-      <li><strong>Market alerts</strong> — see at a glance which port is cheapest for the species you buy most</li>
-      <li><strong>Weekly &amp; monthly reports</strong> — longer-run trends, seasonality, and market volatility</li>
-    </ul>
+    <p>Stop calling round to find out where cod landed cheapest today. Quayside tracks prices across every major UK auction port and delivers a clear, comparable view — so you can act on information, not rumour. Your morning email is personalised to the species and ports you care about most.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-card-title">Your daily email</div>
+        <p>A personalised digest every morning — cross-port prices, biggest movers, and a spotlight on the species you follow most.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">Cross-port comparison</div>
+        <p>See at a glance where each species is cheapest today. Which port to call first — answered before you start.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">Price history &amp; trends</div>
+        <p>30 days of comparable data across all ports. Spot seasonal patterns and track whether prices are moving your way.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">Weekly &amp; monthly reports</div>
+        <p>Longer-run market intelligence — volatility, top movers by species, and port reliability over time.</p>
+      </div>
+    </div>
     <a href="{{ url_for('login') }}" class="btn-primary">Get access &rarr;</a>
   </div>
   <div class="value-section-visual">
@@ -674,14 +701,27 @@
 <div class="value-section flip" style="background:var(--paper);">
   <div class="value-section-content fade-up">
     <div class="value-eyebrow">For ports &amp; auction operators</div>
-    <h2>Your free dashboard.<br><em>Your competitive edge.</em></h2>
-    <p>See exactly where your prices sit against every other UK port — species by species, grade by grade. Quayside builds and maintains your dashboard for free. No software to install. No setup fee. Ever.</p>
-    <ul class="feature-list">
-      <li><strong>Know your position</strong> — ranked against comparable ports for every major species, updated daily</li>
-      <li><strong>30-day price trends</strong> — see your trajectory and spot seasonal patterns before they bite</li>
-      <li><strong>National marketing</strong> — when you're cheapest for a species, buyers across the UK see it in their morning digest</li>
-      <li><strong>Port benchmark card</strong> — shareable data to show your sellers how you compare to the wider market</li>
-    </ul>
+    <h2>Five minutes to set up.<br><em>Everything back, every day.</em></h2>
+    <p>Getting started takes five minutes — we already hold the publicly available data for most ports. After that, the daily loop is simple: send us your price sheet each morning (by email, upload, or direct feed), and you get a full market intelligence dashboard back.</p>
+    <p style="font-size:14px;color:#5a5448;line-height:1.75;margin-bottom:28px;">No software to install. No IT involvement. No cost — ever. Ports pay nothing. The dashboard, the benchmarks, the marketing exposure — permanently free.</p>
+    <div class="feature-grid dark">
+      <div class="feature-card">
+        <div class="feature-card-title">Your dashboard</div>
+        <p>See where your prices rank against every other UK port, species by species, updated the moment your data arrives.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">National marketing</div>
+        <p>When you're cheapest for a species, buyers across the UK see it in their morning digest. Free reach you can't buy anywhere else.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">30-day trends</div>
+        <p>Track your price trajectory over time. Show your sellers data, not anecdote — how you compare to the wider market.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">You stay in control</div>
+        <p>Every day's data gets a confirmation step. One click to approve, one click to correct. We learn from every edit.</p>
+      </div>
+    </div>
     <a href="{{ url_for('for_ports') }}" class="btn-primary">List your port &rarr;</a>
   </div>
   <div class="value-section-visual">
@@ -746,13 +786,14 @@
 <div class="how-strip">
   <div class="how-strip-intro">
     <h3>How we get the data</h3>
-    <p>We collect publicly available auction data from each port's own website. Nothing private, nothing scraped without permission. If a port publishes it, we normalise and surface it.</p>
+    <p>We collect publicly available auction data from each port's own website — automatically, every morning. But we're also building direct data partnerships with ports so the feed gets faster, more complete, and officially endorsed over time.</p>
+    <p style="margin-top:12px;font-size:13px;color:#5a5448;line-height:1.7;">Today, five ports feed into Quayside. More join regularly — either through our automated pipeline or by sending data directly.</p>
   </div>
   <div class="how-strip-steps">
     <div class="how-strip-step">
       <div class="how-step-num">Collect</div>
-      <h4>Daily, automated</h4>
-      <p>Scrapers run each morning pulling PDFs, HTML tables, and spreadsheets from port websites.</p>
+      <h4>Automated &amp; direct</h4>
+      <p>Scrapers run each morning. Ports with a direct feed send data straight to us — no scraping needed.</p>
     </div>
     <div class="how-strip-step">
       <div class="how-step-num">Normalise</div>
@@ -760,9 +801,14 @@
       <p>Species names, dates, and grades mapped to a common format so every port is comparable.</p>
     </div>
     <div class="how-strip-step">
+      <div class="how-step-num">Verify</div>
+      <h4>Quality checked</h4>
+      <p>Port operators review and confirm each day's data before it goes live — accuracy guaranteed.</p>
+    </div>
+    <div class="how-strip-step">
       <div class="how-step-num">Publish</div>
-      <h4>Every morning</h4>
-      <p>Clean data surfaces across dashboards, digests, and exports — updated before the trading day starts.</p>
+      <h4>Before trading starts</h4>
+      <p>Clean data across dashboards, digests, and exports — updated before the market opens.</p>
     </div>
   </div>
 </div>
