@@ -181,6 +181,10 @@ def _migrate(conn: sqlite3.Connection) -> None:
             ON quality_log(check_type, severity, port, date,
                            COALESCE(species, ''), COALESCE(grade, ''))
         """)
+    # Add cleared column to quality_log (for user-acknowledged dismissals)
+    existing_quality = {row[1] for row in conn.execute("PRAGMA table_info(quality_log)").fetchall()}
+    if "cleared" not in existing_quality:
+        conn.execute("ALTER TABLE quality_log ADD COLUMN cleared INTEGER DEFAULT 0")
     # trade_feedback table
     try:
         conn.execute("""
@@ -1012,34 +1016,42 @@ def get_market_averages_for_date(date: str) -> dict[str, dict]:
 
 
 def get_quality_issues(days: int = 7) -> list[dict]:
-    """Return deduplicated quality issues logged in the last `days` days, newest first."""
+    """Return quality issues logged in the last `days` days that haven't been cleared, newest first."""
     conn = get_connection()
     cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
     rows = conn.execute(
-        """SELECT MAX(checked_at), check_type, severity, port, date, species, grade,
+        """SELECT id, checked_at, check_type, severity, port, date, species, grade,
                   value, expected, message
            FROM quality_log
-           WHERE checked_at >= ?
-           GROUP BY check_type, severity, port, date, species, grade, value, expected, message
-           ORDER BY MAX(checked_at) DESC, severity DESC""",
+           WHERE checked_at >= ? AND (cleared IS NULL OR cleared = 0)
+           ORDER BY checked_at DESC, severity DESC""",
         (cutoff,),
     ).fetchall()
     conn.close()
     return [
         {
-            "checked_at": r[0],
-            "check_type": r[1],
-            "severity": r[2],
-            "port": r[3],
-            "date": r[4],
-            "species": r[5],
-            "grade": r[6],
-            "value": r[7],
-            "expected": r[8],
-            "message": r[9],
+            "id": r[0],
+            "checked_at": r[1],
+            "check_type": r[2],
+            "severity": r[3],
+            "port": r[4],
+            "date": r[5],
+            "species": r[6],
+            "grade": r[7],
+            "value": r[8],
+            "expected": r[9],
+            "message": r[10],
         }
         for r in rows
     ]
+
+
+def clear_quality_issue(issue_id: int) -> None:
+    """Mark a quality issue as cleared (acknowledged by operator)."""
+    conn = get_connection()
+    conn.execute("UPDATE quality_log SET cleared = 1 WHERE id = ?", (issue_id,))
+    conn.commit()
+    conn.close()
 
 
 def get_quality_summary() -> dict:
@@ -1055,7 +1067,7 @@ def get_quality_summary() -> dict:
         """SELECT port, severity, COUNT(*) as n
            FROM (
                SELECT DISTINCT check_type, severity, port, date, species, grade
-               FROM quality_log WHERE checked_at >= ?
+               FROM quality_log WHERE checked_at >= ? AND (cleared IS NULL OR cleared = 0)
            )
            GROUP BY port, severity""",
         (cutoff,),

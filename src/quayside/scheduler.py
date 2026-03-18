@@ -65,10 +65,10 @@ def start_scheduler(app) -> None:
 
     _scheduler = BackgroundScheduler(daemon=True)
 
-    # Run at 10:15 AM UTC Mon–Fri, and also every 30 min as a catch-up check
+    # Run at 07:15 AM UTC Mon–Fri, and also every 30 min as a catch-up check
     _scheduler.add_job(
         _run_pipeline_if_needed,
-        CronTrigger(day_of_week="mon-fri", hour=10, minute=15),
+        CronTrigger(day_of_week="mon-fri", hour=7, minute=15),
         id="pipeline_daily",
         name="Daily scrape pipeline",
         replace_existing=True,
@@ -83,7 +83,7 @@ def start_scheduler(app) -> None:
     )
 
     _scheduler.start()
-    logger.info("Scheduler started — pipeline will run Mon–Fri at 10:15 UTC")
+    logger.info("Scheduler started — pipeline will run Mon–Fri at 07:15 UTC")
 
     with app.app_context():
         pass  # ensure app context available if needed later

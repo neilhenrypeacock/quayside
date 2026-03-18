@@ -1351,13 +1351,18 @@ def create_app() -> Flask:
                 if port_name not in today_scrape_summary:
                     today_scrape_summary[port_name] = {
                         "first_attempt": time_str,
+                        "first_success": None,
                         "last_success": None,
+                        "success_count": 0,
                         "status": "failed",
                         "record_count": 0,
                         "error_type": None,
                     }
                 if row["success"]:
+                    if today_scrape_summary[port_name]["first_success"] is None:
+                        today_scrape_summary[port_name]["first_success"] = time_str
                     today_scrape_summary[port_name]["last_success"] = time_str
+                    today_scrape_summary[port_name]["success_count"] += 1
                     today_scrape_summary[port_name]["status"] = "success"
                     today_scrape_summary[port_name]["record_count"] = row["record_count"]
                 elif today_scrape_summary[port_name]["status"] != "success":
@@ -1506,6 +1511,13 @@ def create_app() -> Flask:
         from quayside.quality import run_quality_checks
         summary = run_quality_checks()
         return jsonify({"ok": True, "errors": summary["errors"], "warns": summary["warns"]})
+
+    @app.route("/ops/quality/clear/<int:issue_id>", methods=["POST"])
+    def ops_clear_quality_issue(issue_id):
+        """Mark a quality issue as cleared (acknowledged)."""
+        from quayside.db import clear_quality_issue
+        clear_quality_issue(issue_id)
+        return jsonify({"ok": True})
 
     @app.route("/ops/quality-report")
     def ops_quality_report():

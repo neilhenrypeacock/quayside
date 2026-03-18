@@ -3,7 +3,7 @@
 Runs ten checks against the prices table and writes issues to quality_log.
 
 Statistical checks (1–6):
-  1. outlier_price   — per-record price >3σ/5σ from 30-day mean
+  1. outlier_price   — per-record price >3.5× MAD from 30-day median (warn only)
   2. record_count    — today's count <40% of rolling median
   3. stale_data      — no new data for ≥2/4 trading days
   4. day_avg_spike   — port daily avg ±50%/100% from rolling avg
@@ -46,9 +46,8 @@ _ACTIVE_PORTS_SQL = """
 """
 
 # Thresholds
-_OUTLIER_ERROR_SIGMA = 5.0   # price > mean + 5σ → error
-_OUTLIER_WARN_SIGMA = 3.0    # price > mean + 3σ → warn
-_MIN_HISTORY_RECORDS = 10    # min records in 30-day history to run outlier check
+_OUTLIER_MAD_THRESHOLD = 3.5  # robust z-score > 3.5× MAD from median → warn (no error)
+_MIN_HISTORY_RECORDS = 10     # min records in 30-day history to run outlier check
 _RECORD_COUNT_WARN_RATIO = 0.4   # today's count < 40% of median → warn
 _DAY_AVG_WARN_PCT = 50.0     # port day avg ±50% of rolling avg → warn
 _DAY_AVG_ERROR_PCT = 100.0   # port day avg ±100% of rolling avg → error
@@ -105,7 +104,14 @@ def run_quality_checks(date: str | None = None) -> dict:
 # ── Check 1: Per-record outlier prices ───────────────────────────────────────
 
 def _check_outlier_prices(conn, date: str, checked_at: str, active_ports: list[str]) -> list[dict]:
-    """Flag prices that are statistical outliers vs. 30-day rolling history."""
+    """Flag prices that are statistical outliers vs. 30-day rolling history.
+
+    Uses median + MAD (Median Absolute Deviation) instead of mean + σ so that
+    missing trading days don't drag the baseline down and cause false positives.
+    Emits warn only — no errors for price outliers.
+    """
+    from collections import defaultdict
+
     issues = []
     cutoff_30d = (datetime.fromisoformat(date) - timedelta(days=30)).date().isoformat()
 
@@ -120,40 +126,41 @@ def _check_outlier_prices(conn, date: str, checked_at: str, active_ports: list[s
         if not today_rows:
             continue
 
-        # Compute per-species/grade stats over last 30 days (excluding today)
-        history = conn.execute(
-            """SELECT species, grade, AVG(price_avg), COUNT(*),
-                      AVG(price_avg * price_avg) - AVG(price_avg) * AVG(price_avg)
-               FROM prices
-               WHERE port = ? AND date > ? AND date < ? AND price_avg IS NOT NULL
-               GROUP BY species, grade
-               HAVING COUNT(*) >= ?""",
-            (port, cutoff_30d, date, _MIN_HISTORY_RECORDS),
+        # Fetch all historical values per (species, grade) — needed for median/MAD
+        history_rows = conn.execute(
+            """SELECT species, grade, price_avg FROM prices
+               WHERE port = ? AND date > ? AND date < ? AND price_avg IS NOT NULL""",
+            (port, cutoff_30d, date),
         ).fetchall()
 
+        # Group by (species, grade)
+        history: dict[tuple, list[float]] = defaultdict(list)
+        for species, grade, price_avg in history_rows:
+            history[(species, grade)].append(price_avg)
+
+        # Compute median + MAD for each key with enough data
         stats: dict[tuple, tuple] = {}
-        for species, grade, mean, count, variance in history:
-            stddev = math.sqrt(max(variance, 0))
-            stats[(species, grade)] = (mean, stddev)
+        for key, values in history.items():
+            if len(values) < _MIN_HISTORY_RECORDS:
+                continue
+            med = _median(sorted(values))
+            deviations = sorted(abs(v - med) for v in values)
+            mad = _median(deviations)
+            stats[key] = (med, mad)
 
         for species, grade, price_avg in today_rows:
             if (species, grade) not in stats:
                 continue
-            mean, stddev = stats[(species, grade)]
-            if stddev == 0:
+            med, mad = stats[(species, grade)]
+            if mad == 0:
                 continue
-            z = (price_avg - mean) / stddev
-            if z > _OUTLIER_ERROR_SIGMA:
-                issues.append(_issue(
-                    checked_at, "outlier_price", "error", port, date, species, grade,
-                    value=round(price_avg, 2), expected=round(mean, 2),
-                    message=f"{species} {grade} at {port}: £{price_avg:.2f}/kg is {z:.1f}σ above 30-day mean (£{mean:.2f}/kg)",
-                ))
-            elif z > _OUTLIER_WARN_SIGMA:
+            # Robust z-score: normalised by 1.4826*MAD (consistent with σ for normal distributions)
+            robust_z = abs(price_avg - med) / (1.4826 * mad)
+            if robust_z > _OUTLIER_MAD_THRESHOLD:
                 issues.append(_issue(
                     checked_at, "outlier_price", "warn", port, date, species, grade,
-                    value=round(price_avg, 2), expected=round(mean, 2),
-                    message=f"{species} {grade} at {port}: £{price_avg:.2f}/kg is {z:.1f}σ above 30-day mean (£{mean:.2f}/kg)",
+                    value=round(price_avg, 2), expected=round(med, 2),
+                    message=f"{species} {grade} at {port}: £{price_avg:.2f}/kg is {robust_z:.1f}× MAD from 30-day median (£{med:.2f}/kg)",
                 ))
 
     return issues

@@ -579,7 +579,10 @@
                 </td>
                 <td style="font-family:var(--font-mono);font-size:12px;">
                     {% if s and s.status == 'success' %}
-                        <span style="color:var(--up);">{{ s.last_success }}</span>
+                        <span style="color:var(--up);">{{ s.first_success }}</span>
+                        {% if s.success_count > 1 %}
+                        <span style="color:var(--muted);font-size:10px;"> → {{ s.last_success }}</span>
+                        {% endif %}
                     {% elif s and s.first_attempt %}
                         <span style="color:var(--down);">{{ s.first_attempt }}</span>
                     {% else %}—{% endif %}
@@ -625,7 +628,7 @@
     {# ── Summary banner ─────────────────────────────────────────────────── #}
     {% if not quality_summary.last_checked_at %}
     <div style="padding:14px 20px;font-size:13px;color:var(--muted);">
-        No quality checks run yet. Schedule: Mon–Fri at 10:00, 13:00, 16:00.
+        No quality checks run yet. Runs automatically after each scrape (Mon–Fri from 07:15 UTC).
     </div>
     {% elif quality_summary.open_errors > 0 %}
     <div style="padding:14px 20px;background:rgba(224,112,96,0.08);border-bottom:1px solid rgba(224,112,96,0.3);font-size:13px;color:var(--down);">
@@ -723,11 +726,12 @@
                 <th></th>
                 <th style="min-width:360px;">Issue</th>
                 <th>Checked</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
         {% for issue in quality_issues %}
-        <tr>
+        <tr id="quality-row-{{ issue.id }}">
             <td style="font-weight:500;">{{ issue.port }}</td>
             <td style="font-family:var(--font-mono);font-size:12px;">{{ issue.date }}</td>
             <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">{{ issue.check_type }}</td>
@@ -740,6 +744,9 @@
             </td>
             <td style="font-size:13px;">{{ issue.message }}</td>
             <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:nowrap;">{{ issue.checked_at[:16].replace('T',' ') }}</td>
+            <td>
+                <button onclick="clearQualityIssue({{ issue.id }})" style="font-size:11px;font-family:var(--font-mono);cursor:pointer;padding:3px 10px;border:1px solid var(--rule);border-radius:3px;background:var(--foam);color:var(--muted);">Clear</button>
+            </td>
         </tr>
         {% endfor %}
         </tbody>
@@ -778,6 +785,22 @@ async function runQualityCheck() {
             b.style.color = 'var(--down)';
             b.disabled = false;
         });
+    }
+}
+
+async function clearQualityIssue(issueId) {
+    const row = document.getElementById('quality-row-' + issueId);
+    if (!row) return;
+    const btn = row.querySelector('button');
+    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    try {
+        const r = await fetch('/ops/quality/clear/' + issueId, {method: 'POST'});
+        if (!r.ok) throw new Error('Server error');
+        row.style.transition = 'opacity 0.3s';
+        row.style.opacity = '0';
+        setTimeout(() => row.remove(), 350);
+    } catch(e) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Clear'; }
     }
 }
 </script>
