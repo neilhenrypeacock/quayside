@@ -18,31 +18,32 @@
             <div class="nav-dropdown">
                 <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">For Ports <span class="nav-caret">&#9662;</span></button>
                 <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
-                    <a href="{{ url_for('for_ports') }}">For Ports</a>
+                    <a href="{{ url_for('for_ports') }}">Learn more</a>
+                    <a href="{{ url_for('port_dashboard', slug='peterhead') }}">Demo dashboard</a>
+                </div></div>
+            </div>
+            <div class="nav-dropdown">
+                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">For Buyers &amp; Sellers <span class="nav-caret">&#9662;</span></button>
+                <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
+                    <a href="#" style="opacity:0.45;cursor:default;" onclick="return false;">Learn more</a>
+                    <a href="{{ url_for('trade_dashboard') }}">Demo dashboard</a>
+                </div></div>
+            </div>
+            <a href="{{ url_for('about') }}" class="nav-link">About Us</a>
+            <div class="nav-dropdown">
+                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Dev <span class="nav-caret">&#9662;</span></button>
+                <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
+                    <a href="{{ url_for('ops_dashboard') }}">Ops</a>
+                    <div class="nav-dropdown-sep"></div>
+                    <a href="{{ url_for('digest_page') }}">Daily Digest</a>
+                    <a href="{{ url_for('weekly_digest') }}">Weekly Report</a>
+                    <a href="{{ url_for('monthly_digest') }}">Monthly Report</a>
                     <div class="nav-dropdown-sep"></div>
                     <a href="{{ url_for('port_dashboard', slug='peterhead') }}">Peterhead</a>
                     <a href="{{ url_for('port_dashboard', slug='brixham') }}">Brixham</a>
                     <a href="{{ url_for('port_dashboard', slug='newlyn') }}">Newlyn</a>
                     <a href="{{ url_for('port_dashboard', slug='scrabster') }}">Scrabster</a>
                     <a href="{{ url_for('port_dashboard', slug='lerwick') }}">Lerwick</a>
-                </div></div>
-            </div>
-            <div class="nav-dropdown">
-                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Buyers &amp; Sellers <span class="nav-caret">&#9662;</span></button>
-                <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
-                    <a href="{{ url_for('digest_page') }}">Daily Digest</a>
-                    <a href="{{ url_for('weekly_digest') }}">Weekly Report</a>
-                    <a href="{{ url_for('monthly_digest') }}">Monthly Report</a>
-                    <div class="nav-dropdown-sep"></div>
-                    <a href="{{ url_for('trade_dashboard') }}" style="color:var(--catch);">Trade Dashboard &#9733;</a>
-                </div></div>
-            </div>
-            <a href="{{ url_for('about') }}" class="nav-link">About</a>
-            <div class="nav-dropdown">
-                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Dev <span class="nav-caret">&#9662;</span></button>
-                <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
-                    <a href="{{ url_for('ops_dashboard') }}">Operations</a>
-                    <a href="{{ url_for('port_dashboard', slug='peterhead') }}">Demo Dashboard</a>
                 </div></div>
             </div>
             {% block nav %}{% endblock %}
@@ -62,6 +63,7 @@
                 </div></div>
             </div>
             {% else %}
+            <a href="{{ url_for('register') }}" class="nav-link">Sign Up</a>
             <a href="{{ url_for('login') }}" class="nav-signin-btn">Sign In</a>
             {% endif %}
         </div>
