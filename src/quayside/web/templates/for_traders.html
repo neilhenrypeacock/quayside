@@ -531,6 +531,7 @@
     flex-direction: column;
     gap: 8px;
     margin-top: 8px;
+    margin-bottom: 16px;
   }
   .feature-copy ul li {
     font-size: 13px;
@@ -1221,7 +1222,7 @@
 <section class="hero">
   <div class="hero-left">
     <div class="eyebrow">For buyers &amp; sellers</div>
-    <h1>See what every UK port paid.<br><em>Every single day.</em></h1>
+    <h1>See what the UK market paid.<br><em>Every single day.</em></h1>
     <p class="hero-sub">
       Post-market price reporting for fish merchants, processors, buyers, and agents. Track trends, benchmark your costs, and understand the full UK market &mdash; updated daily across five major ports.
     </p>
@@ -1242,25 +1243,25 @@
     <div class="fav-grid">
       <div class="fav-card">
         <div class="fav-card-species">Haddock</div>
-        <div class="fav-card-port">Peterhead · A2</div>
+        <div class="fav-card-port">UK market · 5 ports</div>
         <div class="fav-card-price">&pound;2.84<span style="font-size:12px;color:#7ab0c8;">/kg</span></div>
         <div class="fav-card-badge badge-up">+8% vs avg &#9650;</div>
       </div>
       <div class="fav-card">
         <div class="fav-card-species">Monkfish</div>
-        <div class="fav-card-port">Brixham · Grade 1</div>
+        <div class="fav-card-port">UK market · 3 ports</div>
         <div class="fav-card-price">&pound;7.20<span style="font-size:12px;color:#7ab0c8;">/kg</span></div>
         <div class="fav-card-badge badge-avg">At market avg</div>
       </div>
       <div class="fav-card">
         <div class="fav-card-species">Cod</div>
-        <div class="fav-card-port">Scrabster</div>
+        <div class="fav-card-port">UK market · 4 ports</div>
         <div class="fav-card-price">&pound;3.10<span style="font-size:12px;color:#7ab0c8;">/kg</span></div>
         <div class="fav-card-badge badge-down">−5% vs avg &#9660;</div>
       </div>
       <div class="fav-card">
         <div class="fav-card-species">Lemon Sole</div>
-        <div class="fav-card-port">Newlyn · Grade 2</div>
+        <div class="fav-card-port">UK market · 2 ports</div>
         <div class="fav-card-price">&pound;4.55<span style="font-size:12px;color:#7ab0c8;">/kg</span></div>
         <div class="fav-card-badge badge-up">+12% vs avg &#9650;</div>
       </div>
@@ -1301,7 +1302,7 @@
     <div class="section-label">What's included</div>
     <div class="digest-section fade-up">
       <div class="digest-copy">
-        <h2>Your complete UK market report.<br><em>Every single day.</em></h2>
+        <h2>Your complete UK market report —<br><em>updated each day with the morning's price lists.</em></h2>
         <p>
           Trade membership gives you a daily report across every live UK port &mdash; updated each day with the previous day's auction results. No more piecing together data from half a dozen websites. No more relying on word-of-mouth pricing.
         </p>
@@ -1334,39 +1335,39 @@
             <thead>
               <tr>
                 <th>Species</th>
-                <th>Port</th>
-                <th style="text-align:right;">Avg price</th>
+                <th>Ports</th>
+                <th style="text-align:right;">Market avg</th>
                 <th style="text-align:right;">vs prev. day</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td class="dt-species">Haddock</td>
-                <td class="dt-port">Peterhead</td>
+                <td class="dt-port">5 ports</td>
                 <td class="dt-price" style="text-align:right;">&pound;2.84/kg</td>
                 <td class="dt-change dt-up" style="text-align:right;">&#9650; +8%</td>
               </tr>
               <tr>
                 <td class="dt-species">Cod</td>
-                <td class="dt-port">Scrabster</td>
+                <td class="dt-port">4 ports</td>
                 <td class="dt-price" style="text-align:right;">&pound;3.10/kg</td>
                 <td class="dt-change dt-down" style="text-align:right;">&#9660; −5%</td>
               </tr>
               <tr>
                 <td class="dt-species">Monkfish</td>
-                <td class="dt-port">Brixham</td>
+                <td class="dt-port">3 ports</td>
                 <td class="dt-price" style="text-align:right;">&pound;7.20/kg</td>
                 <td class="dt-change dt-up" style="text-align:right;">&#9650; +3%</td>
               </tr>
               <tr>
                 <td class="dt-species">Plaice</td>
-                <td class="dt-port">Newlyn</td>
+                <td class="dt-port">2 ports</td>
                 <td class="dt-price" style="text-align:right;">&pound;2.15/kg</td>
                 <td class="dt-change dt-down" style="text-align:right;">&#9660; −11%</td>
               </tr>
               <tr>
                 <td class="dt-species">Whiting</td>
-                <td class="dt-port">Lerwick</td>
+                <td class="dt-port">3 ports</td>
                 <td class="dt-price" style="text-align:right;">&pound;1.62/kg</td>
                 <td class="dt-change dt-up" style="text-align:right;">&#9650; +18%</td>
               </tr>
@@ -1388,9 +1389,8 @@
     <div class="section-label">The problem</div>
     <div class="problem-grid fade-up">
       <div class="problem-card">
-        <div class="problem-stat">6+</div>
-        <h3>Scattered sources,<br>no central view</h3>
-        <p>UK fish prices are published across individual port websites, PDFs, and spreadsheets &mdash; each in a different format. <strong>There&rsquo;s been no single place to see the whole market at once. Until now.</strong></p>
+        <h3>Fragmented, inconsistent<br>market data</h3>
+        <p>UK fish prices are scattered across individual port websites, PDFs, and spreadsheets &mdash; each in a different format, updated at different times. <strong>There&rsquo;s no central place to see the whole market at once. Until now.</strong></p>
       </div>
       <div class="problem-card">
         <div class="problem-stat">40%</div>
@@ -1431,8 +1431,9 @@
         Pin the species you buy or sell regularly. Your personal favourites snapshot shows the latest reported price for each &mdash; exactly where you source them &mdash; alongside a clear benchmark showing where that price sits against the national average.
       </p>
       <ul>
-        <li>Pin any species from any port</li>
-        <li>Instant above/below benchmark indicator</li>
+        <li>Pin any species across the UK market</li>
+        <li>Pin your favourite ports for a quick daily port overview</li>
+        <li>Instant above/below benchmark indicator for every entry</li>
         <li>All your key species at a glance, updated every day</li>
         <li>Based on actual reported auction data</li>
       </ul>
@@ -1446,27 +1447,27 @@
         <div class="mockup-fav-grid">
           <div class="mockup-fav-card">
             <div class="mfc-species">Haddock</div>
-            <div class="mfc-port">Peterhead · A2</div>
+            <div class="mfc-port">UK market · 5 ports</div>
             <div class="mfc-price">&pound;2.84/kg</div>
-            <div class="mfc-badge mfc-badge-up">&#9650; +8% vs market avg</div>
+            <div class="mfc-badge mfc-badge-up">&#9650; +8% vs prev. day</div>
           </div>
           <div class="mockup-fav-card">
             <div class="mfc-species">Monkfish</div>
-            <div class="mfc-port">Brixham · Grade 1</div>
+            <div class="mfc-port">UK market · 3 ports</div>
             <div class="mfc-price">&pound;7.20/kg</div>
-            <div class="mfc-badge mfc-badge-avg">At market avg</div>
+            <div class="mfc-badge mfc-badge-avg">Stable</div>
           </div>
           <div class="mockup-fav-card">
             <div class="mfc-species">Cod</div>
-            <div class="mfc-port">Scrabster</div>
+            <div class="mfc-port">UK market · 4 ports</div>
             <div class="mfc-price">&pound;3.10/kg</div>
-            <div class="mfc-badge mfc-badge-down">&#9660; −5% vs market avg</div>
+            <div class="mfc-badge mfc-badge-down">&#9660; −5% vs prev. day</div>
           </div>
           <div class="mockup-fav-card">
             <div class="mfc-species">Lemon Sole</div>
-            <div class="mfc-port">Newlyn · Grade 2</div>
+            <div class="mfc-port">UK market · 2 ports</div>
             <div class="mfc-price">&pound;4.55/kg</div>
-            <div class="mfc-badge mfc-badge-up">&#9650; +12% vs market avg</div>
+            <div class="mfc-badge mfc-badge-up">&#9650; +12% vs prev. day</div>
           </div>
         </div>
         <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-align:center;">+ Edit favourites · 4 species tracked</div>
@@ -1575,9 +1576,14 @@
             </tr>
           </thead>
           <tbody>
+            <tr style="background:rgba(26,58,74,0.06);">
+              <td class="mit-port" style="font-weight:700;color:var(--tide);">Market avg</td>
+              <td class="mit-avg" style="font-weight:700;color:var(--tide);">&pound;2.80/kg</td>
+              <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);">— benchmark</td>
+            </tr>
             <tr>
               <td class="mit-port">Scrabster</td>
-              <td class="mit-avg">&pound;2.44/kg</td>
+              <td class="mit-avg">&pound;2.40/kg</td>
               <td class="mit-discount mit-below" style="text-align:right;">
                 &#9660; −14%
                 <div class="mit-bar-wrap"><div class="mit-bar mit-bar-green" style="width:80%;"></div></div>
@@ -1585,7 +1591,7 @@
             </tr>
             <tr>
               <td class="mit-port">Lerwick</td>
-              <td class="mit-avg">&pound;2.65/kg</td>
+              <td class="mit-avg">&pound;2.63/kg</td>
               <td class="mit-discount mit-below" style="text-align:right;">
                 &#9660; −6%
                 <div class="mit-bar-wrap"><div class="mit-bar mit-bar-green" style="width:45%;"></div></div>
@@ -1593,15 +1599,15 @@
             </tr>
             <tr>
               <td class="mit-port">Newlyn</td>
-              <td class="mit-avg">&pound;2.82/kg</td>
-              <td class="mit-discount" style="text-align:right;color:var(--muted);">
-                ≈ Market avg
-                <div class="mit-bar-wrap"><div class="mit-bar mit-bar-neutral" style="width:20%;"></div></div>
+              <td class="mit-avg">&pound;2.75/kg</td>
+              <td class="mit-discount mit-below" style="text-align:right;">
+                &#9660; −2%
+                <div class="mit-bar-wrap"><div class="mit-bar mit-bar-green" style="width:15%;"></div></div>
               </td>
             </tr>
             <tr>
               <td class="mit-port">Peterhead</td>
-              <td class="mit-avg">&pound;2.84/kg</td>
+              <td class="mit-avg">&pound;3.02/kg</td>
               <td class="mit-discount mit-above" style="text-align:right;">
                 &#9650; +8%
                 <div class="mit-bar-wrap"><div class="mit-bar mit-bar-red" style="width:40%;"></div></div>
@@ -1609,7 +1615,7 @@
             </tr>
             <tr>
               <td class="mit-port">Brixham</td>
-              <td class="mit-avg">&pound;3.08/kg</td>
+              <td class="mit-avg">&pound;3.33/kg</td>
               <td class="mit-discount mit-above" style="text-align:right;">
                 &#9650; +19%
                 <div class="mit-bar-wrap"><div class="mit-bar mit-bar-red" style="width:90%;"></div></div>
@@ -1627,13 +1633,13 @@
   <div class="feature-row reverse fade-up">
     <div class="feature-copy">
       <div class="feature-num">Feature 04</div>
-      <h3>90-day price history.<br><em>See the trend, not just the tick.</em></h3>
+      <h3>Price history —<br><em>and growing every day.</em></h3>
       <p>
-        A single day&rsquo;s price is noise. Ninety days of it is signal. Track how prices have moved across ports over the last three months &mdash; spot seasonal cycles, understand trend reversals, and plan with real market context behind you.
+        A single day&rsquo;s price is noise. A compounding archive of it is signal. Our dataset grows with every market report &mdash; building a richer picture over time. Track how prices have moved across ports, spot seasonal cycles, and plan with real market context behind you.
       </p>
       <ul>
-        <li>90 days of rolling price history per species and port</li>
-        <li>Multi-port overlay — compare ports on the same chart</li>
+        <li>Full price history per species and port &mdash; compounding every day</li>
+        <li>Multi-port overlay &mdash; compare ports on the same chart</li>
         <li>Identify seasonal floors and ceilings</li>
         <li>Download underlying data via CSV export</li>
       </ul>
@@ -1641,7 +1647,7 @@
     <div class="mockup">
       <div class="mockup-chrome">
         <div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div>
-        <span class="mockup-label">Haddock — 90 day price history</span>
+        <span class="mockup-label">Haddock — price history</span>
       </div>
       <div class="mockup-chart-wrap">
         <div class="mockup-chart-legend">
@@ -1779,22 +1785,12 @@
   </div>
 </div>
 
-<!-- ─────────────────── PRE-PRICING CTA ─────────────────── -->
-<section style="background:var(--foam);padding:64px 48px;border-bottom:1px solid var(--rule);text-align:center;">
-  <div style="max-width:640px;margin:0 auto;">
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--catch);margin-bottom:16px;">All of this, 7 days free</div>
-    <div style="font-family:'Playfair Display',serif;font-size:clamp(24px,3vw,36px);font-weight:700;letter-spacing:-0.02em;line-height:1.15;margin-bottom:16px;">Everything you&rsquo;ve just seen is in the <em style="font-style:italic;color:var(--tide);">Trade dashboard</em>. Try it free.</div>
-    <div style="font-size:15px;color:#4a4438;line-height:1.7;margin-bottom:32px;">No payment details. No commitment. Full access for 7 days, then &pound;95/month if you want to continue.</div>
-    <a href="{{ url_for('register') }}" class="btn-primary" style="padding:16px 48px;font-size:13px;">Start your free trial &rarr;</a>
-  </div>
-</section>
-
 <!-- ─────────────────── PRICING ─────────────────── -->
 <section class="section pricing-section">
   <div class="section-inner">
     <div class="section-label" style="justify-content:center;">Trade membership</div>
     <h2>The full UK fish market.<br><em>Seven days free.</em></h2>
-    <p>Try the complete Trade dashboard risk-free for a week. Full access to every feature, all five ports, and the complete 90-day history. No payment details required.</p>
+    <p>Try the complete Trade dashboard risk-free for a week. Full access to every feature, all five ports, and the complete price history. No payment details required.</p>
 
     <div class="pricing-card fade-up">
       <div class="pricing-badge">Most popular</div>
@@ -1811,7 +1807,7 @@
           <li>Favourites &amp; custom species watchlists</li>
           <li>Market movers &mdash; biggest daily price changes, ranked</li>
           <li>Market benchmarks &mdash; see where every port sits against the national average</li>
-          <li>90-day rolling price history per species and port</li>
+          <li>Full price history per species and port &mdash; growing every day</li>
           <li>AI chat &mdash; ask any question about the data in plain English</li>
           <li>CSV export &mdash; full dataset, up to 90 days</li>
           <li>New ports added throughout 2026 &mdash; included at no extra cost</li>
