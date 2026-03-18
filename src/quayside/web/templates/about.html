@@ -74,13 +74,18 @@
 
   /* backgrounds per tier */
   .tier-free .tier-section-visual { background: var(--foam); }
-  .tier-trade { background: var(--ink); }
+  .tier-trade { background: #0f1a24; }
   .tier-trade .tier-section-content h2 { color: var(--paper); }
-  .tier-trade .tier-section-content p { color: #7a7060; }
-  .tier-trade .tier-section-visual { background: #161410; border-left-color: #2a2820; }
-  .tier-trade.flip .tier-section-content { border-left-color: #2a2820; }
+  .tier-trade .tier-section-content > p { color: #8fa8bc !important; }
+  .tier-trade .tier-section-visual { background: #071018; border-left-color: #1a2d3d; }
+  .tier-trade.flip .tier-section-content { border-left-color: #1a2d3d; }
   .tier-port { background: var(--paper); }
   .tier-port .tier-section-visual { background: var(--tide); border-left-color: #0a1a24; }
+
+  /* ── TAGS ── */
+  .tag-free  { background: rgba(109,184,138,0.15); color: #4a9468; border: 1px solid rgba(109,184,138,0.3); }
+  .tag-trade { background: rgba(255,255,255,0.08); color: #b8c8d8; border: 1px solid rgba(255,255,255,0.15); }
+  .tag-port  { background: rgba(26,58,74,0.1); color: var(--tide); border: 1px solid rgba(26,58,74,0.2); }
 
   .tier-eyebrow {
     font-family: var(--font-mono);
@@ -105,7 +110,7 @@
   }
   .tier-section-content h2 em { font-style: italic; }
   .tier-free .tier-section-content h2 em { color: var(--tide); }
-  .tier-trade .tier-section-content h2 em { color: var(--catch); }
+  .tier-trade .tier-section-content h2 em { color: #6db88a; }
   .tier-port .tier-section-content h2 em { color: var(--catch); }
   .tier-section-content > p {
     font-size: 15px;
@@ -114,7 +119,6 @@
     margin-bottom: 28px;
     max-width: 420px;
   }
-  .tier-trade .tier-section-content > p { color: #7a7060; }
 
   /* ── FEATURE CARDS ── */
   .feature-grid {
@@ -146,12 +150,12 @@
   }
   /* dark for trade section */
   .feature-grid.ink {
-    background: #2a2820;
-    border-color: #2a2820;
+    background: #1a2d3d;
+    border-color: #1a2d3d;
   }
-  .feature-grid.ink .feature-card { background: #1a1810; }
-  .feature-grid.ink .feature-card-title { color: var(--catch); }
-  .feature-grid.ink .feature-card p { color: #5a5448; }
+  .feature-grid.ink .feature-card { background: #0f1a24; }
+  .feature-grid.ink .feature-card-title { color: #6db88a; }
+  .feature-grid.ink .feature-card p { color: #7a9ab4; }
   /* teal for port section */
   .feature-grid.teal {
     background: #0a1a24;
@@ -346,36 +350,31 @@
 
   /* ── FOOTER CTA ── */
   .about-cta {
-    background: var(--ink);
-    padding: 72px 48px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--ink);
+    background: var(--foam);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
   }
   .about-cta-inner {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: #2a2820;
-    border: 1px solid #2a2820;
+    gap: 0;
   }
   .cta-card {
-    background: var(--ink);
-    padding: 40px 36px;
-    text-align: center;
+    background: transparent;
+    padding: 48px 40px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
+    border-right: 1px solid var(--rule);
   }
-  .cta-card-tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; margin-bottom: 16px; display: inline-block; }
-  .cta-card h3 { font-family: var(--font-serif); font-size: 20px; font-weight: 700; color: var(--paper); letter-spacing: -0.01em; margin-bottom: 10px; line-height: 1.2; }
-  .cta-card h3 em { font-style: italic; }
-  .cta-card p { font-size: 13px; color: #4a4438; margin-bottom: 24px; line-height: 1.7; flex: 1; }
+  .cta-card:last-child { border-right: none; }
+  .cta-card-tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; margin-bottom: 18px; display: inline-block; }
+  .cta-card h3 { font-family: var(--font-serif); font-size: 21px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 10px; line-height: 1.2; }
+  .cta-card p { font-size: 13px; color: #5a5448; margin-bottom: 24px; line-height: 1.7; flex: 1; }
   .btn-cta-primary { background: var(--catch); color: white; padding: 11px 24px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; display: inline-block; border-radius: 2px; transition: background 0.2s; }
   .btn-cta-primary:hover { background: #a83010; }
-  .btn-cta-ghost { background: transparent; color: #7a7060; padding: 11px 24px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; display: inline-block; border: 1px solid #2a2820; border-radius: 2px; transition: border-color 0.2s, color 0.2s; }
-  .btn-cta-ghost:hover { border-color: #4a4438; color: #c0b8a8; }
+  .btn-cta-secondary { background: transparent; color: var(--tide); padding: 11px 24px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; display: inline-block; border: 1px solid var(--tide); border-radius: 2px; transition: background 0.2s, color 0.2s; }
+  .btn-cta-secondary:hover { background: var(--tide); color: var(--paper); }
 
   /* ── FOOTER ── */
   footer { background: var(--ink); padding: 28px 48px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; border-top: 1px solid #2a2820; }
@@ -388,7 +387,6 @@
 
   @media (max-width: 960px) {
     .about-hero { padding: 56px 24px 48px; }
-    .overview-strip { grid-template-columns: 1fr; }
     .tier-section { grid-template-columns: 1fr; }
     .tier-section-visual { padding: 48px 24px; order: -1 !important; align-items: center; border-left: none !important; border-bottom: 1px solid var(--rule); }
     .tier-section-content { padding: 48px 24px; order: 1 !important; border-left: none !important; }
@@ -397,9 +395,9 @@
     .how-strip-intro { flex: none; }
     .how-strip-steps { flex-direction: column; }
     .coverage-section { padding: 56px 24px; }
-    .about-cta { padding: 0; }
     .about-cta-inner { grid-template-columns: 1fr; }
-    .cta-card { padding: 36px 24px; }
+    .cta-card { padding: 36px 24px; border-right: none; border-bottom: 1px solid var(--rule); }
+    .cta-card:last-child { border-bottom: none; }
     footer { padding: 24px; flex-direction: column; align-items: flex-start; }
   }
 </style>
@@ -415,28 +413,6 @@
     <p>Fish market data in the UK has always been fragmented — each port publishing prices in a different format, on a different schedule. Quayside collects it, normalises it, and makes it usable. Whether you buy fish, sell it, or auction it, there&rsquo;s something here for you.</p>
   </div>
 </section>
-
-<!-- THREE-WAY OVERVIEW -->
-<div class="overview-strip fade-up">
-  <div class="overview-card">
-    <span class="overview-tag tag-free">Free for everyone</span>
-    <h3>Daily price digest</h3>
-    <p>The UK&rsquo;s only aggregated daily fish price feed — all major ports, normalised species, published every morning. No account required.</p>
-    <a href="{{ url_for('digest_page') }}" class="overview-link">Browse today&rsquo;s prices &rarr;</a>
-  </div>
-  <div class="overview-card mid">
-    <span class="overview-tag tag-trade">Trade membership</span>
-    <h3>For buyers &amp; sellers</h3>
-    <p>A personalised daily email, the full trade dashboard, and 30-day cross-port history — so you always know where to buy and what&rsquo;s moving.</p>
-    <a href="{{ url_for('for_traders') }}" class="overview-link">Learn about membership &rarr;</a>
-  </div>
-  <div class="overview-card dark">
-    <span class="overview-tag tag-port">Free for ports</span>
-    <h3>Port dashboard</h3>
-    <p>A live market intelligence dashboard for auction operators — benchmarks, rankings, trends, and national marketing exposure. Always free.</p>
-    <a href="{{ url_for('for_ports') }}" class="overview-link">List your port &rarr;</a>
-  </div>
-</div>
 
 <!-- TIER 1: FREE DIGEST -->
 <div class="tier-section tier-free">
@@ -584,7 +560,7 @@
 <!-- TIER 3: PORT DASHBOARD -->
 <div class="tier-section tier-port">
   <div class="tier-section-content fade-up">
-    <span class="tier-eyebrow tag-port" style="background:rgba(26,58,74,0.1);color:var(--tide);border-color:rgba(26,58,74,0.2);">Free for ports</span>
+    <span class="tier-eyebrow tag-port">Free for ports</span>
     <h2>Five minutes to set up.<br><em>Everything back, every day.</em></h2>
     <p>We already hold the publicly available data for most ports, so getting started takes minutes. After that, the daily loop is simple: send us your price sheet each morning — by email, upload, or direct feed — and you get a full market intelligence dashboard back. No software to install. No IT involvement. No cost. Ever.</p>
     <div class="feature-grid teal">
@@ -647,13 +623,13 @@
 <div class="how-strip">
   <div class="how-strip-intro">
     <h3>How we get the data</h3>
-    <p>We collect publicly available auction data from port websites automatically, every morning. But we&rsquo;re also building direct data partnerships with ports — so the feed gets faster, more complete, and officially endorsed over time.</p>
+    <p>We collect publicly available auction data from port websites automatically, every morning — PDFs, spreadsheets, and HTML tables — normalise it into a single consistent schema, and publish it before trading starts.</p>
   </div>
   <div class="how-strip-steps">
     <div class="how-strip-step">
       <div class="how-step-num">Collect</div>
-      <h4>Automated &amp; direct</h4>
-      <p>Daily scrapers plus direct port feeds — no manual downloading.</p>
+      <h4>Automated daily</h4>
+      <p>Scrapers run each morning pulling PDFs, spreadsheets, and tables from port websites.</p>
     </div>
     <div class="how-strip-step">
       <div class="how-step-num">Normalise</div>
@@ -661,14 +637,9 @@
       <p>Species, dates, and grades mapped to a common format so every port is comparable.</p>
     </div>
     <div class="how-strip-step">
-      <div class="how-step-num">Verify</div>
-      <h4>Port-confirmed</h4>
-      <p>Operators review and confirm each day&rsquo;s data before it goes live.</p>
-    </div>
-    <div class="how-strip-step">
       <div class="how-step-num">Publish</div>
       <h4>Before trading starts</h4>
-      <p>Live across dashboards, digests, and exports — before the market opens.</p>
+      <p>Live across dashboards, digests, and exports — before the market opens each day.</p>
     </div>
   </div>
 </div>
@@ -707,22 +678,22 @@
 <div class="about-cta">
   <div class="about-cta-inner">
     <div class="cta-card">
-      <span class="cta-card-tag tag-free">Free</span>
+      <span class="cta-card-tag tag-free">Free for everyone</span>
       <h3>Browse the digest</h3>
       <p>Today&rsquo;s UK fish prices across every covered port — no account needed.</p>
       <a href="{{ url_for('digest_page') }}" class="btn-cta-primary">View today&rsquo;s digest &rarr;</a>
     </div>
     <div class="cta-card">
-      <span class="cta-card-tag tag-trade">Trade</span>
+      <span class="cta-card-tag tag-trade">Trade membership</span>
       <h3>Get full access</h3>
       <p>Personalised daily email, trade dashboard, 30-day history, and port rankings.</p>
       <a href="{{ url_for('login') }}" class="btn-cta-primary">Sign up &rarr;</a>
     </div>
     <div class="cta-card">
-      <span class="cta-card-tag tag-port">Ports</span>
+      <span class="cta-card-tag tag-port">Free for ports</span>
       <h3>List your port</h3>
       <p>Free dashboard, benchmarks, and marketing to UK buyers. Five minutes to get started.</p>
-      <a href="{{ url_for('for_ports') }}" class="btn-cta-ghost">Get listed &rarr;</a>
+      <a href="{{ url_for('for_ports') }}" class="btn-cta-secondary">Get listed &rarr;</a>
     </div>
   </div>
 </div>
