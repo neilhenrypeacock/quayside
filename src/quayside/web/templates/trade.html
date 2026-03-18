@@ -2135,7 +2135,7 @@ function renderFavSnapshot() {
     });
 
     el.innerHTML = `<div class="fav-snapshot-wrap">
-        <div class="fav-snapshot-label">Your Favourites &mdash; Today&rsquo;s Snapshot</div>
+        <div class="fav-snapshot-label">Your Favourites &mdash; Today&rsquo;s Snapshot ${helpBtn('A quick-glance table of your starred species at your selected ports. Each cell shows today\'s auction price. ★ marks the cheapest port for that species today. The % below each price is vs yesterday\'s market average. Green = price fell, red = price rose.')}</div>
         <table class="fav-snapshot-table">
             <thead>${thead}</thead>
             <tbody>${tbody}</tbody>
@@ -2177,13 +2177,13 @@ function renderMoversTable() {
 
     el.innerHTML = `<div class="movers-grid">
         <div class="movers-card">
-            <div class="movers-card-title">&#9650; Rising today</div>
+            <div class="movers-card-title">&#9650; Rising today ${helpBtn('Species whose market average price has risen the most vs yesterday. % shown is today vs yesterday\'s market average. Price and cheapest port shown on the right. Click any row to chart this species.')}</div>
             <table class="movers-table">
                 <tbody>${risers.length ? buildRows(risers, 'change-down') : '<tr><td colspan="3" style="color:var(--muted);">No risers today</td></tr>'}</tbody>
             </table>
         </div>
         <div class="movers-card">
-            <div class="movers-card-title">&#9660; Falling today</div>
+            <div class="movers-card-title">&#9660; Falling today ${helpBtn('Species whose market average price has fallen the most vs yesterday. Falling prices are generally good for buyers. Click any row to chart this species.')}</div>
             <table class="movers-table">
                 <tbody>${fallers.length ? buildRows(fallers, 'change-up') : '<tr><td colspan="3" style="color:var(--muted);">No fallers today</td></tr>'}</tbody>
             </table>
@@ -2964,15 +2964,15 @@ function renderPortIntel() {
     html += `<div class="port-intel-summary">
         <div class="port-intel-kpi">
             <div class="port-intel-kpi-value">${speciesCount}</div>
-            <div class="port-intel-kpi-label">Species Available</div>
+            <div class="port-intel-kpi-label">Species Available ${helpBtn('Number of species where this port has submitted auction price data today.')}</div>
         </div>
         <div class="port-intel-kpi">
             <div class="port-intel-kpi-value" style="color:var(--tide);">${bestBuyCount}</div>
-            <div class="port-intel-kpi-label">Best Buy Species</div>
+            <div class="port-intel-kpi-label">Best Buy Species ${helpBtn('Number of species where this port offers the lowest auction price today, compared to all other reporting ports.')}</div>
         </div>
         <div class="port-intel-kpi">
             <div class="port-intel-kpi-value ${avgVsMktClass}">${avgVsMkt > 0 ? '+' : ''}${avgVsMkt.toFixed(1)}%</div>
-            <div class="port-intel-kpi-label">Avg vs Market</div>
+            <div class="port-intel-kpi-label">Avg vs Market ${helpBtn('This port\'s average price across all available species, compared to the UK-wide market average. Negative = cheaper than average overall — a good signal for buyers.')}</div>
         </div>
     </div>`;
 
