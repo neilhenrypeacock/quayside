@@ -24,12 +24,53 @@
   font-size: 26px;
   color: var(--tide);
   letter-spacing: -0.02em;
-  margin-bottom: 6px;
+  margin-bottom: 20px;
 }
-.auth-card .auth-sub {
+.role-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.role-btn {
+  padding: 14px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+.role-btn:hover {
+  border-color: var(--tide);
+  background: var(--salt);
+}
+.role-btn.active {
+  border-color: var(--tide);
+  background: var(--salt);
+  box-shadow: inset 0 0 0 1px var(--tide);
+}
+.role-btn-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.role-btn-name {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.auth-sub {
   font-size: 13px;
   color: var(--muted);
-  margin-bottom: 28px;
+  margin-bottom: 20px;
+  min-height: 18px;
 }
 .auth-field {
   margin-bottom: 16px;
@@ -83,22 +124,6 @@
   color: var(--tide);
   text-decoration: underline;
 }
-.auth-type-pills {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-}
-.auth-pill {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  padding: 4px 10px;
-  background: var(--salt);
-}
 .flash-error {
   padding: 10px 14px;
   border-radius: 2px;
@@ -115,10 +140,19 @@
 <div class="auth-wrap">
   <div class="auth-card">
     <h1>Sign in</h1>
-    <div class="auth-type-pills">
-      <span class="auth-pill">Port Operator</span>
-      <span class="auth-pill">Trade Member</span>
+
+    <div class="role-btns">
+      <button type="button" class="role-btn" data-role="port" onclick="selectRole('port')">
+        <span class="role-btn-label">I'm a</span>
+        <span class="role-btn-name">Port Operator</span>
+      </button>
+      <button type="button" class="role-btn" data-role="trade" onclick="selectRole('trade')">
+        <span class="role-btn-label">I'm a</span>
+        <span class="role-btn-name">Trade Member</span>
+      </button>
     </div>
+
+    <p class="auth-sub" id="auth-sub"></p>
 
     {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -129,15 +163,16 @@
     {% endwith %}
 
     <form method="post" action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
+      <input type="hidden" name="hint_role" id="hint_role" value="">
       <div class="auth-field">
         <label for="email">Email</label>
-        <input type="email" id="email" name="email" required autocomplete="email" autofocus>
+        <input type="email" id="email" name="email" required autocomplete="email">
       </div>
       <div class="auth-field">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required autocomplete="current-password">
       </div>
-      <button type="submit" class="auth-submit">Sign In</button>
+      <button type="submit" class="auth-submit" id="auth-submit-btn">Sign In</button>
     </form>
 
     <div class="auth-footer">
@@ -145,4 +180,28 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var _roleMessages = {
+  port: 'Welcome back — manage your port data and uploads.',
+  trade: 'Welcome back — your market intelligence dashboard awaits.'
+};
+
+function selectRole(role) {
+  document.querySelectorAll('.role-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.role === role);
+  });
+  document.getElementById('hint_role').value = role;
+  document.getElementById('auth-sub').textContent = _roleMessages[role];
+  var label = role === 'port' ? 'Sign In as Port Operator' : 'Sign In as Trade Member';
+  document.getElementById('auth-submit-btn').textContent = label;
+}
+
+// Pre-select if server sent back a hint (e.g. after failed login)
+{% if request.form.get('hint_role') %}
+selectRole('{{ request.form.get("hint_role") }}');
+{% endif %}
+</script>
 {% endblock %}
