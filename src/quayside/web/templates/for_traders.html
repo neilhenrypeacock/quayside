@@ -1221,9 +1221,9 @@
 <section class="hero">
   <div class="hero-left">
     <div class="eyebrow">For buyers &amp; sellers</div>
-    <h1>Know what fish is worth.<br><em>Before you bid.</em></h1>
+    <h1>See what every UK port paid.<br><em>Every single day.</em></h1>
     <p class="hero-sub">
-      UK-wide daily price intelligence for fish merchants, processors, skippers, and agents. One dashboard. Every port. Updated every morning.
+      Post-market price reporting for fish merchants, processors, buyers, and agents. Track trends, benchmark your costs, and understand the full UK market &mdash; updated daily across five major ports.
     </p>
     <div class="hero-ctas">
       <a href="{{ url_for('register') }}" class="btn-primary">Start 7-day free trial</a>
@@ -1231,7 +1231,7 @@
     </div>
     <div class="hero-trust">
       <span><span class="hero-trust-dot"></span>5 UK ports live</span>
-      <span>Updated every morning</span>
+      <span>Updated daily</span>
       <span>No card to start</span>
     </div>
   </div>
@@ -1295,44 +1295,48 @@
   </div>
 </div>
 
-<!-- ─────────────────── DAILY DIGEST ─────────────────── -->
+<!-- ─────────────────── MEMBERSHIP VALUE ─────────────────── -->
 <section class="section">
   <div class="section-inner">
-    <div class="section-label">The daily digest &mdash; free</div>
+    <div class="section-label">What's included</div>
     <div class="digest-section fade-up">
       <div class="digest-copy">
-        <h2>Start every morning<br><em>already informed.</em></h2>
+        <h2>Your complete UK market report.<br><em>Every single day.</em></h2>
         <p>
-          The Quayside daily digest drops in your inbox every weekday morning. Before the market opens, you know where prices moved, which species are up, and which ports are cheapest.
+          Trade membership gives you a daily report across every live UK port &mdash; updated each day with the previous day's auction results. No more piecing together data from half a dozen websites. No more relying on word-of-mouth pricing.
+        </p>
+        <p>
+          Everything is normalised into a single, consistent format so you can compare haddock at Peterhead against haddock at Scrabster without hunting for the source data yourself.
         </p>
         <ul>
-          <li>Cross-port price comparison — see every port side by side</li>
-          <li>Biggest movers — species with the largest price swings overnight</li>
-          <li>Port-by-port summary — who's high, who's low, who's off today</li>
-          <li>Weekly trend context — where prices are heading</li>
+          <li>Cross-port price comparison &mdash; all ports, all species, side by side</li>
+          <li>Price movements &mdash; see what changed since the previous day</li>
+          <li>Port-by-port summary &mdash; each port's position against the national benchmark</li>
+          <li>90-day trends &mdash; understand where prices have been and where they&rsquo;re heading</li>
+          <li>AI chat &mdash; ask any question about the data in plain English</li>
         </ul>
-        <form class="digest-signup" action="{{ url_for('landing') }}" method="GET">
-          <input type="email" name="email" placeholder="your@email.com" autocomplete="email">
-          <button type="submit">Get digest &rarr;</button>
-        </form>
-        <div class="digest-free-note">Free &middot; No card required &middot; Unsubscribe any time</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:32px;">
+          <a href="{{ url_for('register') }}" class="btn-primary">Start 7-day free trial</a>
+          <a href="{{ url_for('trade_dashboard') }}" class="btn-secondary">See the dashboard &rarr;</a>
+        </div>
+        <div class="digest-free-note" style="margin-top:16px;">No card required &middot; 7 days free &middot; Cancel any time</div>
       </div>
 
-      <!-- Digest email mockup -->
+      <!-- Daily report mockup -->
       <div class="digest-mockup">
         <div class="digest-mockup-header">
-          <div class="digest-mockup-title">Quayside Daily Digest</div>
+          <div class="digest-mockup-title">Quayside Daily Report</div>
           <div class="digest-mockup-date">Wed 18 Mar 2026</div>
         </div>
         <div class="digest-mockup-body">
-          <div class="digest-mockup-section-head">Today's market — all ports</div>
+          <div class="digest-mockup-section-head">Yesterday's market — all ports</div>
           <table class="digest-table">
             <thead>
               <tr>
                 <th>Species</th>
                 <th>Port</th>
                 <th style="text-align:right;">Avg price</th>
-                <th style="text-align:right;">vs yesterday</th>
+                <th style="text-align:right;">vs prev. day</th>
               </tr>
             </thead>
             <tbody>
@@ -1368,9 +1372,9 @@
               </tr>
             </tbody>
           </table>
-          <div class="digest-mockup-section-head">Top mover today</div>
+          <div class="digest-mockup-section-head">Biggest move</div>
           <div style="background:rgba(109,184,138,0.1);border:1px solid rgba(109,184,138,0.25);border-radius:3px;padding:10px 12px;font-size:12px;line-height:1.5;color:#3a3430;">
-            <strong style="color:#3a9a5c;">&#9650; Whiting +18% at Lerwick</strong> — strongest single-day move this week. Lerwick remains 6% below the national average for the species.
+            <strong style="color:#3a9a5c;">&#9650; Whiting +18% at Lerwick</strong> — strongest single-day move of the week. Lerwick whiting sits 6% below the national average for the species.
           </div>
         </div>
       </div>
@@ -1386,26 +1390,36 @@
       <div class="problem-card">
         <div class="problem-stat">6+</div>
         <h3>Scattered sources,<br>no central view</h3>
-        <p>UK fish prices are spread across port websites, PDFs, Excel sheets, and phone calls. <strong>Nobody has built a single place to see them all — until now.</strong></p>
+        <p>UK fish prices are published across individual port websites, PDFs, and spreadsheets &mdash; each in a different format. <strong>There&rsquo;s been no single place to see the whole market at once. Until now.</strong></p>
       </div>
       <div class="problem-card">
         <div class="problem-stat">40%</div>
-        <h3>Same species,<br>vastly different price</h3>
-        <p>Haddock at Peterhead can trade 40% above or below the price at Brixham on the same day. <strong>If you don't know the spread, you're leaving money on the table.</strong></p>
+        <h3>Wide price spreads<br>across the UK</h3>
+        <p>The same species can vary by 40% between ports on the same day. <strong>Understanding that spread gives you the context to make properly informed decisions &mdash; for buying, selling, and planning.</strong></p>
       </div>
       <div class="problem-card">
-        <div class="problem-stat">24h</div>
-        <h3>Most buyers rely on<br>yesterday's information</h3>
-        <p>Word-of-mouth, last week's invoice, a quick call to a contact. <strong>By the time you know the market moved, you've already bid at the wrong price.</strong></p>
+        <div class="problem-stat">Daily</div>
+        <h3>Market insight that&rsquo;s<br>hard to track</h3>
+        <p>Prices shift every day. Seasonal patterns, supply changes, and regional variations all affect the market. <strong>Without a consistent picture over time, it&rsquo;s difficult to spot the patterns that really matter.</strong></p>
       </div>
       <div class="problem-card">
-        <div class="problem-stat">£000s</div>
-        <h3>Missed arbitrage,<br>every single week</h3>
-        <p>Buyers with full market visibility consistently find better prices and better margins. <strong>The information is out there — it just hasn't been aggregated until now.</strong></p>
+        <div class="problem-stat">&#10003;</div>
+        <h3>Transparency benefits<br>the whole industry</h3>
+        <p>When everyone &mdash; buyers, sellers, and ports &mdash; has access to the same market data, decisions get better across the board. <strong>Fairer pricing, better planning, and a healthier market for everyone.</strong></p>
       </div>
     </div>
   </div>
 </section>
+
+<!-- ─────────────────── MID CTA ─────────────────── -->
+<div class="demo-section" style="background:var(--tide);padding:56px 48px;border-bottom:1px solid #0a1a24;display:flex;justify-content:space-between;align-items:center;gap:40px;flex-wrap:wrap;">
+  <div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#7ab0c8;margin-bottom:12px;">7-day free trial</div>
+    <div style="font-family:'Playfair Display',serif;font-size:clamp(22px,2.5vw,32px);font-weight:700;color:var(--paper);letter-spacing:-0.02em;line-height:1.15;margin-bottom:8px;">See the full picture for yourself.</div>
+    <div style="font-size:15px;color:#7ab0c8;line-height:1.6;max-width:480px;">Try the complete Trade dashboard — all ports, all features, no payment details required.</div>
+  </div>
+  <a href="{{ url_for('register') }}" style="background:var(--catch);color:white;padding:14px 36px;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;border-radius:2px;white-space:nowrap;transition:background 0.2s;flex-shrink:0;" onmouseover="this.style.background='#a83010'" onmouseout="this.style.background='var(--catch)'">Start free trial &rarr;</a>
+</div>
 
 <!-- ─────────────────── FEATURE: FAVOURITES ─────────────────── -->
 <div style="border-bottom:1px solid var(--rule);">
@@ -1414,13 +1428,13 @@
       <div class="feature-num">Feature 01</div>
       <h3>Your species.<br><em>Your dashboard.</em></h3>
       <p>
-        Pin the species you buy or sell every day. Your personal favourites snapshot shows the latest price for each, exactly where you source them — with a clear signal showing whether you're above or below the national average.
+        Pin the species you buy or sell regularly. Your personal favourites snapshot shows the latest reported price for each &mdash; exactly where you source them &mdash; alongside a clear benchmark showing where that price sits against the national average.
       </p>
       <ul>
         <li>Pin any species from any port</li>
-        <li>Instant above/below market indicator</li>
-        <li>See all your key species at a glance, every morning</li>
-        <li>Updated daily from live auction data</li>
+        <li>Instant above/below benchmark indicator</li>
+        <li>All your key species at a glance, updated every day</li>
+        <li>Based on actual reported auction data</li>
       </ul>
     </div>
     <div class="mockup">
@@ -1466,15 +1480,15 @@
   <div class="feature-row reverse fade-up">
     <div class="feature-copy">
       <div class="feature-num">Feature 02</div>
-      <h3>Spot the moves<br><em>before anyone else.</em></h3>
+      <h3>Understand how prices<br><em>moved yesterday.</em></h3>
       <p>
-        Market movers shows you the species with the biggest price changes since yesterday — ranked by percentage swing, with port context. If haddock just jumped 15% at Lerwick, you'll see it the moment you open your dashboard.
+        Market movers shows the species with the biggest price changes from the previous day &mdash; ranked by percentage swing, with full port context. When haddock climbs 15% at Lerwick or plaice drops at Brixham, it shows clearly in your daily report.
       </p>
       <ul>
-        <li>Top 10 biggest movers, every morning</li>
-        <li>Up and down — both directions tracked</li>
+        <li>Top 10 biggest movers, updated daily</li>
+        <li>Up and down &mdash; both directions tracked</li>
         <li>Port-level detail, not just national averages</li>
-        <li>Spot supply disruptions and seasonal spikes early</li>
+        <li>Identify supply changes and seasonal patterns over time</li>
       </ul>
     </div>
     <div class="mockup">
@@ -1535,21 +1549,21 @@
   <div class="feature-row fade-up">
     <div class="feature-copy">
       <div class="feature-num">Feature 03</div>
-      <h3>Port intelligence.<br><em>Who's cheapest, who's not.</em></h3>
+      <h3>Market benchmarks.<br><em>Where every port sits.</em></h3>
       <p>
-        The port intelligence view ranks every UK port against the national market average — species by species. Instantly see which port is trading 12% below average for monkfish today, and plan your buying accordingly.
+        The port benchmarks view shows where each UK port&rsquo;s prices sit relative to the national average &mdash; species by species. When the whole market is visible, everyone benefits: buyers understand pricing context, sellers can see their market position, and the industry as a whole becomes more efficient.
       </p>
       <ul>
-        <li>Every port vs. national market average</li>
-        <li>Species-level discount and premium indicators</li>
-        <li>Sorted by biggest discount — best value at the top</li>
-        <li>Identify structural patterns, not just one-off days</li>
+        <li>Every port vs. national market average, per species</li>
+        <li>Understand the spread &mdash; how wide price variation really is</li>
+        <li>Spot regional and seasonal pricing patterns over time</li>
+        <li>Better context for decisions on both sides of the market</li>
       </ul>
     </div>
     <div class="mockup">
       <div class="mockup-chrome">
         <div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div>
-        <span class="mockup-label">Port intelligence — Haddock</span>
+        <span class="mockup-label">Market benchmarks — Haddock</span>
       </div>
       <div class="mockup-body">
         <table class="mockup-intel-table">
@@ -1557,7 +1571,7 @@
             <tr>
               <th>Port</th>
               <th>Today's avg</th>
-              <th style="text-align:right;">vs market</th>
+              <th style="text-align:right;">vs benchmark</th>
             </tr>
           </thead>
           <tbody>
@@ -1615,7 +1629,7 @@
       <div class="feature-num">Feature 04</div>
       <h3>90-day price history.<br><em>See the trend, not just the tick.</em></h3>
       <p>
-        A single day's price is noise. Ninety days of it is signal. Track how your key species have moved across ports over the last three months — spot seasonal patterns, identify trend reversals, and make better-timed buying decisions.
+        A single day&rsquo;s price is noise. Ninety days of it is signal. Track how prices have moved across ports over the last three months &mdash; spot seasonal cycles, understand trend reversals, and plan with real market context behind you.
       </p>
       <ul>
         <li>90 days of rolling price history per species and port</li>
@@ -1674,13 +1688,13 @@
       <div class="feature-num">Feature 05</div>
       <h3>Ask the market<br><em>anything.</em></h3>
       <p>
-        The AI chat interface lets you ask questions about prices in plain English. No spreadsheets, no filtering, no digging. Just ask — and get an immediate, data-backed answer from the full Quayside dataset.
+        The AI chat interface lets you ask questions about prices and trends in plain English. No spreadsheets, no filtering, no digging. Just ask &mdash; and get an immediate, data-backed answer drawn from the full Quayside dataset.
       </p>
       <ul>
-        <li>"What's Brixham paying for monkfish this week?"</li>
-        <li>"Which port is cheapest for cod right now?"</li>
-        <li>"How has haddock trended over the last month?"</li>
-        <li>"Where's the best value for lemon sole today?"</li>
+        <li>&ldquo;How has haddock trended across UK ports this month?&rdquo;</li>
+        <li>&ldquo;What&rsquo;s the typical seasonal pattern for monkfish?&rdquo;</li>
+        <li>&ldquo;Which species have moved most in the last 30 days?&rdquo;</li>
+        <li>&ldquo;How does Peterhead cod compare to the national average historically?&rdquo;</li>
       </ul>
     </div>
     <div class="mockup">
@@ -1691,18 +1705,18 @@
       <div class="chat-mockup-body">
         <div class="chat-msg chat-msg-user">
           <div class="chat-msg-label" style="text-align:right;">You</div>
-          <div class="chat-bubble chat-bubble-user">Which port is cheapest for haddock right now?</div>
+          <div class="chat-bubble chat-bubble-user">How has haddock trended across UK ports this month?</div>
         </div>
         <div class="chat-msg">
           <div class="chat-msg-label">Quayside AI</div>
           <div class="chat-bubble chat-bubble-ai">
-            <strong>Scrabster</strong> is currently the cheapest port for haddock at <strong>&pound;2.44/kg</strong> — that's 14% below the national average of &pound;2.84/kg.<br><br>
-            Lerwick is second at &pound;2.65/kg (−6%). Brixham remains the most expensive at &pound;3.08/kg today.
+            Haddock prices have risen <strong>+12% nationally</strong> over the last 30 days, with the strongest gains at <strong>Peterhead</strong> (+18%) and <strong>Lerwick</strong> (+14%).<br><br>
+            The national average is currently &pound;2.84/kg, up from &pound;2.53/kg at the start of the month. This follows a typical late-winter seasonal pattern.
           </div>
         </div>
         <div class="chat-msg chat-msg-user">
           <div class="chat-msg-label" style="text-align:right;">You</div>
-          <div class="chat-bubble chat-bubble-user">Has Scrabster always been the cheapest?</div>
+          <div class="chat-bubble chat-bubble-user">Does this usually continue into April?</div>
         </div>
         <div class="chat-msg">
           <div class="chat-msg-label">Quayside AI</div>
@@ -1765,12 +1779,22 @@
   </div>
 </div>
 
+<!-- ─────────────────── PRE-PRICING CTA ─────────────────── -->
+<section style="background:var(--foam);padding:64px 48px;border-bottom:1px solid var(--rule);text-align:center;">
+  <div style="max-width:640px;margin:0 auto;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--catch);margin-bottom:16px;">All of this, 7 days free</div>
+    <div style="font-family:'Playfair Display',serif;font-size:clamp(24px,3vw,36px);font-weight:700;letter-spacing:-0.02em;line-height:1.15;margin-bottom:16px;">Everything you&rsquo;ve just seen is in the <em style="font-style:italic;color:var(--tide);">Trade dashboard</em>. Try it free.</div>
+    <div style="font-size:15px;color:#4a4438;line-height:1.7;margin-bottom:32px;">No payment details. No commitment. Full access for 7 days, then &pound;95/month if you want to continue.</div>
+    <a href="{{ url_for('register') }}" class="btn-primary" style="padding:16px 48px;font-size:13px;">Start your free trial &rarr;</a>
+  </div>
+</section>
+
 <!-- ─────────────────── PRICING ─────────────────── -->
 <section class="section pricing-section">
   <div class="section-inner">
     <div class="section-label" style="justify-content:center;">Trade membership</div>
-    <h2>Everything you need.<br><em>Seven days free.</em></h2>
-    <p>Try the full Trade dashboard risk-free for a week. No payment details required to start your trial.</p>
+    <h2>The full UK fish market.<br><em>Seven days free.</em></h2>
+    <p>Try the complete Trade dashboard risk-free for a week. Full access to every feature, all five ports, and the complete 90-day history. No payment details required.</p>
 
     <div class="pricing-card fade-up">
       <div class="pricing-badge">Most popular</div>
@@ -1782,14 +1806,15 @@
       </div>
       <div class="pricing-card-features">
         <ul class="pricing-feature-list">
-          <li>Daily price digest — every weekday by 8am</li>
-          <li>Full trade dashboard — all 5 UK ports</li>
+          <li>Daily market report &mdash; updated every day with previous day&rsquo;s results</li>
+          <li>Full trade dashboard &mdash; all 5 live UK ports in one view</li>
           <li>Favourites &amp; custom species watchlists</li>
-          <li>Market movers — biggest price swings, ranked</li>
-          <li>Port intelligence benchmarks — who's cheapest</li>
+          <li>Market movers &mdash; biggest daily price changes, ranked</li>
+          <li>Market benchmarks &mdash; see where every port sits against the national average</li>
           <li>90-day rolling price history per species and port</li>
-          <li>AI price chat — ask anything in plain English</li>
-          <li>CSV export — full dataset, any date range</li>
+          <li>AI chat &mdash; ask any question about the data in plain English</li>
+          <li>CSV export &mdash; full dataset, up to 90 days</li>
+          <li>New ports added throughout 2026 &mdash; included at no extra cost</li>
         </ul>
         <div class="pricing-cta-wrap">
           <a href="{{ url_for('register') }}" class="pricing-cta-btn">Start your free trial &rarr;</a>
@@ -1799,7 +1824,7 @@
     </div>
 
     <div style="text-align:center;margin-top:32px;font-size:14px;color:var(--muted);line-height:1.7;">
-      Just want the digest for now? <a href="{{ url_for('digest_page') }}" style="color:var(--tide);text-decoration:none;border-bottom:1px solid var(--rule);">Read today's digest free &rarr;</a>
+      Questions? Email <a href="mailto:hello@quayside.fish" style="color:var(--tide);text-decoration:none;border-bottom:1px solid var(--rule);">hello@quayside.fish</a> and we&rsquo;ll get back to you same day.
     </div>
   </div>
 </section>
@@ -1827,11 +1852,11 @@
     </div>
     <div class="proof-quotes fade-up">
       <div class="proof-quote">
-        <div class="proof-quote-text">"I used to spend half an hour every morning checking different port websites. Now I open one tab and I know everything I need to know before I make a single call."</div>
+        <div class="proof-quote-text">&ldquo;I used to spend time each day piecing together prices from different port websites. Now I open one dashboard and I have a complete picture of the market. It saves time and gives me proper context for every conversation.&rdquo;</div>
         <div class="proof-quote-attr">Fish merchant &middot; South West England</div>
       </div>
       <div class="proof-quote">
-        <div class="proof-quote-text">"The port intelligence view is the one I use most. Seeing at a glance which port is cheapest for cod this week — that's genuinely changed how I plan my buying."</div>
+        <div class="proof-quote-text">&ldquo;The benchmark view is the one I use most. Being able to see how each port&rsquo;s prices sit against the national average for cod &mdash; that&rsquo;s genuinely changed how I think about the market and plan my week.&rdquo;</div>
         <div class="proof-quote-attr">Processor &middot; Scotland</div>
       </div>
     </div>
@@ -1852,7 +1877,7 @@
       <details class="faq-item">
         <summary>Where does the data come from?</summary>
         <div class="faq-answer">
-          <p>Quayside aggregates publicly available auction data directly from UK port websites and official auction reports — including Peterhead, Brixham, Newlyn, Scrabster, and Lerwick. Data is collected every morning and normalised into a single consistent format.</p>
+          <p>Quayside aggregates publicly available post-market auction data directly from UK port websites and official auction reports — including Peterhead, Brixham, Newlyn, Scrabster, and Lerwick. Data is collected daily and normalised into a single consistent format.</p>
           <p>Species names, grades, and price formats vary by port — we handle all of that so you see a clean, comparable view regardless of source.</p>
         </div>
       </details>
@@ -1886,14 +1911,14 @@
 
 <!-- ─────────────────── FINAL CTA ─────────────────── -->
 <div class="final-cta">
-  <h2>Ready to trade<br><em>smarter?</em></h2>
-  <p>Start your 7-day free trial today. No card. No commitment. Cancel any time.</p>
+  <h2>The UK fish market,<br><em>properly aggregated.</em></h2>
+  <p>Start your 7-day free trial today. No card needed. Full access from day one. Cancel any time with no obligation.</p>
   <div class="final-ctas">
-    <a href="{{ url_for('register') }}" class="btn-primary" style="padding:16px 40px;font-size:13px;">Start free trial &rarr;</a>
+    <a href="{{ url_for('register') }}" class="btn-primary" style="padding:16px 48px;font-size:13px;">Start free trial &rarr;</a>
     <a href="{{ url_for('trade_dashboard') }}" class="btn-secondary" style="padding:16px 40px;font-size:13px;background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1);color:#c8d8e0;">See the dashboard first</a>
   </div>
   <div class="final-cta-secondary">
-    Just want the digest? <a href="{{ url_for('digest_page') }}">Read today's free &rarr;</a>
+    Questions? <a href="mailto:hello@quayside.fish">hello@quayside.fish</a>
   </div>
 </div>
 
