@@ -10,6 +10,7 @@ from pathlib import Path
 import jinja2
 
 from quayside.db import get_30day_species_averages, get_all_prices_for_date, get_latest_date, get_latest_rich_date, get_previous_date, get_total_port_count
+from quayside.species import KEY_SPECIES
 from quayside.fx import get_rate
 from quayside.ports import get_port_code_map
 from quayside.species import normalise_species
@@ -531,12 +532,53 @@ def build_landing_data(date: str) -> dict:
     if data["fx_rate"] and data["fx_rate"].get("rate"):
         fx_str = f"GBP/EUR {data['fx_rate']['rate']:.2f}"
 
+    # --- Key species rows for mock card (one row per species, no grade duplication) ---
+    # Prefer key_species_summary (multi-port); fall back to best single-port price.
+    key_species_set = set(KEY_SPECIES)
+    key_species_rows = []
+
+    # Build best-price-per-species lookup from all today's prices (single source of truth)
+    best_by_species: dict[str, tuple[str, str, float]] = {}  # species → (port, port_code, price)
+    for item in data["prices_by_species"]:
+        sp = item["species"]
+        if sp not in key_species_set or not item["rows"]:
+            continue
+        best_row = item["rows"][0]  # already sorted price desc
+        port_name = best_row["port"]
+        best_by_species[sp] = (
+            port_name,
+            PORT_CODES.get(port_name, port_name[:3].upper()),
+            best_row["price_avg"],
+        )
+
+    for sp in KEY_SPECIES:
+        if sp not in best_by_species:
+            continue
+        port_name, port_code, price = best_by_species[sp]
+        prev = prev_port_species.get((port_name, sp))
+        direction, pct_str = "flat", "—"
+        if prev and prev > 0:
+            pct = round(((price - prev) / prev) * 100)
+            direction = "up" if pct > 0 else ("down" if pct < 0 else "flat")
+            sign = "+" if pct > 0 else ""
+            pct_str = f"{sign}{pct}%"
+        key_species_rows.append({
+            "species": sp,
+            "port": port_code,
+            "price": price,
+            "direction": direction,
+            "pct_str": pct_str,
+        })
+        if len(key_species_rows) >= 6:
+            break
+
     return {
         "date_upper": data["report_date_short"].upper(),
         "port_count": len(data["ports_reporting"]),
         "species_count": data["total_species"],
         "price_count": data["total_rows"],
         "haddock_rows": haddock_rows[:5],
+        "key_species_rows": key_species_rows,
         "ticker_items": ticker_items,
         "top_movers": top_movers,
         "fx_str": fx_str,

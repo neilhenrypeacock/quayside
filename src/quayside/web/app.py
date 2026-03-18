@@ -130,7 +130,7 @@ def create_app() -> Flask:
     def landing():
         """Subscriber-focused marketing page."""
         from datetime import date as _date
-        date = get_latest_date()
+        date = get_latest_rich_date()  # use multi-port date to populate key species
         ld = build_landing_data(date) if date else None
         today_str = _date.today().strftime("%Y-%m-%d")
         if ld and date == today_str and ld.get("port_count", 0) >= 4:
