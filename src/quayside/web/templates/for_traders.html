@@ -11,7 +11,7 @@
   .section { padding: 96px 48px; border-bottom: 1px solid var(--rule); }
   .section-inner { max-width: 1100px; margin: 0 auto; }
   .section-label {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -29,7 +29,7 @@
     max-width: 200px;
   }
   .eyebrow {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -51,7 +51,7 @@
     background: var(--catch);
     color: white;
     padding: 14px 32px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -64,10 +64,10 @@
   }
   .btn-primary:hover { background: #a83010; transform: translateY(-1px); }
   .btn-secondary {
-    background: transparent;
+    background: var(--foam);
     color: var(--tide);
     padding: 14px 32px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -102,7 +102,7 @@
     justify-content: center;
   }
   .hero-left h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: clamp(36px, 4vw, 58px);
     font-weight: 900;
     line-height: 1.04;
@@ -113,13 +113,13 @@
   .hero-sub {
     font-size: 17px;
     line-height: 1.75;
-    color: #4a4438;
+    color: var(--ink-body);
     max-width: 440px;
     margin-bottom: 40px;
   }
   .hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 40px; }
   .hero-trust {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -169,25 +169,25 @@
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.1);
     padding: 16px;
-    border-radius: 4px;
+    border-radius: 2px;
   }
   .fav-card-species {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: 15px;
     font-weight: 700;
     color: #e8dfc8;
     margin-bottom: 4px;
   }
   .fav-card-port {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #7ab0c8;
+    color: var(--tide-light);
     margin-bottom: 10px;
   }
   .fav-card-price {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 20px;
     font-weight: 500;
     color: #f0ebe0;
@@ -195,7 +195,7 @@
   }
   .fav-card-badge {
     display: inline-block;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.06em;
     padding: 2px 6px;
@@ -204,10 +204,10 @@
   }
   .badge-up { background: rgba(109,184,138,0.2); color: #6db88a; }
   .badge-down { background: rgba(224,112,96,0.2); color: #e07060; }
-  .badge-avg { background: rgba(122,176,200,0.15); color: #7ab0c8; }
+  .badge-avg { background: rgba(122,176,200,0.15); color: var(--tide-light); }
 
   .hero-movers-label {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -229,13 +229,13 @@
     font-weight: 300;
   }
   .hero-mover-port {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     color: rgba(122,176,200,0.6);
     letter-spacing: 0.06em;
   }
   .hero-mover-pct {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 500;
   }
@@ -253,11 +253,11 @@
     border-bottom: 1px solid #2a2820;
   }
   .trust-bar-label {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #3a3428;
+    color: var(--ink-deep);
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -268,11 +268,11 @@
     align-items: center;
   }
   .trust-port {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #5a5448;
+    color: var(--ink-body);
   }
 
   /* ── DIGEST SECTION ── */
@@ -283,7 +283,7 @@
     align-items: center;
   }
   .digest-copy h2 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: clamp(28px, 3vw, 40px);
     font-weight: 700;
     line-height: 1.1;
@@ -294,7 +294,7 @@
   .digest-copy p {
     font-size: 15px;
     line-height: 1.8;
-    color: #4a4438;
+    color: var(--ink-body);
     margin-bottom: 16px;
   }
   .digest-copy ul {
@@ -306,14 +306,14 @@
   }
   .digest-copy ul li {
     font-size: 14px;
-    color: #4a4438;
+    color: var(--ink-body);
     display: flex;
     gap: 10px;
     line-height: 1.5;
   }
   .digest-copy ul li::before {
     content: '→';
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     color: var(--catch);
     font-size: 11px;
     flex-shrink: 0;
@@ -330,7 +330,7 @@
   .digest-signup input {
     flex: 1;
     padding: 12px 16px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     border: 1px solid var(--rule);
     border-right: none;
@@ -341,10 +341,10 @@
   }
   .digest-signup input:focus { border-color: var(--tide); }
   .digest-signup button {
-    background: var(--tide);
+    background: var(--catch);
     color: white;
     padding: 12px 20px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -354,9 +354,9 @@
     white-space: nowrap;
     transition: background 0.2s;
   }
-  .digest-signup button:hover { background: #122a38; }
+  .digest-signup button:hover { background: #a83010; }
   .digest-free-note {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.08em;
     color: var(--muted);
@@ -367,7 +367,7 @@
   .digest-mockup {
     background: var(--foam);
     border: 1px solid var(--rule);
-    border-radius: 4px;
+    border-radius: 2px;
     overflow: hidden;
     box-shadow: 0 8px 32px rgba(0,0,0,0.08);
   }
@@ -379,21 +379,21 @@
     align-items: center;
   }
   .digest-mockup-title {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: 14px;
     font-weight: 700;
     color: var(--paper);
   }
   .digest-mockup-date {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #7ab0c8;
+    color: var(--tide-light);
   }
   .digest-mockup-body { padding: 16px 20px; }
   .digest-mockup-section-head {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 8px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -406,7 +406,7 @@
   .digest-mockup-section-head:first-child { margin-top: 0; padding-top: 0; border-top: none; }
   .digest-table { width: 100%; border-collapse: collapse; }
   .digest-table th {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 8px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -425,17 +425,17 @@
   .digest-table tr:last-child td { border-bottom: none; }
   .dt-species { font-weight: 500; }
   .dt-port {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.06em;
     color: var(--muted);
   }
   .dt-price {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
   }
   .dt-change {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
   }
   .dt-up { color: var(--up); }
@@ -443,7 +443,7 @@
 
   /* ── PROBLEM SECTION ── */
   .problem-section { background: var(--ink); border-bottom: 1px solid #2a2820; }
-  .problem-section .section-label { color: #3a3428; }
+  .problem-section .section-label { color: var(--ink-deep); }
   .problem-section .section-label::after { background: #2a2820; }
   .problem-grid {
     display: grid;
@@ -457,7 +457,7 @@
     padding: 40px 36px;
   }
   .problem-stat {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: 48px;
     font-weight: 900;
     color: var(--catch);
@@ -466,7 +466,7 @@
     opacity: 0.9;
   }
   .problem-card h3 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: 20px;
     font-weight: 700;
     color: var(--paper);
@@ -503,7 +503,7 @@
   .feature-row-dark .feature-row { padding: 0; }
 
   .feature-copy .feature-num {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -511,7 +511,7 @@
     margin-bottom: 16px;
   }
   .feature-copy h3 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: clamp(24px, 2.5vw, 32px);
     font-weight: 700;
     line-height: 1.15;
@@ -522,7 +522,7 @@
   .feature-copy p {
     font-size: 15px;
     line-height: 1.8;
-    color: #4a4438;
+    color: var(--ink-body);
     margin-bottom: 12px;
   }
   .feature-copy ul {
@@ -535,7 +535,7 @@
   }
   .feature-copy ul li {
     font-size: 13px;
-    color: #5a5448;
+    color: var(--ink-body);
     display: flex;
     gap: 8px;
     align-items: flex-start;
@@ -543,7 +543,7 @@
   }
   .feature-copy ul li::before {
     content: '✓';
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     color: var(--up);
     font-size: 11px;
     flex-shrink: 0;
@@ -554,9 +554,8 @@
   .mockup {
     background: white;
     border: 1px solid var(--rule);
-    border-radius: 6px;
+    border-radius: 2px;
     overflow: hidden;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.1);
   }
   .mockup-chrome {
     background: var(--salt);
@@ -576,7 +575,7 @@
   .mockup-dot:nth-child(2) { background: #febc2e; }
   .mockup-dot:nth-child(3) { background: #28c840; }
   .mockup-label {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.1em;
     color: var(--muted);
@@ -595,18 +594,18 @@
   .mockup-fav-card {
     background: white;
     border: 1px solid var(--rule);
-    border-radius: 4px;
+    border-radius: 2px;
     padding: 14px 16px;
   }
   .mfc-species {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: 14px;
     font-weight: 700;
     color: var(--ink);
     margin-bottom: 2px;
   }
   .mfc-port {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 8px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -614,14 +613,14 @@
     margin-bottom: 8px;
   }
   .mfc-price {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 18px;
     color: var(--ink);
     letter-spacing: -0.02em;
   }
   .mfc-badge {
     display: inline-block;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 8px;
     padding: 2px 5px;
     border-radius: 2px;
@@ -635,7 +634,7 @@
   /* Movers mockup */
   .mockup-movers-table { width: 100%; border-collapse: collapse; }
   .mockup-movers-table th {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 8px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -653,18 +652,18 @@
   .mockup-movers-table tr:last-child td { border-bottom: none; }
   .mmr-species { font-weight: 500; }
   .mmr-port {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     color: var(--muted);
     letter-spacing: 0.04em;
   }
   .mmr-price {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     color: var(--ink);
   }
   .mmr-pct {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 500;
     text-align: right;
@@ -680,7 +679,7 @@
   /* Port intel mockup */
   .mockup-intel-table { width: 100%; border-collapse: collapse; }
   .mockup-intel-table th {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 8px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -698,11 +697,11 @@
   .mockup-intel-table tr:last-child td { border-bottom: none; }
   .mit-port { font-weight: 500; }
   .mit-avg {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
   }
   .mit-discount {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 500;
     text-align: right;
@@ -732,7 +731,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -745,7 +744,7 @@
     flex-shrink: 0;
   }
   .mockup-chart-title {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 8px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -762,7 +761,7 @@
   }
   .chat-msg-user { align-items: flex-end; }
   .chat-msg-label {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 8px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -821,7 +820,7 @@
   }
   .export-preview-table { width: 100%; border-collapse: collapse; }
   .export-preview-table th {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 8px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -832,11 +831,11 @@
     text-align: left;
   }
   .export-preview-table td {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     padding: 5px 6px;
     border: 1px solid rgba(200,191,170,0.5);
-    color: #4a4438;
+    color: var(--ink-body);
   }
   .export-btn-row {
     display: flex;
@@ -847,7 +846,7 @@
     background: var(--catch);
     color: white;
     padding: 8px 16px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -859,7 +858,7 @@
     gap: 6px;
   }
   .export-btn-note {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     color: var(--muted);
     letter-spacing: 0.06em;
@@ -872,7 +871,7 @@
     border-bottom: 1px solid var(--rule);
   }
   .pricing-section h2 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: clamp(30px, 3.5vw, 44px);
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -882,7 +881,7 @@
   .pricing-section h2 em { font-style: italic; color: var(--tide); }
   .pricing-section > .section-inner > p {
     font-size: 16px;
-    color: #4a4438;
+    color: var(--ink-body);
     line-height: 1.7;
     max-width: 520px;
     margin: 0 auto 56px;
@@ -893,9 +892,8 @@
     margin: 0 auto;
     background: white;
     border: 2px solid var(--catch);
-    border-radius: 8px;
+    border-radius: 2px;
     overflow: hidden;
-    box-shadow: 0 16px 64px rgba(200,64,26,0.12);
     position: relative;
   }
   .pricing-badge {
@@ -905,7 +903,7 @@
     transform: translateX(-50%);
     background: var(--catch);
     color: white;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -918,7 +916,7 @@
     border-bottom: 1px solid var(--rule);
   }
   .pricing-plan-name {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -926,7 +924,7 @@
     margin-bottom: 16px;
   }
   .pricing-price {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: 64px;
     font-weight: 900;
     color: var(--ink);
@@ -942,7 +940,7 @@
     display: inline-block;
   }
   .pricing-per {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--muted);
     letter-spacing: 0.08em;
@@ -953,12 +951,12 @@
     background: rgba(109,184,138,0.15);
     color: #3a9a5c;
     border: 1px solid rgba(109,184,138,0.3);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 5px 14px;
-    border-radius: 20px;
+    border-radius: 2px;
   }
   .pricing-card-features {
     padding: 32px 40px;
@@ -981,7 +979,7 @@
   }
   .pricing-feature-list li::before {
     content: '✓';
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     color: #3a9a5c;
     flex-shrink: 0;
@@ -993,19 +991,19 @@
     background: var(--catch);
     color: white;
     padding: 16px 40px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     text-decoration: none;
-    border-radius: 4px;
+    border-radius: 2px;
     transition: background 0.2s, transform 0.1s;
     margin-bottom: 12px;
     text-align: center;
   }
   .pricing-cta-btn:hover { background: #a83010; transform: translateY(-2px); }
   .pricing-fine-print {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     color: var(--muted);
     letter-spacing: 0.06em;
@@ -1030,7 +1028,7 @@
     text-align: center;
   }
   .proof-stat-num {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: 48px;
     font-weight: 900;
     color: var(--paper);
@@ -1039,11 +1037,11 @@
     margin-bottom: 8px;
   }
   .proof-stat-label {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: #7ab0c8;
+    color: var(--tide-light);
   }
   .proof-quotes {
     display: grid;
@@ -1056,10 +1054,10 @@
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.07);
     padding: 32px;
-    border-radius: 4px;
+    border-radius: 2px;
   }
   .proof-quote-text {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-style: italic;
     font-size: 16px;
     line-height: 1.7;
@@ -1067,11 +1065,11 @@
     margin-bottom: 20px;
   }
   .proof-quote-attr {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #7ab0c8;
+    color: var(--tide-light);
   }
 
   /* ── FAQ ── */
@@ -1080,7 +1078,7 @@
     border-bottom: 1px solid var(--rule);
   }
   .faq-item summary {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: 18px;
     font-weight: 700;
     padding: 24px 0;
@@ -1095,7 +1093,7 @@
   .faq-item summary::-webkit-details-marker { display: none; }
   .faq-item summary::after {
     content: '+';
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 20px;
     color: var(--catch);
     flex-shrink: 0;
@@ -1108,7 +1106,7 @@
     padding: 0 0 24px;
     font-size: 14px;
     line-height: 1.8;
-    color: #4a4438;
+    color: var(--ink-body);
     max-width: 580px;
   }
   .faq-answer p + p { margin-top: 12px; }
@@ -1120,7 +1118,7 @@
     text-align: center;
   }
   .final-cta h2 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: clamp(32px, 4vw, 52px);
     font-weight: 700;
     color: var(--paper);
@@ -1128,10 +1126,10 @@
     line-height: 1.1;
     margin-bottom: 16px;
   }
-  .final-cta h2 em { font-style: italic; color: #7ab0c8; }
+  .final-cta h2 em { font-style: italic; color: var(--tide-light); }
   .final-cta p {
     font-size: 16px;
-    color: #5a5448;
+    color: var(--ink-body);
     line-height: 1.7;
     margin-bottom: 40px;
     max-width: 460px;
@@ -1140,13 +1138,13 @@
   }
   .final-ctas { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
   .final-cta-secondary {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #3a3428;
+    color: var(--ink-deep);
   }
-  .final-cta-secondary a { color: #5a5448; text-decoration: none; border-bottom: 1px solid #3a3428; }
+  .final-cta-secondary a { color: var(--ink-body); text-decoration: none; border-bottom: 1px solid #3a3428; }
   .final-cta-secondary a:hover { color: var(--muted); }
 
   /* footer */
@@ -1161,17 +1159,17 @@
     border-top: 1px solid #2a2820;
   }
   .footer-logo {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-size: 20px;
     font-weight: 700;
     color: var(--paper);
   }
   .footer-logo span { color: var(--catch); }
   .footer-copy {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.08em;
-    color: #3a3428;
+    color: var(--ink-deep);
   }
   .footer-links {
     display: flex;
@@ -1179,11 +1177,11 @@
     list-style: none;
   }
   .footer-links a {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #3a3428;
+    color: var(--ink-deep);
     text-decoration: none;
     transition: color 0.2s;
   }
@@ -1239,30 +1237,30 @@
 
   <div class="hero-right">
     <!-- Dashboard preview: favourite species cards -->
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:12px;">Your favourites</div>
+    <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:12px;">Your favourites</div>
     <div class="fav-grid">
       <div class="fav-card">
         <div class="fav-card-species">Haddock</div>
         <div class="fav-card-port">UK market · 5 ports</div>
-        <div class="fav-card-price">&pound;2.84<span style="font-size:12px;color:#7ab0c8;">/kg</span></div>
+        <div class="fav-card-price">&pound;2.84<span style="font-size:12px;color:var(--tide-light);">/kg</span></div>
         <div class="fav-card-badge badge-up">+8% vs avg &#9650;</div>
       </div>
       <div class="fav-card">
         <div class="fav-card-species">Monkfish</div>
         <div class="fav-card-port">UK market · 3 ports</div>
-        <div class="fav-card-price">&pound;7.20<span style="font-size:12px;color:#7ab0c8;">/kg</span></div>
+        <div class="fav-card-price">&pound;7.20<span style="font-size:12px;color:var(--tide-light);">/kg</span></div>
         <div class="fav-card-badge badge-avg">At market avg</div>
       </div>
       <div class="fav-card">
         <div class="fav-card-species">Cod</div>
         <div class="fav-card-port">UK market · 4 ports</div>
-        <div class="fav-card-price">&pound;3.10<span style="font-size:12px;color:#7ab0c8;">/kg</span></div>
+        <div class="fav-card-price">&pound;3.10<span style="font-size:12px;color:var(--tide-light);">/kg</span></div>
         <div class="fav-card-badge badge-down">−5% vs avg &#9660;</div>
       </div>
       <div class="fav-card">
         <div class="fav-card-species">Lemon Sole</div>
         <div class="fav-card-port">UK market · 2 ports</div>
-        <div class="fav-card-price">&pound;4.55<span style="font-size:12px;color:#7ab0c8;">/kg</span></div>
+        <div class="fav-card-price">&pound;4.55<span style="font-size:12px;color:var(--tide-light);">/kg</span></div>
         <div class="fav-card-badge badge-up">+12% vs avg &#9650;</div>
       </div>
     </div>
@@ -1414,11 +1412,11 @@
 <!-- ─────────────────── MID CTA ─────────────────── -->
 <div class="demo-section" style="background:var(--tide);padding:56px 48px;border-bottom:1px solid #0a1a24;display:flex;justify-content:space-between;align-items:center;gap:40px;flex-wrap:wrap;">
   <div>
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#7ab0c8;margin-bottom:12px;">7-day free trial</div>
-    <div style="font-family:'Playfair Display',serif;font-size:clamp(22px,2.5vw,32px);font-weight:700;color:var(--paper);letter-spacing:-0.02em;line-height:1.15;margin-bottom:8px;">See the full picture for yourself.</div>
-    <div style="font-size:15px;color:#7ab0c8;line-height:1.6;max-width:480px;">Try the complete Trade dashboard — all ports, all features, no payment details required.</div>
+    <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--tide-light);margin-bottom:12px;">7-day free trial</div>
+    <div style="font-family:var(--font-serif);font-size:clamp(22px,2.5vw,32px);font-weight:700;color:var(--paper);letter-spacing:-0.02em;line-height:1.15;margin-bottom:8px;">See the full picture for yourself.</div>
+    <div style="font-size:15px;color:var(--tide-light);line-height:1.6;max-width:480px;">Try the complete Trade dashboard — all ports, all features, no payment details required.</div>
   </div>
-  <a href="{{ url_for('register') }}" style="background:var(--catch);color:white;padding:14px 36px;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;border-radius:2px;white-space:nowrap;transition:background 0.2s;flex-shrink:0;" onmouseover="this.style.background='#a83010'" onmouseout="this.style.background='var(--catch)'">Start free trial &rarr;</a>
+  <a href="{{ url_for('register') }}" style="background:var(--catch);color:white;padding:14px 36px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;border-radius:2px;white-space:nowrap;transition:background 0.2s;flex-shrink:0;" onmouseover="this.style.background='#a83010'" onmouseout="this.style.background='var(--catch)'">Start free trial &rarr;</a>
 </div>
 
 <!-- ─────────────────── FEATURE: FAVOURITES ─────────────────── -->
@@ -1470,7 +1468,7 @@
             <div class="mfc-badge mfc-badge-up">&#9650; +12% vs prev. day</div>
           </div>
         </div>
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-align:center;">+ Edit favourites · 4 species tracked</div>
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-align:center;">+ Edit favourites · 4 species tracked</div>
       </div>
     </div>
   </div>
@@ -1579,7 +1577,7 @@
             <tr style="background:rgba(26,58,74,0.06);">
               <td class="mit-port" style="font-weight:700;color:var(--tide);">Market avg</td>
               <td class="mit-avg" style="font-weight:700;color:var(--tide);">&pound;2.80/kg</td>
-              <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);">— benchmark</td>
+              <td style="text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--muted);">— benchmark</td>
             </tr>
             <tr>
               <td class="mit-port">Scrabster</td>
@@ -1755,7 +1753,7 @@
         <span class="mockup-label">Export data — CSV</span>
       </div>
       <div class="export-mockup-body">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Preview — last 7 days</div>
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Preview — last 7 days</div>
         <table class="export-preview-table">
           <thead>
             <tr>

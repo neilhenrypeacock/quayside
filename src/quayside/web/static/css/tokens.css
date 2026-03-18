@@ -15,6 +15,11 @@
   --up: #6db88a;
   --down: #e07060;
 
+  /* Extended palette */
+  --ink-body: #4a4438;     /* warm dark brown — body text on light backgrounds */
+  --tide-light: #7ab0c8;   /* light teal — text on dark/teal backgrounds */
+  --ink-deep: #3a3428;     /* very dark brown — footer, secondary dark text */
+
   /* Typography */
   --font-serif: 'Playfair Display', Georgia, serif;
   --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -423,7 +428,7 @@ input:focus, select:focus {
   font-size: 9px;
   padding: 2px 6px;
   border-radius: 2px;
-  color: #5a5040;
+  color: var(--muted);
   letter-spacing: 0.04em;
   border: 1px solid var(--rule);
 }
