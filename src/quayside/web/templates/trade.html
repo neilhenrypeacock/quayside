@@ -1284,6 +1284,82 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 }
 .feedback-modal-input:focus, .feedback-modal-textarea:focus { outline: none; border-color: var(--tide); }
 
+/* ── Picker selected chips bar ── */
+.picker-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 32px;
+    padding: 8px 10px;
+    background: var(--salt);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    align-items: center;
+}
+.picker-chips-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 4px;
+    white-space: nowrap;
+}
+.picker-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--tide);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px 3px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    border: none;
+    transition: background 0.1s;
+}
+.picker-chip:hover { background: #c8401a; }
+.picker-chip-x { font-size: 12px; line-height: 1; opacity: 0.8; }
+.picker-chips-empty {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* ── View toggle (All / My Favourites) ── */
+.view-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+.view-toggle-btn {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 5px 12px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.12s;
+}
+.view-toggle-btn:not(:last-child) { border-right: 1px solid var(--rule); }
+.view-toggle-btn.active { background: var(--tide); color: #fff; }
+.view-toggle-btn:not(.active):hover { background: var(--salt); color: var(--ink); }
+.view-toggle-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
 /* ── Contextual help buttons & tooltip ── */
 .help-btn {
     display: inline-flex;
@@ -1374,35 +1450,34 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     </div>
 </div>
 
-<!-- ── Data credentials bar ── -->
-<div class="data-credentials">
-    <div class="data-cred-item">
-        <div class="data-cred-value">{{ db_stats.total_ports }}</div>
-        <div class="data-cred-label">UK ports <button class="help-btn" data-h="Active auction ports we collect price data from daily. Only ports with data in the last 90 days are counted." onclick="showHelp(event,this.dataset.h)">?</button></div>
-    </div>
-    <div class="data-cred-item">
-        <div class="data-cred-value">{{ db_stats.total_species }}</div>
-        <div class="data-cred-label">Species tracked <button class="help-btn" data-h="Distinct species with auction price data across all active ports. Species names are normalised to canonical names (e.g. Monks → Monkfish) for cross-port comparison." onclick="showHelp(event,this.dataset.h)">?</button></div>
-    </div>
-    <div class="data-cred-item">
-        <div class="data-cred-value">{{ "{:,}".format(db_stats.total_records) }}</div>
-        <div class="data-cred-label">Price records <button class="help-btn" data-h="Total individual auction price records in our database across all ports and all dates since collection began." onclick="showHelp(event,this.dataset.h)">?</button></div>
-    </div>
-    <div class="data-cred-item">
-        <div class="data-cred-value">{{ db_stats.total_trading_days }}</div>
-        <div class="data-cred-label">Trading days <button class="help-btn" data-h="Total trading dates with at least one price record in the database. Most UK fish auctions operate Monday–Friday." onclick="showHelp(event,this.dataset.h)">?</button></div>
-    </div>
-    <div class="data-cred-item">
-        <div class="data-cred-value">{{ db_stats.earliest_date_display }}</div>
-        <div class="data-cred-label">Data since <button class="help-btn" data-h="The date of the earliest auction price record in the database. Data quality improves as coverage grows." onclick="showHelp(event,this.dataset.h)">?</button></div>
-    </div>
-</div>
-
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <!-- SECTION 1: YOUR DASHBOARD                                            -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-dashboard">
     <div class="section-heading">Your Dashboard</div>
+    <!-- ── Data credentials bar ── -->
+    <div class="data-credentials">
+        <div class="data-cred-item">
+            <div class="data-cred-value">{{ db_stats.total_ports }}</div>
+            <div class="data-cred-label">UK ports <button class="help-btn" data-h="Active auction ports we collect price data from daily. Only ports with data in the last 90 days are counted." onclick="showHelp(event,this.dataset.h)">?</button></div>
+        </div>
+        <div class="data-cred-item">
+            <div class="data-cred-value">{{ db_stats.total_species }}</div>
+            <div class="data-cred-label">Species tracked <button class="help-btn" data-h="Distinct species with auction price data across all active ports. Species names are normalised to canonical names (e.g. Monks → Monkfish) for cross-port comparison." onclick="showHelp(event,this.dataset.h)">?</button></div>
+        </div>
+        <div class="data-cred-item">
+            <div class="data-cred-value">{{ "{:,}".format(db_stats.total_records) }}</div>
+            <div class="data-cred-label">Price records <button class="help-btn" data-h="Total individual auction price records in our database across all ports and all dates since collection began." onclick="showHelp(event,this.dataset.h)">?</button></div>
+        </div>
+        <div class="data-cred-item">
+            <div class="data-cred-value">{{ db_stats.total_trading_days }}</div>
+            <div class="data-cred-label">Trading days <button class="help-btn" data-h="Total trading dates with at least one price record in the database. Most UK fish auctions operate Monday–Friday." onclick="showHelp(event,this.dataset.h)">?</button></div>
+        </div>
+        <div class="data-cred-item">
+            <div class="data-cred-value">{{ db_stats.earliest_date_display }}</div>
+            <div class="data-cred-label">Data since <button class="help-btn" data-h="The date of the earliest auction price record in the database. Data quality improves as coverage grows." onclick="showHelp(event,this.dataset.h)">?</button></div>
+        </div>
+    </div>
     <div class="section-desc">
         Prices and insights for the species and ports you follow.
         Edit your favourites to customise this view.
@@ -1443,6 +1518,14 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 <div class="trade-section" id="section-overview">
     <div class="section-heading">Market Insights <button class="help-btn" data-h="Market-wide price momentum across all species and ports. The movers table shows today's biggest price changes at a glance. The pulse cards compare the overall market to recent periods — negative % means prices have fallen, which is good for buyers." onclick="showHelp(event,this.dataset.h)">?</button></div>
     <div class="section-desc">How is the market moving? The pulse cards show today's average price vs recent periods &mdash; a negative % means prices have fallen (good for buyers). The movers table shows today's biggest price changes at a glance.</div>
+
+    <!-- View toggle -->
+    <div class="view-toggle-wrap">
+        <div class="view-toggle" id="overview-view-toggle">
+            <button class="view-toggle-btn active" onclick="setOverviewViewMode('all',this)">All Species</button>
+            <button class="view-toggle-btn" onclick="setOverviewViewMode('favourites',this)">&#9733; My Favourites</button>
+        </div>
+    </div>
 
     <!-- Today's movers (rendered by JS) -->
     <div id="movers-table-wrap" style="margin-bottom:24px;"></div>
@@ -1545,6 +1628,14 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         are priced below average &mdash; and where the buying opportunities are. Reporting status shows whether a port has data for today.
     </div>
 
+    <!-- View toggle -->
+    <div class="view-toggle-wrap">
+        <div class="view-toggle" id="intel-view-toggle">
+            <button class="view-toggle-btn active" onclick="setIntelViewMode('all',this)">All Species</button>
+            <button class="view-toggle-btn" onclick="setIntelViewMode('favourites',this)">&#9733; My Favourites</button>
+        </div>
+    </div>
+
     <!-- Port selector tabs -->
     <div class="overview-filter" id="port-intel-tabs"></div>
 
@@ -1610,6 +1701,14 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     <div class="section-heading">Today's Prices <button class="help-btn" data-h="Average auction prices per kg across UK ports for today's trading session. Click any row to open that species in Price History. Port column dots show whether each port reported data today (green = yes, grey = no)." onclick="showHelp(event,this.dataset.h)">?</button></div>
     <div class="section-desc">
         Average auction prices per kilogram across UK ports today. <strong style="color:var(--ink);font-weight:500;">Price cells:</strong> dark blue = cheapest port, green = below market avg, red = above market avg. <strong style="color:var(--ink);font-weight:500;">Change columns:</strong> green = price has fallen, red = price has risen. Click any row to chart its history.
+    </div>
+
+    <!-- View toggle -->
+    <div class="view-toggle-wrap">
+        <div class="view-toggle" id="prices-view-toggle">
+            <button class="view-toggle-btn active" onclick="setPricesView('all',this)">All Species</button>
+            <button class="view-toggle-btn" onclick="setPricesView('favourites',this)">&#9733; My Favourites</button>
+        </div>
     </div>
 
     <!-- Controls -->
@@ -1696,7 +1795,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             data-change="{{ row.vs_yesterday_pct or 0 }}"
             data-market-avg="{{ row.market_avg or 0 }}"
             data-species="{{ row.species }}"
-            onclick="selectSpecies('{{ row.species | e }}');showTab('section-chart');"
+            onclick="selectSpecies('{{ row.species | e }}');showTab('section-chart');">
             <td class="species-name-cell" style="display:flex;align-items:center;gap:0;">
                 <button class="star-btn" data-species="{{ row.species | e }}"
                         onclick="event.stopPropagation();toggleStar('{{ row.species | e }}', this)"
@@ -1764,6 +1863,14 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     <div class="section-desc">
         90-day price history for a species across UK ports. Only dates with real auction data are plotted &mdash; gaps in the line mean no data was recorded that day. Click any row in Today's Prices, or choose a species below.
     </div>
+    <!-- View toggle -->
+    <div class="view-toggle-wrap">
+        <div class="view-toggle" id="chart-view-toggle">
+            <button class="view-toggle-btn active" onclick="setChartViewMode('all',this)">All Species</button>
+            <button class="view-toggle-btn" onclick="setChartViewMode('favourites',this)">&#9733; My Favourites</button>
+        </div>
+    </div>
+
     <div class="chart-card">
         <div class="overview-filter" id="chart-group-filter" style="margin-bottom:14px;">
             <button class="overview-filter-btn active" onclick="setChartGroup('single', this)">Single Species</button>
@@ -1889,6 +1996,10 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             <button class="picker-quick-btn" onclick="pickerSelectCategory('shellfish')">Shellfish</button>
             <button class="picker-quick-btn" onclick="pickerSelectCategory('pelagic')">Pelagic</button>
         </div>
+        <div class="picker-chips" id="species-picker-chips">
+            <span class="picker-chips-label">Selected:</span>
+            <span class="picker-chips-empty">None selected</span>
+        </div>
         <div class="picker-grid" id="species-picker-grid"></div>
         <div class="picker-actions">
             <button class="btn btn-secondary" onclick="closeSpeciesPicker()">Cancel</button>
@@ -1905,6 +2016,10 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         <div class="picker-quick-btns">
             <button class="picker-quick-btn" onclick="pickerSelectAll('ports')">Select All</button>
             <button class="picker-quick-btn" onclick="pickerSelectNone('ports')">Clear All</button>
+        </div>
+        <div class="picker-chips" id="port-picker-chips">
+            <span class="picker-chips-label">Selected:</span>
+            <span class="picker-chips-empty">None selected</span>
         </div>
         <div class="picker-grid" id="port-picker-grid"></div>
         <div class="picker-actions">
@@ -2161,30 +2276,38 @@ function renderMoversTable() {
     const risers = sorted.filter(r => r.vs_yesterday_pct > 0).slice(0, 5);
     const fallers = sorted.filter(r => r.vs_yesterday_pct < 0).reverse().slice(0, 5);
 
+    const colHeader = `<thead><tr>
+        <th style="text-align:left;font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;padding:0 6px 6px 0;font-weight:400;">Species</th>
+        <th style="text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;padding:0 6px 6px;font-weight:400;">vs yesterday</th>
+        <th style="text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;padding:0 0 6px;font-weight:400;">mkt avg &middot; best port</th>
+    </tr></thead>`;
+
     function buildRows(rows, cls) {
         return rows.map(r => {
             const sign = r.vs_yesterday_pct > 0 ? '+' : '';
             const price = r.market_avg ? `\u00a3${r.market_avg.toFixed(2)}/kg` : '&mdash;';
             const bestPort = r.best_buy_port ? ` &middot; ${PORT_CODES[r.best_buy_port] || r.best_buy_port}` : '';
             const esc = r.species.replace(/'/g, "\\'");
-            return `<tr onclick="selectSpecies('${esc}');showTab('section-chart');">
+            return `<tr onclick="selectSpecies('${esc}');showTab('section-chart');" style="cursor:pointer;">
                 <td class="species-td">${r.species}</td>
-                <td class="change-td ${cls}">${sign}${r.vs_yesterday_pct.toFixed(1)}%</td>
-                <td class="price-td">${price}${bestPort}</td>
+                <td class="change-td ${cls}" style="text-align:right;">${sign}${r.vs_yesterday_pct.toFixed(1)}%</td>
+                <td class="price-td" style="text-align:right;">${price}${bestPort}</td>
             </tr>`;
         }).join('');
     }
 
     el.innerHTML = `<div class="movers-grid">
         <div class="movers-card">
-            <div class="movers-card-title">&#9650; Rising today ${helpBtn('Species whose market average price has risen the most vs yesterday. % shown is today vs yesterday\'s market average. Price and cheapest port shown on the right. Click any row to chart this species.')}</div>
+            <div class="movers-card-title">&#9650; Rising today ${helpBtn('% change is today\'s market average price vs yesterday\'s market average across all reporting ports. Rising prices mean this species is more expensive than yesterday. Click any row to open the full price chart.')}</div>
             <table class="movers-table">
+                ${colHeader}
                 <tbody>${risers.length ? buildRows(risers, 'change-down') : '<tr><td colspan="3" style="color:var(--muted);">No risers today</td></tr>'}</tbody>
             </table>
         </div>
         <div class="movers-card">
-            <div class="movers-card-title">&#9660; Falling today ${helpBtn('Species whose market average price has fallen the most vs yesterday. Falling prices are generally good for buyers. Click any row to chart this species.')}</div>
+            <div class="movers-card-title">&#9660; Falling today ${helpBtn('% change is today\'s market average vs yesterday. Falling prices (green) are good for buyers — this species is cheaper than yesterday. Click any row to open the full price chart.')}</div>
             <table class="movers-table">
+                ${colHeader}
                 <tbody>${fallers.length ? buildRows(fallers, 'change-up') : '<tr><td colspan="3" style="color:var(--muted);">No fallers today</td></tr>'}</tbody>
             </table>
         </div>
@@ -2215,6 +2338,29 @@ function renderSpeciesPickerGrid() {
         </div>`;
     });
     grid.innerHTML = html;
+    renderSpeciesPickerChips();
+}
+function renderSpeciesPickerChips() {
+    const bar = document.getElementById('species-picker-chips');
+    if (!bar) return;
+    const items = [...pickerSpeciesSelection].sort();
+    if (items.length === 0) {
+        bar.innerHTML = '<span class="picker-chips-label">Selected:</span><span class="picker-chips-empty">None — click species below to add</span>';
+    } else {
+        const chips = items.map(sp => {
+            const esc = sp.replace(/'/g, "\\'");
+            return `<button class="picker-chip" onclick="removePickerSpecies('${esc}')">${sp} <span class="picker-chip-x">&times;</span></button>`;
+        }).join('');
+        bar.innerHTML = '<span class="picker-chips-label">Selected:</span>' + chips;
+    }
+}
+function removePickerSpecies(sp) {
+    pickerSpeciesSelection.delete(sp);
+    renderSpeciesPickerChips();
+    // Deselect in grid
+    document.querySelectorAll('#species-picker-grid .picker-item').forEach(el => {
+        if (el.textContent.trim().startsWith(sp)) el.classList.remove('selected');
+    });
 }
 function togglePickerSpecies(el, sp) {
     if (pickerSpeciesSelection.has(sp)) {
@@ -2224,6 +2370,7 @@ function togglePickerSpecies(el, sp) {
         pickerSpeciesSelection.add(sp);
         el.classList.add('selected');
     }
+    renderSpeciesPickerChips();
 }
 function pickerSelectAll(type) {
     if (type === 'species') {
@@ -2288,6 +2435,28 @@ function renderPortPickerGrid() {
         </div>`;
     });
     grid.innerHTML = html;
+    renderPortPickerChips();
+}
+function renderPortPickerChips() {
+    const bar = document.getElementById('port-picker-chips');
+    if (!bar) return;
+    const items = [...pickerPortSelection].sort();
+    if (items.length === 0) {
+        bar.innerHTML = '<span class="picker-chips-label">Selected:</span><span class="picker-chips-empty">None — leave empty to see all ports</span>';
+    } else {
+        const chips = items.map(port => {
+            const code = PORT_CODES[port] || port.substring(0, 3).toUpperCase();
+            return `<button class="picker-chip" onclick="removePickerPort('${port}')">${code} <span class="picker-chip-x">&times;</span></button>`;
+        }).join('');
+        bar.innerHTML = '<span class="picker-chips-label">Selected:</span>' + chips;
+    }
+}
+function removePickerPort(port) {
+    pickerPortSelection.delete(port);
+    renderPortPickerChips();
+    document.querySelectorAll('#port-picker-grid .picker-item').forEach(el => {
+        if (el.textContent.trim().startsWith(port)) el.classList.remove('selected');
+    });
 }
 function togglePickerPort(el, port) {
     if (pickerPortSelection.has(port)) {
@@ -2297,6 +2466,7 @@ function togglePickerPort(el, port) {
         pickerPortSelection.add(port);
         el.classList.add('selected');
     }
+    renderPortPickerChips();
 }
 function savePortPicker() {
     myPorts = new Set(pickerPortSelection);
@@ -2490,9 +2660,12 @@ function rebuildChart() {
         if (!chartActivePorts.has(port)) continue;
         const portData = data.ports && data.ports[port];
         if (!portData) continue;
+        // Only include if there's at least one non-null value in the range
+        const vals = idxs.map(i => portData[i] ?? null);
+        if (!vals.some(v => v !== null)) continue;
         datasets.push({
             label: port,
-            data: idxs.map(i => portData[i]),
+            data: vals,
             borderColor: PORT_COLORS[port] || '#7a7060',
             backgroundColor: 'transparent',
             borderWidth: 1.5,
@@ -2502,19 +2675,26 @@ function rebuildChart() {
             spanGaps: false,
         });
     }
-    if (showMkt && data.market_avg) {
-        datasets.push({
-            label: 'Market avg',
-            data: idxs.map(i => data.market_avg[i]),
-            borderColor: '#a8c0d0',
-            borderWidth: 1,
-            borderDash: [4, 4],
-            pointRadius: 0,
-            tension: 0.3,
-            spanGaps: false,
-        });
+
+    // Only show overlays if there's at least one port line
+    const hasPortData = datasets.length > 0;
+
+    if (hasPortData && showMkt && data.market_avg) {
+        const mktVals = idxs.map(i => data.market_avg[i] ?? null);
+        if (mktVals.some(v => v !== null)) {
+            datasets.push({
+                label: 'Market avg',
+                data: mktVals,
+                borderColor: '#a8c0d0',
+                borderWidth: 1,
+                borderDash: [4, 4],
+                pointRadius: 0,
+                tension: 0.3,
+                spanGaps: false,
+            });
+        }
     }
-    if (show30d && data.thirty_day_avg) {
+    if (hasPortData && show30d && data.thirty_day_avg) {
         datasets.push({
             label: '30d avg',
             data: labels.map(() => data.thirty_day_avg),
@@ -2523,6 +2703,19 @@ function rebuildChart() {
             borderDash: [2, 6],
             pointRadius: 0,
         });
+    }
+
+    // If no real data to show, render an empty state message
+    if (!hasPortData) {
+        const ctx = document.getElementById('trade-chart').getContext('2d');
+        if (tradeChart) tradeChart.destroy();
+        tradeChart = null;
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.font = "12px 'IBM Plex Mono', monospace";
+        ctx.fillStyle = '#a09880';
+        ctx.textAlign = 'center';
+        ctx.fillText('No ports selected — tick ports above to view price history', ctx.canvas.width / 2, 80);
+        return;
     }
 
     const ctx = document.getElementById('trade-chart').getContext('2d');
@@ -2818,6 +3011,63 @@ function _updatePulseCards(key) {
     document.getElementById('pulse-vs-7d').innerHTML   = fmtPct(stats.vs_7d);
     document.getElementById('pulse-vs-30d').innerHTML  = fmtPct(stats.vs_30d);
     document.getElementById('pulse-vs-alltime').innerHTML = fmtPct(stats.vs_alltime);
+}
+
+// ── View toggle handlers ───────────────────────────────────────────────
+function setPricesView(mode, btn) {
+    document.querySelectorAll('#prices-view-toggle .view-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Filter matrix rows
+    document.querySelectorAll('#matrix-tbody .matrix-row, #my-species-tbody .matrix-row').forEach(row => {
+        if (mode === 'favourites') {
+            const sp = row.dataset.species;
+            row.style.display = mySpecies.has(sp) ? '' : 'none';
+        } else {
+            row.style.display = '';
+        }
+    });
+    // Hide/show my-species header and divider when in favourites mode
+    const myHdr = document.getElementById('my-species-header-row');
+    const divider = document.getElementById('divider-tbody');
+    if (mode === 'favourites') {
+        if (myHdr) myHdr.style.display = 'none';
+        if (divider) divider.style.display = 'none';
+    } else {
+        if (myHdr && mySpecies.size > 0) myHdr.style.display = '';
+        if (divider && mySpecies.size > 0) divider.style.display = '';
+    }
+}
+
+function setChartViewMode(mode, btn) {
+    document.querySelectorAll('#chart-view-toggle .view-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (mode === 'favourites') {
+        // Activate My Favourites in chart-group-filter
+        const favBtn = document.querySelector('#chart-group-filter .overview-filter-btn:nth-child(2)');
+        if (favBtn) setChartGroup('favourites', favBtn);
+    } else {
+        // Activate Single Species
+        const singleBtn = document.querySelector('#chart-group-filter .overview-filter-btn:first-child');
+        if (singleBtn) setChartGroup('single', singleBtn);
+    }
+}
+
+function setOverviewViewMode(mode, btn) {
+    document.querySelectorAll('#overview-view-toggle .view-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const targetBtn = mode === 'favourites'
+        ? document.querySelector('#overview-filter .overview-filter-btn:nth-child(2)')
+        : document.querySelector('#overview-filter .overview-filter-btn:first-child');
+    if (targetBtn) filterOverview(mode, targetBtn);
+}
+
+function setIntelViewMode(mode, btn) {
+    document.querySelectorAll('#intel-view-toggle .view-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const targetBtn = mode === 'favourites'
+        ? document.querySelector('#port-intel-species-filter .overview-filter-btn:nth-child(2)')
+        : document.querySelector('#port-intel-species-filter .overview-filter-btn:first-child');
+    if (targetBtn) filterPortIntel(mode, targetBtn);
 }
 
 function filterOverview(filter, btn) {
