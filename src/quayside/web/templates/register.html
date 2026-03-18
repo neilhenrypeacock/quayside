@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Register — Quayside{% endblock %}
+
+{% block head %}
+<style>
+.auth-wrap {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--foam);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 40px;
+}
+.auth-card h1 {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  color: var(--tide);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.auth-card .auth-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+.auth-field {
+  margin-bottom: 16px;
+}
+.auth-field label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.auth-field input,
+.auth-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  background: #fff;
+  color: var(--ink);
+}
+.auth-field input:focus,
+.auth-field select:focus {
+  outline: none;
+  border-color: var(--tide);
+}
+.role-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.role-option {
+  position: relative;
+}
+.role-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.role-option label {
+  display: block;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.2s, background 0.2s;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-size: 13px !important;
+  font-family: var(--font-sans) !important;
+  color: var(--ink) !important;
+}
+.role-option label span {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.role-option input:checked + label {
+  border-color: var(--tide);
+  background: var(--salt);
+}
+.auth-submit {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  background: var(--catch);
+  color: white;
+  border: none;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.auth-submit:hover { background: #a83010; }
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+.auth-footer a {
+  color: var(--tide);
+  text-decoration: underline;
+}
+.flash-error {
+  padding: 10px 14px;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  background: rgba(200,64,26,0.07);
+  border-left: 3px solid var(--catch);
+  color: var(--catch);
+  font-size: 13px;
+}
+#port-field { display: none; }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1>Create account</h1>
+    <p class="auth-sub">Free for port operators and trade members.</p>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="flash-error">{{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('register') }}" id="register-form">
+      <div style="margin-bottom:16px;">
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">I am a</div>
+        <div class="role-picker">
+          <div class="role-option">
+            <input type="radio" id="role-trade" name="role" value="trade" checked>
+            <label for="role-trade"><span>Buyer / Trader</span>Market member</label>
+          </div>
+          <div class="role-option">
+            <input type="radio" id="role-port" name="role" value="port">
+            <label for="role-port"><span>Port Operator</span>Manage my port</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-field" id="port-field">
+        <label for="port_slug">Your Port</label>
+        <select id="port_slug" name="port_slug">
+          <option value="">— Select port —</option>
+          {% for port in ports %}
+          <option value="{{ port.slug }}">{{ port.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="auth-field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email" autofocus>
+      </div>
+      <div class="auth-field">
+        <label for="password">Password <span style="font-family:var(--font-sans);text-transform:none;letter-spacing:normal;font-size:11px;color:var(--muted);">(min 8 characters)</span></label>
+        <input type="password" id="password" name="password" required autocomplete="new-password" minlength="8">
+      </div>
+      <div class="auth-field">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password">
+      </div>
+      <button type="submit" class="auth-submit">Create Account</button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="{{ url_for('login') }}">Sign in</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('input[name="role"]').forEach(function(radio) {
+  radio.addEventListener('change', function() {
+    document.getElementById('port-field').style.display =
+      this.value === 'port' ? 'block' : 'none';
+  });
+});
+</script>
+{% endblock %}

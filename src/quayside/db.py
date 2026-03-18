@@ -100,6 +100,15 @@ def init_db() -> None:
             expected REAL,
             message TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'trade',
+            port_slug TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
     """)
 
     # Migrations: add columns that were introduced after initial deploy
@@ -166,6 +175,20 @@ def _migrate(conn: sqlite3.Connection) -> None:
         """)
     except Exception:
         pass
+    # users table
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'trade',
+                port_slug TEXT,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
+    except Exception:
+        pass
     conn.commit()
 
 
@@ -178,6 +201,37 @@ def insert_trade_feedback(name: str, message: str, page_context: str = "") -> No
     )
     conn.commit()
     conn.close()
+
+
+def get_user_by_id(user_id: int) -> dict | None:
+    """Return user row as dict, or None if not found."""
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_user_by_email(email: str) -> dict | None:
+    """Return user row as dict, or None if not found."""
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    row = conn.execute("SELECT * FROM users WHERE email = ?", (email.lower().strip(),)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def create_user(email: str, password_hash: str, role: str, port_slug: str | None = None) -> int:
+    """Insert a new user and return their id."""
+    conn = get_connection()
+    cur = conn.execute(
+        "INSERT INTO users (email, password_hash, role, port_slug) VALUES (?, ?, ?, ?)",
+        (email.lower().strip(), password_hash, role, port_slug),
+    )
+    user_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return user_id
 
 
 def log_scrape_attempt(

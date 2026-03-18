@@ -23,11 +23,21 @@ from flask import (
     send_file,
     url_for,
 )
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from quayside.confirm import generate_confirm_token, get_upload_for_token
 from quayside.db import (
     confirm_upload,
     create_upload,
+    create_user,
     get_all_ports,
     get_all_prices_for_date,
     get_latest_date,
@@ -45,6 +55,8 @@ from quayside.db import (
     get_species_availability_gaps,
     get_seasonal_comparison,
     get_upload,
+    get_user_by_email,
+    get_user_by_id,
     get_quality_issues,
     get_quality_summary,
     init_db,
@@ -71,6 +83,23 @@ def create_app() -> Flask:
         template_folder=str(Path(__file__).parent / "templates"),
     )
     app.secret_key = os.environ.get("QUAYSIDE_SECRET_KEY", "dev-secret-change-me")
+
+    class User(UserMixin):
+        def __init__(self, row: dict):
+            self.id = row["id"]
+            self.email = row["email"]
+            self.role = row["role"]
+            self.port_slug = row["port_slug"]
+
+    login_manager = LoginManager()
+    login_manager.login_view = "login"
+    login_manager.login_message = "Please sign in to access this page."
+    login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(user_id: str):
+        row = get_user_by_id(int(user_id))
+        return User(row) if row else None
 
     # Digest email template uses a separate Jinja2 env (different folder)
     _digest_env = jinja2.Environment(
@@ -100,6 +129,68 @@ def create_app() -> Flask:
         ld = build_landing_data(date) if date else None
         return render_template("landing.html", ld=ld)
 
+    @app.route("/login", methods=["GET", "POST"])
+    def login():
+        if current_user.is_authenticated:
+            return redirect(_post_login_url(current_user))
+        if request.method == "POST":
+            email = request.form.get("email", "").strip()
+            password = request.form.get("password", "")
+            row = get_user_by_email(email)
+            if row and check_password_hash(row["password_hash"], password):
+                user = User(row)
+                login_user(user)
+                next_url = request.args.get("next")
+                return redirect(next_url or _post_login_url(user))
+            flash("Incorrect email or password.")
+        return render_template("login.html")
+
+    @app.route("/register", methods=["GET", "POST"])
+    def register():
+        if current_user.is_authenticated:
+            return redirect(_post_login_url(current_user))
+        ports = get_all_ports(status="active")
+        if request.method == "POST":
+            email = request.form.get("email", "").strip()
+            password = request.form.get("password", "")
+            confirm = request.form.get("confirm_password", "")
+            role = request.form.get("role", "trade")
+            port_slug = request.form.get("port_slug") or None
+
+            if not email or not password:
+                flash("Email and password are required.")
+            elif password != confirm:
+                flash("Passwords do not match.")
+            elif len(password) < 8:
+                flash("Password must be at least 8 characters.")
+            elif get_user_by_email(email):
+                flash("An account with that email already exists.")
+            else:
+                if role not in ("port", "trade"):
+                    role = "trade"
+                if role == "port" and not port_slug:
+                    flash("Please select your port.")
+                else:
+                    pw_hash = generate_password_hash(password)
+                    user_id = create_user(email, pw_hash, role, port_slug if role == "port" else None)
+                    row = get_user_by_id(user_id)
+                    user = User(row)
+                    login_user(user)
+                    return redirect(_post_login_url(user))
+        return render_template("register.html", ports=ports)
+
+    @app.route("/logout")
+    def logout():
+        logout_user()
+        return redirect(url_for("landing"))
+
+    def _post_login_url(user) -> str:
+        if user.role == "port" and user.port_slug:
+            return url_for("port_dashboard", slug=user.port_slug)
+        if user.role == "admin":
+            return url_for("ops_dashboard")
+        return url_for("trade_dashboard")
+
     @app.route("/overview")
     def index():
         """Staging hub — links to all screens."""
@@ -110,6 +201,18 @@ def create_app() -> Flask:
     def for_ports():
         """Port-focused marketing and onboarding page."""
         return render_template("for_ports.html")
+
+    @app.route("/about")
+    def about():
+        """About Quayside — mission, how it works, port coverage."""
+        ports = [
+            {"name": "Peterhead", "slug": "peterhead", "region": "Scotland", "data": "Prices + Landings", "method": "Automated"},
+            {"name": "Brixham",   "slug": "brixham",   "region": "South West", "data": "Prices", "method": "Automated"},
+            {"name": "Newlyn",    "slug": "newlyn",     "region": "South West", "data": "Prices", "method": "Automated"},
+            {"name": "Scrabster", "slug": "scrabster",  "region": "Scotland",   "data": "Prices", "method": "Automated"},
+            {"name": "Lerwick",   "slug": "lerwick",    "region": "Shetland",   "data": "Landings", "method": "Automated"},
+        ]
+        return render_template("about.html", ports=ports)
 
     @app.route("/digest")
     @app.route("/digest/<date>")

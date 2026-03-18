@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+
+{% block title %}About — Quayside{% endblock %}
+
+{% block head %}
+<style>
+  html { scroll-behavior: smooth; }
+  body { overflow-x: hidden; }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+    max-width: 200px;
+  }
+
+  /* HERO */
+  .about-hero {
+    padding: 96px 48px 80px;
+    border-bottom: 1px solid var(--rule);
+    max-width: 780px;
+  }
+  .about-hero-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--catch);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .about-hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--catch);
+  }
+  .about-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 4.5vw, 60px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 28px;
+  }
+  .about-hero h1 em {
+    font-style: italic;
+    color: var(--tide);
+  }
+  .about-hero-sub {
+    font-size: 18px;
+    line-height: 1.75;
+    color: #4a4438;
+    max-width: 620px;
+  }
+
+  /* SECTIONS */
+  .section { padding: 96px 48px; border-bottom: 1px solid var(--rule); }
+  .section-inner { max-width: 1100px; margin: 0 auto; }
+
+  /* MISSION */
+  .mission-body {
+    max-width: 660px;
+    font-size: 16px;
+    line-height: 1.85;
+    color: #4a4438;
+  }
+  .mission-body p + p { margin-top: 20px; }
+  .mission-stat-row {
+    display: flex;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-top: 56px;
+  }
+  .mission-stat {
+    flex: 1;
+    background: var(--foam);
+    padding: 32px 28px;
+  }
+  .mission-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    font-weight: 900;
+    color: var(--tide);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .mission-stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* HOW IT WORKS — dark section */
+  .how-section {
+    background: var(--tide);
+    padding: 96px 48px;
+    border-bottom: 1px solid #0a1a24;
+  }
+  .how-section .section-label { color: #4a6a7a; }
+  .how-section .section-label::after { background: #2a4a5a; }
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: #0a1a24;
+    border: 1px solid #0a1a24;
+  }
+  .how-card {
+    background: #1e3d4d;
+    padding: 40px 32px;
+  }
+  .how-step {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--catch);
+    margin-bottom: 20px;
+  }
+  .how-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--paper);
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .how-card p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #7ab0c8;
+    margin-bottom: 16px;
+  }
+  .how-detail {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .how-detail li {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #4a7a94;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    line-height: 1.6;
+  }
+  .how-detail li::before {
+    content: '→';
+    color: #6db88a;
+    flex-shrink: 0;
+  }
+
+  /* PORT COVERAGE */
+  .coverage-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--rule);
+  }
+  .coverage-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 14px 20px;
+    background: var(--foam);
+    border-bottom: 1px solid var(--rule);
+    font-weight: 400;
+  }
+  .coverage-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  .coverage-table tr:last-child td { border-bottom: none; }
+  .coverage-table tr:hover td { background: var(--foam); }
+  .coverage-table .port-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .coverage-table .port-name a {
+    color: var(--ink);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .coverage-table .port-name a:hover { color: var(--tide); }
+  .coverage-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .badge-auto {
+    background: rgba(109,184,138,0.15);
+    color: #4a9468;
+    border: 1px solid rgba(109,184,138,0.3);
+  }
+  .data-type {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* FOOTER CTA */
+  .about-cta {
+    background: var(--ink);
+    padding: 80px 48px;
+    display: flex;
+    justify-content: center;
+    gap: 64px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .cta-block { text-align: center; }
+  .cta-block h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--paper);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .cta-block p {
+    font-size: 13px;
+    color: #4a4438;
+    margin-bottom: 20px;
+  }
+  .btn-primary {
+    background: var(--catch);
+    color: white;
+    padding: 13px 28px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 2px;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: #a83010; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--paper);
+    padding: 13px 28px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-block;
+    border: 1px solid #2a2820;
+    border-radius: 2px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-ghost:hover { border-color: #4a4438; color: #c0b8a8; }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+    border-top: 1px solid #2a2820;
+  }
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--paper);
+  }
+  .footer-logo span { color: var(--catch); }
+  .footer-copy {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: #3a3428;
+  }
+  .footer-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+  }
+  .footer-links a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #3a3428;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--muted); }
+
+  /* FADE-UP ANIMATIONS */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 900px) {
+    .about-hero { padding: 56px 24px 48px; }
+    .section { padding: 64px 24px; }
+    .how-section { padding: 64px 24px; }
+    .how-grid { grid-template-columns: 1fr; }
+    .mission-stat-row { flex-direction: column; }
+    .coverage-table th:nth-child(3),
+    .coverage-table td:nth-child(3) { display: none; }
+    .about-cta { padding: 56px 24px; gap: 40px; flex-direction: column; }
+    footer { padding: 24px; flex-direction: column; align-items: flex-start; }
+  }
+</style>
+{% endblock %}
+
+{% block main %}
+
+<!-- HERO -->
+<section style="background:var(--paper);">
+  <div class="about-hero">
+    <div class="about-hero-eyebrow">Quayside Data</div>
+    <h1>The UK fish market,<br><em>in one place.</em></h1>
+    <p class="about-hero-sub">
+      Fish auction price data in the UK is scattered across port websites, PDFs, spreadsheets, and HTML tables — each in a different format, updated at different times, with different species names. Quayside collects it, normalises it, and makes it comparable.
+    </p>
+  </div>
+</section>
+
+<!-- MISSION -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-label">The problem we&rsquo;re solving</div>
+    <div class="mission-body fade-up">
+      <p>
+        A fish buyer in Brixham wanting to know whether cod is cheaper at Peterhead today has no straightforward way to find out. Port websites are inconsistent. Some publish PDFs. Some publish HTML tables. Some don&rsquo;t publish at all. Species names differ between ports &mdash; what Peterhead calls &ldquo;Monks&rdquo;, Brixham may call &ldquo;Monkfish&rdquo;. Dates are formatted differently. Grades are incomparable.
+      </p>
+      <p>
+        Quayside solves this by running daily scrapers against each port&rsquo;s published data, normalising species names and grades into a common schema, and storing everything in a single database. The result is a clean, queryable feed of UK fish market prices &mdash; updated automatically every day.
+      </p>
+      <p>
+        We don&rsquo;t hold any data that isn&rsquo;t already public. We just make it usable.
+      </p>
+    </div>
+
+    <div class="mission-stat-row fade-up">
+      <div class="mission-stat">
+        <div class="mission-stat-num">5</div>
+        <div class="mission-stat-label">Ports covered</div>
+      </div>
+      <div class="mission-stat">
+        <div class="mission-stat-num">Daily</div>
+        <div class="mission-stat-label">Automated updates</div>
+      </div>
+      <div class="mission-stat">
+        <div class="mission-stat-num">1</div>
+        <div class="mission-stat-label">Common schema</div>
+      </div>
+      <div class="mission-stat">
+        <div class="mission-stat-num">0</div>
+        <div class="mission-stat-label">Cost to ports</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <div class="section-inner">
+    <div class="section-label">How it works</div>
+    <div class="how-grid fade-up">
+      <div class="how-card">
+        <div class="how-step">Step 01 &mdash; Collect</div>
+        <h3>Automated scrapers, daily</h3>
+        <p>
+          Each morning, port-specific scrapers fetch the latest price data from public sources. No manual downloading. No copy-paste.
+        </p>
+        <ul class="how-detail">
+          <li>PDF extraction via pdfplumber (Brixham, Newlyn)</li>
+          <li>HTML table parsing (Peterhead landings, Scrabster, Lerwick)</li>
+          <li>XLS file ingestion (Peterhead prices via SWFPA)</li>
+          <li>One failing port doesn&rsquo;t stop the others</li>
+        </ul>
+      </div>
+      <div class="how-card">
+        <div class="how-step">Step 02 &mdash; Normalise</div>
+        <h3>One schema, every port</h3>
+        <p>
+          Raw data is mapped to a common structure before it reaches the database. Species names, dates, and grades are all standardised.
+        </p>
+        <ul class="how-detail">
+          <li>Species aliases resolved to canonical names (e.g. &ldquo;Monks&rdquo; &rarr; &ldquo;Monkfish&rdquo;)</li>
+          <li>Dates stored as ISO 8601 (YYYY-MM-DD)</li>
+          <li>Prices in &pound;/kg, grades noted as provided</li>
+          <li>Upsert strategy: latest scrape wins</li>
+        </ul>
+      </div>
+      <div class="how-card">
+        <div class="how-step">Step 03 &mdash; Publish</div>
+        <h3>Data where you need it</h3>
+        <p>
+          Normalised data is surfaced across several interfaces, updated daily. No login required to browse market data.
+        </p>
+        <ul class="how-detail">
+          <li>Port dashboards with cross-market benchmarks</li>
+          <li>Daily, weekly, and monthly digest reports</li>
+          <li>CSV export per port</li>
+          <li>JSON API (in development)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PORT COVERAGE -->
+<section class="section" style="background:var(--foam);">
+  <div class="section-inner">
+    <div class="section-label">Port coverage</div>
+    <table class="coverage-table fade-up">
+      <thead>
+        <tr>
+          <th>Port</th>
+          <th>Region</th>
+          <th>Data collected</th>
+          <th>Collection method</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for port in ports %}
+        <tr>
+          <td class="port-name">
+            <a href="{{ url_for('port_dashboard', slug=port.slug) }}">{{ port.name }}</a>
+          </td>
+          <td style="color:var(--muted);">{{ port.region }}</td>
+          <td><span class="data-type">{{ port.data }}</span></td>
+          <td><span class="coverage-badge badge-auto">{{ port.method }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:20px;letter-spacing:0.03em;">
+      More ports are added as data sources become available or port operators submit data directly. &rarr; <a href="{{ url_for('for_ports') }}" style="color:var(--tide);">List your port</a>
+    </p>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<div class="about-cta">
+  <div class="cta-block">
+    <h3>See today&rsquo;s prices</h3>
+    <p>Cross-port market data, updated this morning.</p>
+    <a href="{{ url_for('digest_page') }}" class="btn-primary">View daily digest &rarr;</a>
+  </div>
+  <div style="width:1px;height:80px;background:#2a2820;flex-shrink:0;"></div>
+  <div class="cta-block">
+    <h3>List your port</h3>
+    <p>Free dashboard. Free marketing. No catch.</p>
+    <a href="{{ url_for('for_ports') }}" class="btn-ghost">Get started &rarr;</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Quay<span>side</span></div>
+  <ul class="footer-links">
+    <li><a href="{{ url_for('landing') }}">Home</a></li>
+    <li><a href="{{ url_for('for_ports') }}">For Ports</a></li>
+    <li><a href="mailto:hello@quayside.fish">Contact</a></li>
+  </ul>
+  <div class="footer-copy">&copy; 2026 Quayside Data Ltd</div>
+</footer>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach((el) => observer.observe(el));
+</script>
+{% endblock %}

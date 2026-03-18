@@ -37,6 +37,7 @@
                     <a href="{{ url_for('trade_dashboard') }}" style="color:var(--catch);">Trade Dashboard &#9733;</a>
                 </div></div>
             </div>
+            <a href="{{ url_for('about') }}" class="nav-link">About</a>
             <div class="nav-dropdown">
                 <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Dev <span class="nav-caret">&#9662;</span></button>
                 <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
@@ -45,6 +46,24 @@
                 </div></div>
             </div>
             {% block nav %}{% endblock %}
+            {% if current_user.is_authenticated %}
+            <div class="nav-dropdown">
+                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">Account <span class="nav-caret">&#9662;</span></button>
+                <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
+                    {% if current_user.role == 'port' and current_user.port_slug %}
+                    <a href="{{ url_for('port_dashboard', slug=current_user.port_slug) }}">My Port</a>
+                    {% elif current_user.role == 'trade' %}
+                    <a href="{{ url_for('trade_dashboard') }}">Trade Dashboard</a>
+                    {% elif current_user.role == 'admin' %}
+                    <a href="{{ url_for('ops_dashboard') }}">Operations</a>
+                    {% endif %}
+                    <div class="nav-dropdown-sep"></div>
+                    <a href="{{ url_for('logout') }}">Sign Out</a>
+                </div></div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-signin-btn">Sign In</a>
+            {% endif %}
         </div>
     </nav>
     <script>

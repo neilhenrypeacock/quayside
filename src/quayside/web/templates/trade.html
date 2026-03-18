@@ -1059,6 +1059,230 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     .data-credentials { flex-wrap: wrap; }
     .data-cred-item { flex: 1 1 45%; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
 }
+
+/* ── Sidebar sub-nav + footer ── */
+.sidebar-subnav {
+    padding-left: 24px !important;
+    font-size: 10px !important;
+    color: var(--muted) !important;
+}
+.sidebar-subnav::before {
+    content: '↳ ';
+    color: var(--rule);
+}
+.sidebar-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+}
+.sidebar-footer-link {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+}
+.sidebar-footer-link:hover { color: var(--tide); }
+
+/* ── Your Favourites snapshot ── */
+.fav-snapshot-empty {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    padding: 16px 0;
+}
+.fav-snapshot-empty a { color: var(--tide); cursor: pointer; text-decoration: underline; }
+.fav-snapshot-wrap {
+    background: var(--foam);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    overflow-x: auto;
+    margin-bottom: 4px;
+}
+.fav-snapshot-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 16px 6px;
+    border-bottom: 1px solid var(--rule);
+}
+.fav-snapshot-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+.fav-snapshot-table th {
+    padding: 6px 14px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 400;
+    text-align: left;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+}
+.fav-snapshot-table th.port-th { text-align: center; }
+.fav-snapshot-table td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--salt);
+    color: var(--ink);
+    white-space: nowrap;
+}
+.fav-snapshot-table tr:last-child td { border-bottom: none; }
+.fav-snapshot-table td.species-td {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink);
+}
+.fav-snapshot-table td.port-td { text-align: center; }
+.fav-snapshot-price {
+    font-weight: 500;
+    color: var(--ink);
+}
+.fav-snapshot-change {
+    font-size: 10px;
+    display: block;
+    margin-top: 1px;
+}
+.fav-snapshot-best {
+    color: var(--tide);
+    font-size: 10px;
+}
+.fav-snapshot-actions {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    padding-top: 6px;
+}
+.fav-snapshot-actions a { color: var(--tide); cursor: pointer; text-decoration: none; margin-right: 12px; }
+.fav-snapshot-actions a:hover { text-decoration: underline; }
+
+/* ── Port status dot ── */
+.port-status-dot {
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+.port-status-dot.reporting { background: #6db88a; }
+.port-status-dot.silent { background: var(--rule); }
+
+/* ── Top movers table ── */
+.movers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 4px;
+}
+@media (max-width: 600px) { .movers-grid { grid-template-columns: 1fr; } }
+.movers-card {
+    background: var(--foam);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 0;
+    overflow: hidden;
+}
+.movers-card-title {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--rule);
+}
+.movers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+.movers-table td {
+    padding: 7px 14px;
+    border-bottom: 1px solid var(--salt);
+    color: var(--ink);
+}
+.movers-table tr:last-child td { border-bottom: none; }
+.movers-table td.species-td {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 13px;
+}
+.movers-table td.change-td { text-align: right; font-weight: 500; }
+.movers-table td.price-td { text-align: right; color: var(--muted); }
+.movers-table tr { cursor: pointer; }
+.movers-table tr:hover td { background: rgba(200,191,170,0.12); }
+
+/* ── Floating feedback button ── */
+.feedback-fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--tide);
+    color: var(--paper);
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    z-index: 900;
+    transition: opacity 0.15s;
+    line-height: 38px;
+    text-align: center;
+    padding: 0;
+}
+.feedback-fab:hover { opacity: 0.85; }
+.feedback-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,14,12,0.45);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.feedback-modal-box {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 28px;
+    width: 440px;
+    max-width: 92vw;
+}
+.feedback-modal-title {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 6px;
+}
+.feedback-modal-desc {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+}
+.feedback-modal-input, .feedback-modal-textarea {
+    width: 100%;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    background: var(--foam);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 8px 12px;
+    color: var(--ink);
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+.feedback-modal-input:focus, .feedback-modal-textarea:focus { outline: none; border-color: var(--tide); }
 </style>
 {% endblock %}
 
@@ -1073,17 +1297,21 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     <nav>
         <ul class="sidebar-nav">
             <li><a href="#" onclick="showTab('section-dashboard');return false;">Your Dashboard</a></li>
-            <li><a href="#" onclick="showTab('section-overview');return false;">Species Insight</a></li>
-            <li><a href="#" onclick="showTab('section-intelligence');return false;">Port Insight</a></li>
-            <li><a href="#" onclick="showTab('section-chat');return false;">Ask Quayside</a></li>
+            <li><a href="#" class="sidebar-subnav" onclick="showTab('section-dashboard');document.getElementById('fav-snapshot').scrollIntoView({behavior:'smooth'});return false;">Your Favourites</a></li>
             <li><a href="#" onclick="showTab('section-prices');return false;">Today's Prices</a></li>
             <li><a href="#" onclick="showTab('section-chart');return false;">Price History</a></li>
-            <li><a href="#" onclick="showTab('section-tools');return false;">Tools</a></li>
+            <li><a href="#" onclick="showTab('section-overview');return false;">Market Insights</a></li>
+            <li><a href="#" onclick="showTab('section-intelligence');return false;">Port Intelligence</a></li>
+            <li><a href="#" onclick="showTab('section-chat');return false;">Ask Quayside</a></li>
+            <li><a href="#" onclick="showTab('section-tools');return false;">Export</a></li>
         </ul>
     </nav>
     <div class="sidebar-favs">
         <div class="sidebar-favs-label" id="sidebar-favs-summary"></div>
         <a class="sidebar-edit-link" onclick="showSpeciesPicker()">Edit Favourites</a>
+    </div>
+    <div class="sidebar-footer">
+        <a href="/trade/ports" class="sidebar-footer-link">Port Directory &rarr;</a>
     </div>
 </aside>
 
@@ -1142,6 +1370,9 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         Edit your favourites to customise this view.
     </div>
 
+    <!-- Your Favourites snapshot (always rendered) -->
+    <div id="fav-snapshot" style="margin-bottom:28px;"></div>
+
     <!-- Onboarding (shown when no favourites set) -->
     <div id="dashboard-onboarding" style="display:none;">
         <div class="onboarding-card">
@@ -1159,6 +1390,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 
     <!-- Favourite cards (shown when favourites set) -->
     <div id="dashboard-favourites" style="display:none;">
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Detailed View</div>
         <div class="fav-cards" id="fav-cards-container"></div>
         <div class="your-highlights" id="your-highlights" style="display:none;">
             <div class="your-highlights-title">Your Highlights</div>
@@ -1168,11 +1400,14 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 2: SPECIES INSIGHT                                            -->
+<!-- SECTION 2: MARKET INSIGHTS                                            -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-overview">
-    <div class="section-heading">Species Insight</div>
-    <div class="section-desc">How is the market moving? The pulse cards show today's average price vs recent periods &mdash; a negative % means prices have fallen (good for buyers). Filter by category or species to focus on what you buy.</div>
+    <div class="section-heading">Market Insights</div>
+    <div class="section-desc">How is the market moving? The pulse cards show today's average price vs recent periods &mdash; a negative % means prices have fallen (good for buyers). The movers table shows today's biggest price changes at a glance.</div>
+
+    <!-- Today's movers (rendered by JS) -->
+    <div id="movers-table-wrap" style="margin-bottom:24px;"></div>
 
     <!-- Species filter for overview -->
     <div class="overview-filter" id="overview-filter">
@@ -1263,13 +1498,13 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 3: PORT INSIGHT                                               -->
+<!-- SECTION 3: PORT INTELLIGENCE                                          -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-intelligence">
-    <div class="section-heading">Port Insight</div>
+    <div class="section-heading">Port Intelligence</div>
     <div class="section-desc">
         How does each port compare to the wider market? Select a port to see which species
-        are priced below average &mdash; and where the buying opportunities are.
+        are priced below average &mdash; and where the buying opportunities are. Reporting status shows whether a port has data for today.
     </div>
 
     <!-- Port selector tabs -->
@@ -1306,18 +1541,18 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     <div class="chat-section-wrap">
     <div class="section-heading">Ask Quayside</div>
     <div class="section-desc">
-        Your AI market analyst, trained on all of Quayside's price data across every port and species.
-        Ask about today's prices, compare ports, spot trends over time, or get buying recommendations.
-        Try: "Where is cod cheapest today?" or "How has haddock trended this month?"
+        Your AI market analyst, powered by live Quayside data for {{ date_display_short }}.
+        Ask about today's prices, compare ports, spot trends, or get buying recommendations.
     </div>
     <div class="chat-container">
         <div class="chat-messages" id="chat-messages">
-            <div class="chat-msg system-msg">Ask me anything about today's fish prices, trends, or market opportunities.</div>
+            <div class="chat-msg system-msg">Ask me anything about today's fish prices, trends, or market opportunities. I have access to all price data for {{ date_display_short }}.</div>
         </div>
         <div class="chat-suggestions" id="chat-suggestions">
-            <button class="chat-suggestion" onclick="sendSuggestion(this)">Where is cod cheapest today?</button>
-            <button class="chat-suggestion" onclick="sendSuggestion(this)">Explain the biggest spread</button>
-            <button class="chat-suggestion" onclick="sendSuggestion(this)">Which species should I buy this week?</button>
+            <button class="chat-suggestion" onclick="sendSuggestion(this)">Is cod above its 30-day average today?</button>
+            <button class="chat-suggestion" onclick="sendSuggestion(this)">Which port has the best haddock price?</button>
+            <button class="chat-suggestion" onclick="sendSuggestion(this)">What's the biggest arbitrage opportunity today?</button>
+            <button class="chat-suggestion" onclick="sendSuggestion(this)">Which species are good value vs recent averages?</button>
         </div>
         <div class="chat-thinking" id="chat-thinking">Thinking&hellip;</div>
         <div class="chat-input-row">
@@ -1344,10 +1579,10 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         <div class="ctrl-group">
             <label>Sort by</label>
             <select id="sort-select" onchange="sortMatrix(this.value)">
+                <option value="species" selected>Species A&ndash;Z</option>
                 <option value="spread">Spread %</option>
-                <option value="species">Species A&ndash;Z</option>
-                <option value="vs30d">vs 30d avg</option>
                 <option value="change">Daily change</option>
+                <option value="vs30d">vs 30d avg</option>
                 <option value="market_avg">Market avg price</option>
             </select>
         </div>
@@ -1543,12 +1778,12 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 7: TOOLS & FEEDBACK                                          -->
+<!-- SECTION 7: EXPORT                                                    -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-tools">
-    <div class="section-heading">Tools &amp; Feedback</div>
+    <div class="section-heading">Export</div>
     <div class="section-desc">
-        Export data, request features, or find port contact details.
+        Download price data as CSV. Filter by date range and species.
     </div>
     <div class="tools-grid">
         <!-- Export -->
@@ -1577,37 +1812,27 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-top:6px;">All ports included. 90-day default.</div>
         </div>
 
-        <!-- Feedback -->
-        <div class="tool-card">
-            <div class="tool-card-title">Request a Feature</div>
-            <div class="feedback-form">
-                <input type="text" id="fb-name" placeholder="Your name (optional)">
-                <textarea id="fb-message" placeholder="What would you like to see? A new port, data view, alert, export format&hellip;" rows="3"></textarea>
-                <button onclick="submitFeedback()" class="btn btn-secondary" style="font-size:10px;padding:8px 18px;">
-                    Send Request
-                </button>
-                <div class="feedback-success" id="fb-success">&#10003; Thanks &mdash; we'll review your request.</div>
-            </div>
-        </div>
-
-        <!-- Port contacts -->
-        <div class="tool-card">
-            <div class="tool-card-title">Port Contacts</div>
-            <div class="ports-link-desc">
-                Auction times, direct contacts and website links for all UK fish markets we cover.
-            </div>
-            <a href="/trade/ports" class="btn btn-secondary" style="font-size:10px;padding:8px 18px;display:inline-block;">
-                View Port Directory &rarr;
-            </a>
-            <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-top:8px;">
-                {{ port_status|selectattr('reporting')|list|length }} ports reporting today
-            </div>
-        </div>
     </div>
 </div>
 
 </main><!-- /trade-content -->
 </div><!-- /trade-page -->
+
+<!-- ── Floating feedback button + modal ── -->
+<button class="feedback-fab" onclick="document.getElementById('feedback-modal-overlay').style.display='flex'" title="Request a feature or send feedback">?</button>
+<div class="feedback-modal-overlay" id="feedback-modal-overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="feedback-modal-box">
+        <div class="feedback-modal-title">Request a Feature</div>
+        <div class="feedback-modal-desc">What would you like to see? A new port, data view, alert, export format&hellip;</div>
+        <input type="text" class="feedback-modal-input" id="fb-name" placeholder="Your name (optional)">
+        <textarea class="feedback-modal-textarea" id="fb-message" placeholder="Your request&hellip;" rows="3"></textarea>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
+            <button class="btn btn-secondary" style="font-size:10px;padding:8px 18px;" onclick="document.getElementById('feedback-modal-overlay').style.display='none'">Cancel</button>
+            <button class="btn btn-primary" style="font-size:10px;padding:8px 18px;" onclick="submitFeedback()">Send Request</button>
+        </div>
+        <div class="feedback-success" id="fb-success">&#10003; Thanks &mdash; we'll review your request.</div>
+    </div>
+</div>
 
 <!-- ── Species picker modal ── -->
 <div class="picker-overlay" id="species-picker-overlay" onclick="if(event.target===this)closeSpeciesPicker()">
@@ -1663,6 +1888,7 @@ const TRADE_DATE = "{{ date }}";
 const MATRIX_DATA = {{ matrix | tojson }};
 const HIGHLIGHTS_DATA = {{ highlights | tojson }};
 const TIMEFRAME_CONTEXT = {{ timeframe_context | tojson }};
+const PORT_STATUS = {{ port_status | tojson }};
 
 // ── State ─────────────────────────────────────────────────────────────────
 let currentSpecies = null;
@@ -1778,6 +2004,115 @@ function updateSidebarFavsSummary() {
     el.textContent = parts.length ? parts.join(', ') : 'No favourites set';
 }
 
+// ── Your Favourites snapshot ──────────────────────────────────────────────
+function renderFavSnapshot() {
+    const el = document.getElementById('fav-snapshot');
+    if (!el) return;
+
+    if (mySpecies.size === 0) {
+        el.innerHTML = `<div class="fav-snapshot-empty">
+            No favourites set &mdash;
+            <a onclick="showSpeciesPicker()">choose species</a> and
+            <a onclick="showPortPicker()">choose ports</a> to build your snapshot.
+        </div>`;
+        return;
+    }
+
+    // Determine port columns: favourite ports or all active ports (max 8)
+    const portCols = myPorts.size > 0 ? [...myPorts] : ALL_PORTS.slice(0, 8);
+
+    // Build header
+    let thead = '<tr><th>Species</th>';
+    portCols.forEach(p => {
+        const code = PORT_CODES[p] || p.substring(0, 3).toUpperCase();
+        thead += `<th class="port-th">${code}</th>`;
+    });
+    thead += '</tr>';
+
+    // Build rows
+    let tbody = '';
+    mySpecies.forEach(sp => {
+        const row = MATRIX_DATA.find(r => r.species === sp);
+        if (!row) return;
+        tbody += `<tr>`;
+        tbody += `<td class="species-td">${sp}</td>`;
+        portCols.forEach(p => {
+            const price = row.ports[p];
+            if (price == null) {
+                tbody += `<td class="port-td" style="color:var(--rule);">&mdash;</td>`;
+                return;
+            }
+            const isBest = row.best_buy_port === p;
+            const changeSign = row.vs_yesterday_pct > 0 ? '+' : '';
+            const changeCls = row.vs_yesterday_pct > 0 ? 'change-down' : row.vs_yesterday_pct < 0 ? 'change-up' : '';
+            const changeStr = row.vs_yesterday_pct != null
+                ? `<span class="fav-snapshot-change ${changeCls}">${changeSign}${row.vs_yesterday_pct.toFixed(1)}%</span>`
+                : '';
+            const bestMark = isBest ? ` <span class="fav-snapshot-best">★</span>` : '';
+            tbody += `<td class="port-td${isBest ? ' cell-best' : ''}">
+                <span class="fav-snapshot-price">&pound;${price.toFixed(2)}</span>${bestMark}${changeStr}
+            </td>`;
+        });
+        tbody += '</tr>';
+    });
+
+    el.innerHTML = `<div class="fav-snapshot-wrap">
+        <div class="fav-snapshot-label">Your Favourites &mdash; Today&rsquo;s Snapshot</div>
+        <table class="fav-snapshot-table">
+            <thead>${thead}</thead>
+            <tbody>${tbody}</tbody>
+        </table>
+    </div>
+    <div class="fav-snapshot-actions">
+        <a onclick="showSpeciesPicker()">Edit species</a>
+        <a onclick="showPortPicker()">Edit ports</a>
+    </div>`;
+}
+
+// ── Top movers table ─────────────────────────────────────────────────────
+function renderMoversTable() {
+    const el = document.getElementById('movers-table-wrap');
+    if (!el) return;
+
+    const withChange = MATRIX_DATA.filter(r => r.vs_yesterday_pct != null);
+    if (withChange.length === 0) {
+        el.innerHTML = '';
+        return;
+    }
+    const sorted = [...withChange].sort((a, b) => b.vs_yesterday_pct - a.vs_yesterday_pct);
+    const risers = sorted.filter(r => r.vs_yesterday_pct > 0).slice(0, 5);
+    const fallers = sorted.filter(r => r.vs_yesterday_pct < 0).reverse().slice(0, 5);
+
+    function buildRows(rows, cls) {
+        return rows.map(r => {
+            const sign = r.vs_yesterday_pct > 0 ? '+' : '';
+            const price = r.market_avg ? `\u00a3${r.market_avg.toFixed(2)}/kg` : '&mdash;';
+            const bestPort = r.best_buy_port ? ` &middot; ${PORT_CODES[r.best_buy_port] || r.best_buy_port}` : '';
+            const esc = r.species.replace(/'/g, "\\'");
+            return `<tr onclick="selectSpecies('${esc}');showTab('section-chart');">
+                <td class="species-td">${r.species}</td>
+                <td class="change-td ${cls}">${sign}${r.vs_yesterday_pct.toFixed(1)}%</td>
+                <td class="price-td">${price}${bestPort}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    el.innerHTML = `<div class="movers-grid">
+        <div class="movers-card">
+            <div class="movers-card-title">&#9650; Rising today</div>
+            <table class="movers-table">
+                <tbody>${risers.length ? buildRows(risers, 'change-down') : '<tr><td colspan="3" style="color:var(--muted);">No risers today</td></tr>'}</tbody>
+            </table>
+        </div>
+        <div class="movers-card">
+            <div class="movers-card-title">&#9660; Falling today</div>
+            <table class="movers-table">
+                <tbody>${fallers.length ? buildRows(fallers, 'change-up') : '<tr><td colspan="3" style="color:var(--muted);">No fallers today</td></tr>'}</tbody>
+            </table>
+        </div>
+    </div>`;
+}
+
 // ── Species picker ───────────────────────────────────────────────────────
 let pickerSpeciesSelection = new Set();
 // Build a category lookup from MATRIX_DATA
@@ -1850,6 +2185,7 @@ function saveSpeciesPicker() {
     });
     rebuildMySpeciesSection();
     renderYourDashboard();
+    renderFavSnapshot();
 }
 function closeSpeciesPicker() {
     document.getElementById('species-picker-overlay').classList.remove('open');
@@ -1889,6 +2225,7 @@ function savePortPicker() {
     localStorage.setItem('quayside_my_ports', JSON.stringify([...myPorts]));
     closePortPicker();
     renderYourDashboard();
+    renderFavSnapshot();
 }
 function closePortPicker() {
     document.getElementById('port-picker-overlay').classList.remove('open');
@@ -1929,6 +2266,7 @@ function toggleStar(species, btn) {
     localStorage.setItem('quayside_my_species', JSON.stringify([...mySpecies]));
     rebuildMySpeciesSection();
     renderYourDashboard();
+    renderFavSnapshot();
 }
 
 function rebuildMySpeciesSection() {
@@ -2378,7 +2716,10 @@ async function submitFeedback() {
             document.getElementById('fb-name').value = '';
             const ok = document.getElementById('fb-success');
             ok.style.display = 'block';
-            setTimeout(() => { ok.style.display = 'none'; }, 4000);
+            setTimeout(() => {
+                ok.style.display = 'none';
+                document.getElementById('feedback-modal-overlay').style.display = 'none';
+            }, 2500);
         }
     } catch(e) { /* silent */ }
 }
@@ -2494,6 +2835,13 @@ function renderPortIntel() {
     const container = document.getElementById('port-intel-content');
     const code = PORT_CODES[selectedIntelPort] || selectedIntelPort.substring(0, 3).toUpperCase();
 
+    // Port reporting status
+    const portInfo = PORT_STATUS.find(p => p.port === selectedIntelPort);
+    const isReporting = portInfo && portInfo.reporting;
+    const reportingBadge = isReporting
+        ? `<span style="font-family:var(--font-mono);font-size:10px;color:#6db88a;">&#9679; Reporting today</span>`
+        : `<span style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">&#9675; Not reporting today</span>`;
+
     // Filter matrix rows to those where this port has data
     let rows = MATRIX_DATA.filter(r => r.ports[selectedIntelPort] != null);
 
@@ -2518,6 +2866,8 @@ function renderPortIntel() {
             marketAvg: r.market_avg,
             vsMkt: Math.round(vsMkt * 10) / 10,
             isBestBuy,
+            vs7dPct: r.vs_7d_pct,
+            vs7dDir: r.vs_7d_direction,
         };
     });
 
@@ -2532,7 +2882,8 @@ function renderPortIntel() {
         : 0;
     const avgVsMktClass = avgVsMkt < 0 ? 'up' : avgVsMkt > 0 ? 'down' : '';
 
-    let html = `<div class="port-intel-summary">
+    let html = `<div style="margin-bottom:12px;">${reportingBadge}</div>`;
+    html += `<div class="port-intel-summary">
         <div class="port-intel-kpi">
             <div class="port-intel-kpi-value">${speciesCount}</div>
             <div class="port-intel-kpi-label">Species Available</div>
@@ -2558,6 +2909,7 @@ function renderPortIntel() {
                 <th>${code} Price</th>
                 <th>Mkt Avg</th>
                 <th>vs Market</th>
+                <th>7d Trend</th>
                 <th>Status</th>
             </tr></thead><tbody>`;
 
@@ -2572,12 +2924,20 @@ function renderPortIntel() {
             } else if (r.vsMkt > 0) {
                 badge = '<span class="port-intel-badge above-avg">Above Avg</span>';
             }
+            let trend7d = '&mdash;';
+            if (r.vs7dPct != null) {
+                const t7cls = r.vs7dDir === 'up' ? 'change-down' : r.vs7dDir === 'down' ? 'change-up' : '';
+                const t7sign = r.vs7dPct > 0 ? '+' : '';
+                const t7arrow = r.vs7dDir === 'up' ? '&#9650;' : r.vs7dDir === 'down' ? '&#9660;' : '';
+                trend7d = `<span class="${t7cls}">${t7arrow} ${t7sign}${r.vs7dPct.toFixed(1)}%</span>`;
+            }
             const esc = r.species.replace(/'/g, "\\'");
             html += `<tr onclick="selectSpecies('${esc}');showTab('section-chart');">
                 <td>${r.species}</td>
                 <td>\u00a3${r.portPrice.toFixed(2)}</td>
                 <td style="color:var(--muted);">\u00a3${r.marketAvg.toFixed(2)}</td>
                 <td class="${cls}">${sign}${r.vsMkt.toFixed(1)}%</td>
+                <td>${trend7d}</td>
                 <td>${badge}</td>
             </tr>`;
         });
@@ -2597,8 +2957,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     rebuildMySpeciesSection();
 
-    // Render Your Dashboard section
+    // Apply default sort (A-Z)
+    sortMatrix('species');
+
+    // Render Your Dashboard section (cards + highlights)
     renderYourDashboard();
+
+    // Render Your Favourites snapshot
+    renderFavSnapshot();
+
+    // Render top movers table in Market Insights
+    renderMoversTable();
 
     // Init context bar for today tab
     updateContextBar('today');
@@ -2606,12 +2975,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Init port intelligence tabs
     initPortIntelTabs();
 
+    // Add port status dots to price matrix column headers
+    const portStatusMap = {};
+    PORT_STATUS.forEach(p => { portStatusMap[p.port] = p.reporting; });
+    document.querySelectorAll('.port-header').forEach(th => {
+        const port = th.dataset.port;
+        if (!port) return;
+        const reporting = portStatusMap[port];
+        const dot = document.createElement('span');
+        dot.className = 'port-status-dot ' + (reporting ? 'reporting' : 'silent');
+        dot.title = reporting ? 'Reporting today' : 'No data today';
+        th.appendChild(dot);
+    });
+
     // Auto-select first species for chart (pre-loads chart data for when user switches to Price History)
     const first = document.querySelector('#matrix-tbody .matrix-row');
     if (first) selectSpecies(first.dataset.species);
 
-    // Show default tab (Species Insight — data-rich landing)
-    showTab('section-overview');
+    // Show default tab: Your Dashboard
+    showTab('section-dashboard');
 });
 </script>
 {% endblock %}
