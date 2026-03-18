@@ -63,8 +63,13 @@
                 </div></div>
             </div>
             {% else %}
-            <a href="{{ url_for('register') }}" class="nav-link">Sign Up</a>
-            <a href="{{ url_for('login') }}" class="nav-signin-btn">Sign In</a>
+            <div class="nav-dropdown nav-auth-dropdown">
+                <button class="nav-signin-btn nav-signin-toggle" onclick="this.parentElement.classList.toggle('active')">Sign Up / In</button>
+                <div class="nav-dropdown-menu nav-auth-menu"><div class="nav-dropdown-menu-inner">
+                    <a href="{{ url_for('register') }}">Create account</a>
+                    <a href="{{ url_for('login') }}">Sign in</a>
+                </div></div>
+            </div>
             {% endif %}
         </div>
     </nav>

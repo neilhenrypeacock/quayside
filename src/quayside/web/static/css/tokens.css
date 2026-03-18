@@ -168,6 +168,10 @@ body {
   background: var(--catch) !important;
   color: white !important;
 }
+.nav-signin-toggle {
+  background: none;
+  cursor: pointer;
+}
 
 /* ── Mobile nav ── */
 @media (max-width: 768px) {
@@ -377,6 +381,8 @@ td {
 .status-confirmed { background: var(--up); }
 .status-pending { background: #b8860b; }
 .status-none { background: var(--rule); }
+.status-stale { background: #c8941a; }
+.status-offline { background: var(--down); }
 
 /* ── Flash messages ── */
 .flash {
