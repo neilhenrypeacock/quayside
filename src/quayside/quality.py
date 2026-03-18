@@ -10,11 +10,12 @@ Statistical checks (1–6):
   5. seeded_data     — known seeded-data timestamp on live ports
   6. live_site       — displayed price on live site matches DB
 
-Data-accuracy checks (7–10):
+Data-accuracy checks (7–11):
   7. unknown_field   — NULL/blank/Unknown in port or species fields
-  8. unmapped_species — species with no canonical mapping in species.py
+  8. unmapped_species — species with no canonical mapping; fuzzy-suggests fix
   9. price_sanity    — price ≤0, >£200/kg, or price_low > price_high
  10. date_sanity     — future-dated or pre-2020 records
+ 11. price_swing     — species >200%/500% vs 30-day mean (catches Gurnard-at-£50 style errors)
 
 Designed to run after every successful scrape and 3× daily as backstop.
 
@@ -82,6 +83,7 @@ def run_quality_checks(date: str | None = None) -> dict:
     issues.extend(_check_unmapped_species(conn, date, checked_at, active_ports))
     issues.extend(_check_price_sanity(conn, date, checked_at, active_ports))
     issues.extend(_check_date_sanity(conn, date, checked_at, active_ports))
+    issues.extend(_check_species_price_swing(conn, date, checked_at, active_ports))
 
     # Write all issues to quality_log
     conn.executemany(
@@ -483,16 +485,20 @@ def _check_unknown_fields(conn, date: str, checked_at: str, active_ports: list[s
     return issues
 
 
-# ── Check 8: Unmapped species names ──────────────────────────────────────────
+# ── Check 8: Unmapped species names (with fuzzy suggestions) ─────────────────
 
 def _check_unmapped_species(conn, date: str, checked_at: str, active_ports: list[str]) -> list[dict]:
-    """Flag species names that have no entry in _CANONICAL_MAP in species.py.
-
-    Unmapped species display as-is (title-cased) and never merge with the same
-    species at other ports — breaking cross-port comparisons in the digest and
-    trade dashboard.
+    """Flag species names with no canonical mapping. Uses fuzzy matching to
+    suggest the most likely canonical name so the fix is obvious:
+      - ratio ≥ 0.75 → "likely 'Monkfish' — add to _CANONICAL_MAP"
+      - ratio 0.5–0.74 → "possible match 'Monkfish' — review needed"
+      - no match  → "no close match — new species or typo"
     """
+    import difflib
     from quayside.species import _RAW_TO_CANONICAL, is_noisy_species
+
+    # All known raw names (lowercased) for fuzzy matching
+    all_known_raw = list(_RAW_TO_CANONICAL.keys())
 
     issues = []
 
@@ -507,12 +513,27 @@ def _check_unmapped_species(conn, date: str, checked_at: str, active_ports: list
                 continue
             if is_noisy_species(raw_species):
                 continue  # intentionally filtered — not a mapping problem
-            if raw_species.lower() not in _RAW_TO_CANONICAL:
-                issues.append(_issue(
-                    checked_at, "unmapped_species", "warn", port, date,
-                    species=raw_species,
-                    message=f"'{raw_species}' at {port} has no canonical mapping — displays as-is, won't aggregate cross-port",
-                ))
+            if raw_species.lower() in _RAW_TO_CANONICAL:
+                continue  # already mapped
+
+            # Fuzzy match against all known raw names
+            close = difflib.get_close_matches(raw_species.lower(), all_known_raw, n=1, cutoff=0.5)
+            if close:
+                best_raw = close[0]
+                canonical = _RAW_TO_CANONICAL[best_raw]
+                ratio = difflib.SequenceMatcher(None, raw_species.lower(), best_raw).ratio()
+                if ratio >= 0.75:
+                    action = f"likely '{canonical}' — add \"{raw_species}\": \"{canonical}\" to _CANONICAL_MAP in species.py"
+                else:
+                    action = f"possible match '{canonical}' — review before adding to species.py"
+            else:
+                action = "no close match found — new species or typo, check source data"
+
+            issues.append(_issue(
+                checked_at, "unmapped_species", "warn", port, date,
+                species=raw_species,
+                message=f"'{raw_species}' at {port}: unmapped species — {action}",
+            ))
 
     return issues
 
@@ -604,6 +625,68 @@ def _check_date_sanity(conn, date: str, checked_at: str, active_ports: list[str]
             checked_at, "date_sanity", "warn", port, bad_date,
             message=f"{port}: {count} record(s) dated {bad_date} — before 2020, likely seeded or test data",
         ))
+
+    return issues
+
+
+# ── Check 11: Per-species price swing ────────────────────────────────────────
+
+_SWING_ERROR_PCT = 500.0   # >500% change vs 30-day mean → error
+_SWING_WARN_PCT  = 200.0   # >200% change vs 30-day mean → warn
+
+
+def _check_species_price_swing(conn, date: str, checked_at: str, active_ports: list[str]) -> list[dict]:
+    """Flag individual species/grade combinations where today's price deviates
+    wildly from the 30-day mean for that species at that port.
+
+    Unlike _check_outlier_prices (which needs ≥10 history records and uses σ),
+    this check uses a simple percentage and fires with just 1 historical record —
+    catching rare species that only trade occasionally.
+
+    Example: Gurnard at £50/kg when the 30-day mean is £1/kg = 5000% → error.
+    """
+    issues = []
+    cutoff_30d = (datetime.fromisoformat(date) - timedelta(days=30)).date().isoformat()
+
+    for port in active_ports:
+        today_rows = conn.execute(
+            """SELECT species, grade, price_avg FROM prices
+               WHERE port = ? AND date = ? AND price_avg IS NOT NULL AND price_avg > 0""",
+            (port, date),
+        ).fetchall()
+
+        for species, grade, today_price in today_rows:
+            row = conn.execute(
+                """SELECT AVG(price_avg) FROM prices
+                   WHERE port = ? AND species = ? AND grade = ?
+                   AND date > ? AND date < ?
+                   AND price_avg IS NOT NULL AND price_avg > 0""",
+                (port, species, grade, cutoff_30d, date),
+            ).fetchone()
+            hist_avg = row[0] if row else None
+
+            if hist_avg is None or hist_avg == 0:
+                continue  # no history — can't compare
+
+            pct_change = abs(today_price - hist_avg) / hist_avg * 100
+
+            if pct_change >= _SWING_ERROR_PCT:
+                severity = "error"
+            elif pct_change >= _SWING_WARN_PCT:
+                severity = "warn"
+            else:
+                continue
+
+            direction = "above" if today_price > hist_avg else "below"
+            issues.append(_issue(
+                checked_at, "price_swing", severity, port, date, species, grade,
+                value=round(today_price, 2), expected=round(hist_avg, 2),
+                message=(
+                    f"{species} {grade or ''} at {port}: £{today_price:.2f}/kg is "
+                    f"{pct_change:.0f}% {direction} 30-day mean (£{hist_avg:.2f}/kg) "
+                    f"— likely a scraper error"
+                ).strip(),
+            ))
 
     return issues
 

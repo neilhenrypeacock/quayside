@@ -608,7 +608,7 @@
 <div id="quality-card" class="card" style="margin-bottom:16px;">
     <div class="section-head">
         Data Quality
-        <span class="count">checks: unknown fields · unmapped species · price sanity · statistical outliers · stale data · live site</span>
+        <span class="count">checks: unknown fields · unmapped species (fuzzy) · price sanity · price swings · statistical outliers · stale data · live site</span>
         <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
             {% if quality_summary.last_checked_at %}<a href="/ops/quality-report/download" style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:0.02em;" title="Download Markdown report">↓ Download</a>{% endif %}
             <button id="run-quality-btn" onclick="runQualityCheck()"
