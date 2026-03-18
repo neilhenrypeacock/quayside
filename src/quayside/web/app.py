@@ -202,6 +202,11 @@ def create_app() -> Flask:
         """Port-focused marketing and onboarding page."""
         return render_template("for_ports.html")
 
+    @app.route("/for-traders")
+    def for_traders():
+        """Buyer and seller focused marketing and membership page."""
+        return render_template("for_traders.html")
+
     @app.route("/about")
     def about():
         """About Quayside — mission, how it works, port coverage."""

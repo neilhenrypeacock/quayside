@@ -378,11 +378,12 @@ def _check_live_site(conn, date: str, checked_at: str, active_ports: list[str]) 
                 continue
 
             if db_avg is None:
-                issues.append(_issue(
-                    checked_at, "live_site", "warn", port_name, date,
-                    value=displayed,
-                    message=f"{port_name}: site shows £{displayed:.2f}/kg but DB has no data for today",
-                ))
+                # Site is showing a carry-forward price from a previous date — expected when
+                # today's data hasn't landed yet. record_count errors already cover this case.
+                logger.info(
+                    "Live site: %s shows £%.2f/kg but no DB data for today — historical carry-forward",
+                    port_name, displayed,
+                )
             elif abs(displayed - db_avg) > 0.02:
                 # Divergence > 2p — mismatch between DB and rendered page
                 issues.append(_issue(
@@ -985,10 +986,13 @@ def _report_ops_health(conn, date: str, active_ports: list[str]) -> dict:
     # Rough: 10 weekdays in 2 weeks, minus days with data
     historical_gap_count = max(0, 10 - gap_count)
 
-    # Quality issues summary
+    # Quality issues summary — deduplicated so repeated pipeline runs don't inflate counts
     cutoff_7d = (datetime.utcnow() - timedelta(days=7)).isoformat()
     quality_counts = conn.execute(
-        "SELECT severity, COUNT(*) FROM quality_log WHERE checked_at >= ? GROUP BY severity",
+        """SELECT severity, COUNT(*) FROM (
+               SELECT DISTINCT check_type, severity, port, date, species, grade
+               FROM quality_log WHERE checked_at >= ?
+           ) GROUP BY severity""",
         (cutoff_7d,),
     ).fetchall()
     quality_map = {r[0]: r[1] for r in quality_counts}
@@ -1008,11 +1012,13 @@ def _report_ops_health(conn, date: str, active_ports: list[str]) -> dict:
 
 
 def _report_quality_issues(conn) -> list[dict]:
-    """Return all quality_log issues from the last 7 days."""
+    """Return deduplicated quality_log issues from the last 7 days."""
     cutoff = (datetime.utcnow() - timedelta(days=7)).isoformat()
     rows = conn.execute(
-        """SELECT checked_at, check_type, severity, port, date, species, grade, value, expected, message
-           FROM quality_log WHERE checked_at >= ? ORDER BY checked_at DESC""",
+        """SELECT MAX(checked_at), check_type, severity, port, date, species, grade, value, expected, message
+           FROM quality_log WHERE checked_at >= ?
+           GROUP BY check_type, severity, port, date, species, grade, value, expected, message
+           ORDER BY date DESC, severity, port""",
         (cutoff,),
     ).fetchall()
     return [

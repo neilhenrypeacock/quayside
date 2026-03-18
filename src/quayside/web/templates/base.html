@@ -25,7 +25,7 @@
             <div class="nav-dropdown">
                 <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">For Buyers &amp; Sellers <span class="nav-caret">&#9662;</span></button>
                 <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
-                    <a href="#" style="opacity:0.45;cursor:default;" onclick="return false;">Learn more</a>
+                    <a href="{{ url_for('for_traders') }}">Learn more</a>
                     <a href="{{ url_for('trade_dashboard') }}">Demo dashboard</a>
                 </div></div>
             </div>

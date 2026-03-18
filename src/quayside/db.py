@@ -962,15 +962,16 @@ def get_market_averages_for_date(date: str) -> dict[str, dict]:
 
 
 def get_quality_issues(days: int = 7) -> list[dict]:
-    """Return quality issues logged in the last `days` days, newest first."""
+    """Return deduplicated quality issues logged in the last `days` days, newest first."""
     conn = get_connection()
     cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
     rows = conn.execute(
-        """SELECT checked_at, check_type, severity, port, date, species, grade,
+        """SELECT MAX(checked_at), check_type, severity, port, date, species, grade,
                   value, expected, message
            FROM quality_log
            WHERE checked_at >= ?
-           ORDER BY checked_at DESC, severity DESC""",
+           GROUP BY check_type, severity, port, date, species, grade, value, expected, message
+           ORDER BY MAX(checked_at) DESC, severity DESC""",
         (cutoff,),
     ).fetchall()
     conn.close()
@@ -1002,8 +1003,10 @@ def get_quality_summary() -> dict:
     cutoff = (datetime.utcnow() - timedelta(days=7)).isoformat()
     counts = conn.execute(
         """SELECT port, severity, COUNT(*) as n
-           FROM quality_log
-           WHERE checked_at >= ?
+           FROM (
+               SELECT DISTINCT check_type, severity, port, date, species, grade
+               FROM quality_log WHERE checked_at >= ?
+           )
            GROUP BY port, severity""",
         (cutoff,),
     ).fetchall()
