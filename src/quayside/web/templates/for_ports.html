@@ -60,7 +60,7 @@
   }
   .port-hero-left h1 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(36px, 4vw, 56px);
+    font-size: clamp(32px, 3.5vw, 52px);
     font-weight: 900;
     line-height: 1.05;
     letter-spacing: -0.03em;
@@ -128,10 +128,205 @@
     background: linear-gradient(135deg, rgba(26,58,74,0.3) 0%, rgba(26,58,74,0.5) 100%);
   }
 
-  /* VALUE GRID */
+  /* SECTIONS */
   .section { padding: 96px 48px; border-bottom: 1px solid var(--rule); }
   .section-inner { max-width: 1100px; margin: 0 auto; }
 
+  /* TWO WAYS TO SHARE */
+  .share-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .share-card {
+    background: var(--foam);
+    padding: 40px 36px;
+  }
+  .share-card-method {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--catch);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .share-card-method::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 1px;
+    background: var(--catch);
+  }
+  .share-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  .share-card p {
+    font-size: 15px;
+    line-height: 1.75;
+    color: #4a4438;
+    margin-bottom: 20px;
+  }
+  .share-card .share-detail {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--tide);
+    letter-spacing: 0.04em;
+    padding: 10px 16px;
+    background: rgba(26,58,74,0.06);
+    border-left: 2px solid var(--tide);
+    line-height: 1.6;
+  }
+
+  /* DASHBOARD SHOWCASE */
+  .dashboard-screenshot {
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,14,12,0.12), 0 2px 8px rgba(15,14,12,0.08);
+    margin-bottom: 48px;
+    position: relative;
+  }
+  .dashboard-screenshot img {
+    width: 100%;
+    display: block;
+  }
+  .dashboard-screenshot-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(0deg, rgba(15,14,12,0.7) 0%, transparent 100%);
+    padding: 32px 24px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dashboard-screenshot-caption span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: rgba(245,240,232,0.8);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .dashboard-screenshot-caption a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #7ab0c8;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(122,176,200,0.4);
+    padding-bottom: 1px;
+    transition: color 0.2s;
+  }
+  .dashboard-screenshot-caption a:hover { color: var(--paper); }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .feature-card {
+    background: var(--foam);
+    padding: 32px 28px;
+  }
+  .feature-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--catch);
+    margin-bottom: 12px;
+  }
+  .feature-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .feature-card p {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #5a5448;
+  }
+
+  /* BENEFITS SECTION */
+  .benefits-section {
+    background: var(--tide);
+    padding: 96px 48px;
+    border-bottom: 1px solid #0a1a24;
+  }
+  .benefits-section .section-label {
+    color: rgba(122,176,200,0.6);
+  }
+  .benefits-section .section-label::after {
+    background: rgba(122,176,200,0.2);
+  }
+  .benefits-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 3vw, 42px);
+    font-weight: 700;
+    color: var(--paper);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .benefits-section h2 em {
+    font-style: italic;
+    color: #7ab0c8;
+  }
+  .benefits-section .benefits-intro {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #7ab0c8;
+    max-width: 560px;
+    margin-bottom: 56px;
+  }
+  .benefit-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(122,176,200,0.15);
+    border: 1px solid rgba(122,176,200,0.15);
+  }
+  .benefit-card {
+    background: rgba(26,58,74,0.6);
+    padding: 36px 32px;
+  }
+  .benefit-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--paper);
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .benefit-card h3 em {
+    font-style: italic;
+    color: #7ab0c8;
+  }
+  .benefit-card p {
+    font-size: 14px;
+    color: #7ab0c8;
+    line-height: 1.8;
+  }
+  .benefit-card strong {
+    color: var(--paper);
+    font-weight: 500;
+  }
+
+  /* VALUE GRID */
   .value-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -163,46 +358,6 @@
     line-height: 1.7;
     color: #5a5448;
   }
-
-  /* DEMO BOX */
-  .demo-section {
-    background: var(--tide);
-    padding: 64px 48px;
-    border-bottom: 1px solid #0a1a24;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 48px;
-  }
-  .demo-left h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--paper);
-    margin-bottom: 12px;
-    letter-spacing: -0.01em;
-  }
-  .demo-left p {
-    font-size: 15px;
-    color: #7ab0c8;
-    line-height: 1.7;
-    max-width: 480px;
-  }
-  .demo-btn {
-    background: var(--catch);
-    color: white;
-    padding: 14px 32px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-decoration: none;
-    border-radius: 2px;
-    white-space: nowrap;
-    transition: background 0.2s;
-    flex-shrink: 0;
-  }
-  .demo-btn:hover { background: #a83010; }
 
   /* HOW TO JOIN */
   .steps-list {
@@ -244,26 +399,6 @@
     color: var(--tide);
     font-weight: 500;
     letter-spacing: 0.03em;
-  }
-
-  /* UPLOAD OPTION */
-  .upload-box {
-    background: var(--foam);
-    border: 1px solid var(--rule);
-    padding: 32px;
-    margin-top: 48px;
-  }
-  .upload-box h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .upload-box p {
-    font-size: 14px;
-    color: #5a5448;
-    line-height: 1.7;
-    margin-bottom: 16px;
   }
 
   /* STRAIGHT TALK */
@@ -323,7 +458,7 @@
     padding: 12px 24px;
     border-radius: 2px;
     display: inline-block;
-    margin: 24px 0;
+    margin: 24px 0 16px;
   }
   .final-cta .sub-text {
     font-family: 'IBM Plex Mono', monospace;
@@ -332,6 +467,25 @@
     letter-spacing: 0.06em;
   }
   .final-cta .sub-text a { color: #5a5448; }
+  .cta-or-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+    margin: 20px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #2a2820;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .cta-or-divider::before,
+  .cta-or-divider::after {
+    content: '';
+    width: 60px;
+    height: 1px;
+    background: #2a2820;
+  }
 
   /* FOOTER */
   footer {
@@ -396,10 +550,16 @@
     .port-hero-right { min-height: 240px; }
     .section { padding: 64px 24px; }
     .value-grid { grid-template-columns: 1fr; }
-    .demo-section { padding: 48px 24px; flex-direction: column; text-align: center; }
+    .feature-grid { grid-template-columns: 1fr 1fr; }
+    .share-grid { grid-template-columns: 1fr; }
+    .benefit-list { grid-template-columns: 1fr; }
     .digest-preview-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
     .final-cta { padding: 48px 24px; }
     footer { padding: 24px; flex-direction: column; align-items: flex-start; }
+    .benefits-section { padding: 64px 24px; }
+  }
+  @media (max-width: 600px) {
+    .feature-grid { grid-template-columns: 1fr; }
   }
 </style>
 {% endblock %}
@@ -409,12 +569,12 @@
 <section class="port-hero">
   <div class="port-hero-left">
     <div class="port-hero-eyebrow">For port &amp; auction operators</div>
-    <h1>Free dashboard.<br><em>Free marketing.</em><br>Seriously.</h1>
+    <h1>After the market,<br>email us your<br>price sheet.<br><em>Everything else<br>is free.</em></h1>
     <p class="port-hero-sub">
-      We build you a live market intelligence dashboard &mdash; completely free. In return, your prices get featured in a daily digest going out to a growing base of UK fish buyers from April 2026. You get data. Your sellers get visibility. Everyone wins.
+      Forward your daily prices to <strong>prices@quayside.fish</strong> &mdash; or upload directly. We do the rest: a live market intelligence dashboard for your port, and your prices featured in front of UK fish buyers every morning.
     </p>
     <div style="display:flex;gap:16px;flex-wrap:wrap;">
-      <a href="#how-to-join" class="btn-primary">Get started in 30 seconds</a>
+      <a href="mailto:prices@quayside.fish" class="btn-primary">Get started &rarr;</a>
       <a href="{{ url_for('port_dashboard', slug='peterhead') }}" class="btn-secondary">See live demo</a>
     </div>
   </div>
@@ -423,25 +583,97 @@
   </div>
 </section>
 
-<!-- WHAT YOU GET -->
-<section class="section">
+<!-- TWO WAYS TO SHARE -->
+<section class="section" style="background:var(--paper);padding-top:64px;padding-bottom:64px;">
   <div class="section-inner">
-    <div class="section-label">What you get &mdash; all free</div>
-    <div class="value-grid fade-up">
-      <div class="value-card">
-        <div class="value-num">01</div>
-        <h3>Live market dashboard</h3>
-        <p>See where your prices sit versus other UK ports. Species-level benchmarks, cross-port averages, and your competitive position &mdash; updated daily. No software to install.</p>
+    <div class="section-label">How to share your prices</div>
+    <div class="share-grid fade-up">
+      <div class="share-card">
+        <div class="share-card-method">Option 1 &mdash; Email</div>
+        <h3>Forward your price sheet</h3>
+        <p>After the auction closes, just forward your daily price sheet &mdash; whatever format you already use. XLS, PDF, CSV, a photo of a printed sheet. We extract, normalise, and publish it automatically.</p>
+        <div class="share-detail">prices@quayside.fish &mdash; that's all you need</div>
       </div>
-      <div class="value-card">
-        <div class="value-num">02</div>
-        <h3>30-day price trends</h3>
-        <p>Track how your prices move over time. Spot seasonal patterns, compare your trajectory against the wider market, and show your sellers the data.</p>
+      <div class="share-card">
+        <div class="share-card-method">Option 2 &mdash; Upload</div>
+        <h3>Upload directly to the site</h3>
+        <p>Download our one-page Excel template with species dropdowns pre-filled. Fill in your prices after the market, upload it here, and it goes live within minutes. Takes under two minutes once you're set up.</p>
+        <a href="{{ url_for('port_upload', slug='peterhead') }}" class="btn-secondary" style="padding:10px 20px;font-size:11px;">Try the upload form &rarr;</a>
       </div>
-      <div class="value-card">
-        <div class="value-num">03</div>
-        <h3>National marketing</h3>
-        <p>Your best prices get flagged to subscribers on the platform. When you're cheapest for haddock or cod, buyers see it in their morning digest. That's free marketing you can't buy anywhere else.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD SHOWCASE -->
+<section class="section" style="background:var(--foam);">
+  <div class="section-inner">
+    <div class="section-label">Your dashboard, live from day one</div>
+    <p style="font-size:17px;line-height:1.7;color:#4a4438;max-width:600px;margin-bottom:40px;">
+      The moment your first prices land with us, your port gets a live market intelligence dashboard. Here's what it looks like &mdash; this is Peterhead's real data, right now.
+    </p>
+    <div class="dashboard-screenshot fade-up">
+      <a href="{{ url_for('port_dashboard', slug='peterhead') }}" target="_blank">
+        <img src="{{ url_for('static', filename='img/dashboard-preview.jpg') }}" alt="Peterhead dashboard — live price data, species rankings, and market position">
+      </a>
+      <div class="dashboard-screenshot-caption">
+        <span>Peterhead · Live dashboard</span>
+        <a href="{{ url_for('port_dashboard', slug='peterhead') }}" target="_blank">Open live dashboard &rarr;</a>
+      </div>
+    </div>
+
+    <div class="feature-grid fade-up">
+      <div class="feature-card">
+        <div class="feature-num">01 &mdash; OVERVIEW</div>
+        <h4>Today's average price</h4>
+        <p>Your port's average price per kg across all species sold today, with change vs last week and vs the UK market average &mdash; at a glance.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">02 &mdash; RANKING</div>
+        <h4>Your rank vs UK ports</h4>
+        <p>For every species you sell, see exactly where your price sits against every other UK port reporting to Quayside. Updated every auction day.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">03 &mdash; PERFORMANCE</div>
+        <h4>30-day price history</h4>
+        <p>Rolling averages and price trajectory over time, overlaid against the UK-wide market trend. Spot seasonal patterns and long-run shifts.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">04 &mdash; INSIGHTS</div>
+        <h4>Automated daily insights</h4>
+        <p>Plain-English commentary generated each auction day: which species are performing above or below the market, what's moved most, and how you compare to last week.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">05 &mdash; MARKET POSITION</div>
+        <h4>Market position indicator</h4>
+        <p>Each species row shows a visual bar placing your price within the national min&ndash;max range. Instantly see where you sit in the market without scanning a table.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">06 &mdash; BEST PERFORMERS</div>
+        <h4>Best performers today</h4>
+        <p>Your top species by price and volume, highlighted automatically. Share with sellers or use internally to identify where your port has competitive edge.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT THIS MEANS FOR YOUR SELLERS -->
+<section class="benefits-section">
+  <div class="section-inner">
+    <div class="section-label">Why this matters to your bottom line</div>
+    <h2>Visibility that brings<br><em>buyers to you.</em></h2>
+    <p class="benefits-intro">Being on the daily digest isn't just a nice-to-have. It puts your prices in front of the buyers, merchants, and processors who decide where to source &mdash; every single morning.</p>
+    <div class="benefit-list fade-up">
+      <div class="benefit-card">
+        <h3>Buyers see you<br>when you're <em>competitive</em></h3>
+        <p>When your prices are among the strongest in the UK for a species, the daily digest surfaces it to subscribers that morning. <strong>You don't have to do anything &mdash; we flag it for you.</strong> That's exposure to buyers who might never have looked your way.</p>
+      </div>
+      <div class="benefit-card">
+        <h3>A bigger pool<br>of <em>potential bidders</em></h3>
+        <p>Subscribers include fish merchants, processors, and buyers from across the UK who use the digest to decide where to source on any given day. <strong>Being on it puts your port in front of people who'd never have found you through traditional channels.</strong></p>
+      </div>
+      <div class="benefit-card">
+        <h3>Data your<br><em>sellers can use</em></h3>
+        <p>Show sellers where their catch ranks in the national market. When your monkfish is achieving top prices in Scotland, that's a retention argument. <strong>Hard numbers make hard conversations easier</strong> &mdash; and happy sellers land more with you.</p>
       </div>
     </div>
   </div>
@@ -452,37 +684,30 @@
   <div class="section-inner">
     <div style="display:inline-block;background:var(--catch);color:white;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:8px 24px;border-radius:2px;margin-bottom:28px;animation:pulse-pill 2s ease-in-out infinite;">Launching April 2026</div>
     <h2 style="font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,48px);font-weight:700;color:var(--paper);letter-spacing:-0.02em;line-height:1.1;margin-bottom:16px;">Your port, featured in the <em style="font-style:italic;color:#7ab0c8;">daily digest.</em></h2>
-    <p style="font-size:17px;line-height:1.7;color:#7a7060;max-width:540px;margin:0 auto 48px;">We're onboarding ports now. Join today for your free dashboard &mdash; and be featured in the daily digest from day one when it launches.</p>
+    <p style="font-size:17px;line-height:1.7;color:#7a7060;max-width:540px;margin:0 auto 48px;">Join now for your free dashboard &mdash; and be featured in the daily digest from day one when it launches in April. Subscribers get a morning briefing with cross-port price comparisons, market movers, and best-value species for the day.</p>
     <div class="digest-preview-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#2a2820;border:1px solid #2a2820;text-align:left;">
       <div style="background:#161410;padding:36px 32px;">
         <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;">
           <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:#6db88a;font-family:'IBM Plex Mono',monospace;font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Cross-port price comparisons delivered to buyers every morning</li>
-          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:#6db88a;font-family:'IBM Plex Mono',monospace;font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Your best prices highlighted &mdash; attracting new business</li>
+          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:#6db88a;font-family:'IBM Plex Mono',monospace;font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Your best prices highlighted &mdash; attracting buyers who are deciding where to source today</li>
+          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:#6db88a;font-family:'IBM Plex Mono',monospace;font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Species-level breakdowns: which ports are cheapest, dearest, and moving most</li>
         </ul>
       </div>
       <div style="background:#161410;padding:36px 32px;">
         <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;">
-          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:#6db88a;font-family:'IBM Plex Mono',monospace;font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Market trends and biggest movers, species by species</li>
-          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:#6db88a;font-family:'IBM Plex Mono',monospace;font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> National reach &mdash; your data visible to the whole UK trade</li>
+          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:#6db88a;font-family:'IBM Plex Mono',monospace;font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Market trends and biggest movers, species by species across the whole UK</li>
+          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:#6db88a;font-family:'IBM Plex Mono',monospace;font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> National reach &mdash; your data visible to the whole UK trade, not just your region</li>
+          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:#6db88a;font-family:'IBM Plex Mono',monospace;font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Sent every trading day before markets open &mdash; when buyers are making sourcing decisions</li>
         </ul>
       </div>
     </div>
   </div>
 </section>
 
-<!-- DEMO -->
-<div class="demo-section">
-  <div class="demo-left">
-    <h2>See a live dashboard</h2>
-    <p>Here's what Peterhead's dashboard looks like right now &mdash; with real price data, trends, and market position indicators.</p>
-  </div>
-  <a href="{{ url_for('port_dashboard', slug='peterhead') }}" class="demo-btn">View Peterhead's dashboard &rarr;</a>
-</div>
-
 <!-- HOW TO JOIN -->
 <section class="section" id="how-to-join">
   <div class="section-inner">
-    <div class="section-label">How to join</div>
+    <div class="section-label">How it works</div>
     <ol class="steps-list fade-up">
       <li>
         <span class="step-num">01</span>
@@ -496,10 +721,10 @@
       <li>
         <span class="step-num">02</span>
         <div class="step-content">
-          <h3>Review your data in a shared sheet</h3>
-          <p>We send you an online spreadsheet &mdash; an Excel or Google Sheet you can open from any browser, no software to install. Your daily price data is pre-filled by Quayside from public sources.</p>
-          <p>Review the data, edit any cells that need correcting, then click the <strong>"Confirmed"</strong> button to let Quayside know it's ready to publish.</p>
-          <span class="step-highlight">Simple as editing a spreadsheet. That's all it takes.</span>
+          <h3>One click to confirm, one click to edit</h3>
+          <p>Each day, your price data arrives pre-filled &mdash; extracted automatically from whatever you send us. You get a quick review link: glance at the numbers, and hit <strong>Confirm</strong> if they look right. Done. Takes ten seconds.</p>
+          <p>If anything needs correcting, click Edit, fix the cell, and confirm. We learn from every correction and improve automatically. You always have the final say before anything goes live.</p>
+          <span class="step-highlight">It's quality control, not data entry.</span>
         </div>
       </li>
       <li>
@@ -507,17 +732,11 @@
         <div class="step-content">
           <h3>Your data goes live to subscribers</h3>
           <p>Once confirmed, your prices are published to Quayside subscribers &mdash; fish buyers, merchants, and processors across the UK who rely on the daily digest for market intelligence.</p>
-          <p>Subscribers receive daily price benchmarks, market trends, and species-level breakdowns. Your port's data contributes to the most complete picture of the UK fish market available anywhere.</p>
+          <p>Your dashboard updates in real time. Your prices contribute to the most complete picture of the UK fish market available anywhere &mdash; and when you're competitive on a species, buyers see it.</p>
           <a href="{{ url_for('port_dashboard', slug='peterhead') }}" class="btn-secondary" style="margin-top:8px;padding:10px 20px;font-size:11px;">See example dashboard &rarr;</a>
         </div>
       </li>
     </ol>
-
-    <div class="upload-box fade-up">
-      <h3>Prefer to upload directly?</h3>
-      <p>Download our Excel template with species dropdowns, fill in your prices, and upload it here. Or use our simple web form.</p>
-      <a href="{{ url_for('port_upload', slug='peterhead') }}" class="btn-secondary" style="padding:10px 20px;font-size:11px;">Try the upload page &rarr;</a>
-    </div>
   </div>
 </section>
 
@@ -532,7 +751,7 @@
       </div>
       <div class="talk-card">
         <h3>Other ports see<br><em style="font-style:italic;color:#7ab0c8;">ranges, not rates.</em></h3>
-        <p>Subscribers see market-wide benchmarks: min, average, max across all ports. <strong>Nobody sees your raw data or individual prices.</strong> When fewer than three ports report a species, no port is named at all.</p>
+        <p>Subscribers see market-wide benchmarks: min, average, max across all ports. <strong>Nobody sees your individual port's raw prices.</strong> When fewer than three ports report a species, no port is named at all.</p>
       </div>
       <div class="talk-card">
         <h3>If we get something<br><em style="font-style:italic;color:#7ab0c8;">wrong, you fix it.</em></h3>
@@ -545,10 +764,12 @@
 <!-- FINAL CTA -->
 <div class="final-cta">
   <h2>Ready to join?</h2>
-  <p>Just start forwarding your daily price sheet.</p>
+  <p>Just start forwarding your daily price sheet &mdash; any format, no preparation needed.</p>
   <div class="email-highlight">prices@quayside.fish</div>
+  <div class="cta-or-divider">or</div>
+  <a href="{{ url_for('port_upload', slug='peterhead') }}" class="btn-secondary" style="background:transparent;color:var(--paper);border-color:rgba(255,255,255,0.15);margin-bottom:32px;">Upload directly &rarr;</a>
   <p class="sub-text">
-    Or email <a href="mailto:hello@quayside.fish">hello@quayside.fish</a> with any questions.
+    Questions? Email <a href="mailto:hello@quayside.fish">hello@quayside.fish</a>
   </p>
 </div>
 

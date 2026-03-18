@@ -72,7 +72,7 @@ from quayside.review import build_monthly_data, build_weekly_data
 from quayside.models import PriceRecord
 from quayside.ports import seed_ports
 from quayside.report import build_landing_data, build_report_data
-from quayside.species import get_all_canonical_names, get_species_category, normalise_species
+from quayside.species import KEY_SPECIES, get_all_canonical_names, get_species_category, normalise_species
 
 logger = logging.getLogger(__name__)
 
@@ -121,15 +121,23 @@ def create_app() -> Flask:
         date = get_latest_rich_date()  # exclude sparse/demo-only dates
         if date:
             ld = build_landing_data(date)
-            return {"_ticker_items": ld.get("ticker_items", []) if ld else []}
+            all_items = ld.get("ticker_items", []) if ld else []
+            key_items = [i for i in all_items if i.get("species") in KEY_SPECIES]
+            return {"_ticker_items": key_items if len(key_items) >= 3 else all_items}
         return {"_ticker_items": []}
 
     @app.route("/")
     def landing():
         """Subscriber-focused marketing page."""
+        from datetime import date as _date
         date = get_latest_date()
         ld = build_landing_data(date) if date else None
-        return render_template("landing.html", ld=ld)
+        today_str = _date.today().strftime("%Y-%m-%d")
+        if ld and date == today_str and ld.get("port_count", 0) >= 4:
+            data_label = "Today's"
+        else:
+            data_label = "Yesterday's"
+        return render_template("landing.html", ld=ld, data_label=data_label)
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -260,6 +268,13 @@ def create_app() -> Flask:
         digest_html = digest_template.render(**data)
         # Wrap in a simple page with nav
         return render_template("digest_wrapper.html", digest_html=digest_html, date=date, generated_at=data.get("generated_at"))
+
+    @app.route("/digest/yesterday")
+    def digest_yesterday():
+        """Redirect to yesterday's digest."""
+        from datetime import date as _date, timedelta
+        yesterday = (_date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
+        return redirect(url_for("digest_page", date=yesterday))
 
     @app.route("/digest/weekly")
     @app.route("/digest/weekly/<date>")

@@ -555,8 +555,7 @@
             <tr>
                 <th>Port</th>
                 <th>Result</th>
-                <th>First scraped</th>
-                <th>Last success</th>
+                <th>Last scrape</th>
                 <th>Records imported</th>
             </tr>
         </thead>
@@ -579,10 +578,11 @@
                     {% endif %}
                 </td>
                 <td style="font-family:var(--font-mono);font-size:12px;">
-                    {{ s.first_attempt if s else '—' }}
-                </td>
-                <td style="font-family:var(--font-mono);font-size:12px;">
-                    {% if s and s.status == 'success' %}{{ s.last_success }}{% else %}—{% endif %}
+                    {% if s and s.status == 'success' %}
+                        <span style="color:var(--up);">{{ s.last_success }}</span>
+                    {% elif s and s.first_attempt %}
+                        <span style="color:var(--down);">{{ s.first_attempt }}</span>
+                    {% else %}—{% endif %}
                 </td>
                 <td style="font-family:var(--font-mono);font-size:12px;">
                     {% if s and s.status == 'success' %}

@@ -93,6 +93,19 @@
     transition: color 0.2s, border-color 0.2s;
   }
   .btn-ghost:hover { color: var(--ink); border-color: var(--ink); }
+  .hero-trade-link {
+    display: inline-block;
+    margin-top: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--tide);
+    text-decoration: none;
+    border-bottom: 1px solid var(--tide);
+    padding-bottom: 1px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .hero-trade-link:hover { color: var(--ink); border-color: var(--ink); }
 
   .email-input {
     padding: 14px 20px;
@@ -1061,16 +1074,17 @@
     <form class="hero-form" action="#" method="POST" id="signup-form">
       <div class="hero-actions">
         <input type="email" name="email" placeholder="Your email address" required class="email-input">
-        <button type="submit" class="btn-primary">Get early access</button>
+        <button type="submit" class="btn-primary">Get the free digest</button>
       </div>
       <p class="form-note">Free daily digest launching April 2026. Sign up now to be first in line.</p>
     </form>
+    <a href="{{ url_for('for_traders') }}" class="hero-trade-link">Trade dashboard &mdash; &pound;95/mo &rarr;</a>
   </div>
   <div class="hero-right">
     {% if ld and ld.haddock_rows %}
     <div class="mock-card">
       <div class="mock-card-header">
-        <span class="mock-card-title">Today's best prices &mdash; Haddock</span>
+        <span class="mock-card-title">{{ data_label or "Latest" }} best prices &mdash; Haddock</span>
         <span class="mock-tag live">&#9679; Live</span>
       </div>
       {% for row in ld.haddock_rows %}
@@ -1088,7 +1102,7 @@
       {% endfor %}
     </div>
     <div class="mock-digest">
-      <div class="digest-subject">&#8593; QUAYSIDE DIGEST &mdash; {{ ld.date_upper }}</div>
+      <div class="digest-subject">&#8593; QUAYSIDE DIGEST &mdash; {{ ld.date_upper }}{% if data_label == "Yesterday's" %} <span style="opacity:0.6;font-size:0.85em;">(yesterday)</span>{% endif %}</div>
       <div class="digest-body">
         <strong>{{ ld.port_count }} ports reporting</strong> &middot; {{ ld.species_count }} species &middot; {{ ld.price_count }} prices{% if ld.fx_str %} &middot; {{ ld.fx_str }}{% endif %}<br>
         {% for m in ld.top_movers %}<strong>{{ m.species }}</strong> {% if m.direction == "up" %}surging{% else %}down{% endif %}{% if m.port %} at {{ m.port }}{% endif %} &pound;{{ "%.2f"|format(m.price) }}.{% if not loop.last %} {% endif %}{% endfor %} Full breakdown &#8595;
@@ -1097,7 +1111,7 @@
     {% else %}
     <div class="mock-card">
       <div class="mock-card-header">
-        <span class="mock-card-title">Today's best prices &mdash; Haddock</span>
+        <span class="mock-card-title">{{ data_label or "Latest" }} best prices &mdash; Haddock</span>
         <span class="mock-tag">Launching April 2026</span>
       </div>
       <div class="price-row" style="opacity:0.5;">
@@ -1255,17 +1269,17 @@
   <div class="section-label">Pricing</div>
   <div class="pricing-header">
     <h2>Simple. Honest pricing.</h2>
-    <p>Start free. Upgrade when Quayside earns it.</p>
+    <p>Free for buyers to start. Free for ports to list. &pound;95/mo when you need the full picture.</p>
   </div>
   <div class="pricing-grid">
     <!-- Digest — Free -->
     <div class="plan">
       <div class="plan-badge">Launching April 2026</div>
       <div class="plan-name">Digest</div>
-      <div class="plan-audience">Everyone</div>
+      <div class="plan-audience">For buyers &amp; traders</div>
       <div class="plan-price">
         <div class="plan-amount">&pound;0</div>
-        <div class="plan-period">free to start</div>
+        <div class="plan-period">free forever</div>
       </div>
       <ul class="plan-features">
         <li>Daily email digest</li>
@@ -1276,25 +1290,7 @@
       </ul>
       <a href="#signup-form" class="plan-cta">Sign up free</a>
     </div>
-    <!-- Pro -->
-    <div class="plan">
-      <div class="plan-badge">Launching April 2026</div>
-      <div class="plan-name">Pro</div>
-      <div class="plan-audience">Skippers &middot; Agents &middot; Small buyers</div>
-      <div class="plan-price">
-        <div class="plan-amount">&pound;25</div>
-        <div class="plan-period">per month</div>
-      </div>
-      <ul class="plan-features">
-        <li>Everything in Digest</li>
-        <li>WhatsApp morning alert</li>
-        <li>Choose your target species</li>
-        <li>30-day price history</li>
-        <li>Best-port recommendations</li>
-      </ul>
-      <a href="#" class="plan-cta">Coming soon</a>
-    </div>
-    <!-- Trade — FEATURED -->
+    <!-- Trade Membership — FEATURED -->
     <div class="plan featured">
       <div class="plan-badge">Launching April 2026</div>
       <div class="plan-name">Trade</div>
@@ -1304,23 +1300,41 @@
         <div class="plan-period">per month</div>
       </div>
       <ul class="plan-features">
-        <li>Everything in Pro</li>
-        <li>Full multi-port dashboard</li>
-        <li>90-day price history + trends</li>
+        <li>Full multi-port trade dashboard</li>
+        <li>90-day price history &amp; trends</li>
+        <li>Species &amp; grade breakdown</li>
         <li>CSV export for procurement</li>
-        <li>Species and grade breakdown</li>
         <li>Price alerts &mdash; email + WhatsApp</li>
+        <li>AI chat &mdash; ask the data anything</li>
       </ul>
       <a href="#" class="plan-cta">Coming soon</a>
     </div>
-    <!-- Enterprise -->
+    <!-- Port Dashboard — Free for ports -->
     <div class="plan">
-      <div class="plan-badge">Launching April 2026</div>
-      <div class="plan-name">Enterprise</div>
+      <div class="plan-badge">Free for ports</div>
+      <div class="plan-name">Port Dashboard</div>
+      <div class="plan-audience">Port operators &middot; Auctioneers</div>
+      <div class="plan-price">
+        <div class="plan-amount">&pound;0</div>
+        <div class="plan-period">free forever</div>
+      </div>
+      <ul class="plan-features">
+        <li>Your own public port dashboard</li>
+        <li>Upload prices via spreadsheet</li>
+        <li>Benchmark against UK market</li>
+        <li>Species &amp; grade breakdown</li>
+        <li>Grow reach with buyer network</li>
+      </ul>
+      <a href="{{ url_for('for_ports') }}" class="plan-cta">Get listed</a>
+    </div>
+    <!-- Custom / Enterprise -->
+    <div class="plan">
+      <div class="plan-badge">Enterprise</div>
+      <div class="plan-name">Custom</div>
       <div class="plan-audience">Supermarkets &middot; Data teams &middot; Resellers</div>
       <div class="plan-price">
-        <div class="plan-amount">Custom</div>
-        <div class="plan-period">per month</div>
+        <div class="plan-amount">Enquire</div>
+        <div class="plan-period">&nbsp;</div>
       </div>
       <ul class="plan-features">
         <li>API access &mdash; JSON feed, daily</li>

@@ -92,6 +92,22 @@ def get_all_canonical_names() -> list[str]:
     return sorted(_CANONICAL_MAP.keys())
 
 
+# Key commercial species shown in the ticker bar and homepage hero.
+# Only these species appear in the floating ticker and landing page data.
+KEY_SPECIES: list[str] = [
+    "Haddock",
+    "Cod",
+    "Monkfish",
+    "Lemon Sole",
+    "Plaice",
+    "Whiting",
+    "Nephrops",
+    "Halibut",
+    "Turbot",
+    "Coley (Saithe)",
+]
+
+
 # Category groupings for canonical species names.
 # Categories: "demersal", "flatfish", "shellfish", "pelagic", "other"
 _CATEGORY_MAP: dict[str, str] = {

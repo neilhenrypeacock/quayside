@@ -76,20 +76,21 @@ def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
         low = raw_species.lower().strip()
         return any(low.endswith(s) for s in _NOISE_SUFFIXES) or "damaged" in low
 
-    def _best_by_species(rows: list[tuple]) -> dict[str, float]:
-        """Best avg price per normalised species across all ports (skip noisy items)."""
-        best: dict[str, float] = {}
+    def _market_avg_by_species(rows: list[tuple]) -> dict[str, float]:
+        """Market average price per normalised species across all ports (skip noisy items)."""
+        totals: dict[str, float] = {}
+        counts: dict[str, int] = {}
         for r in rows:
             _, _port, raw_species, _grade, _low, _high, avg = r
             if not avg or _is_noisy(raw_species):
                 continue
             species = normalise_species(raw_species)
-            if species not in best or avg > best[species]:
-                best[species] = avg
-        return best
+            totals[species] = totals.get(species, 0.0) + avg
+            counts[species] = counts.get(species, 0) + 1
+        return {s: totals[s] / counts[s] for s in totals}
 
-    today_best = _best_by_species(today_rows)
-    prev_best = _best_by_species(prev_rows)
+    today_best = _market_avg_by_species(today_rows)
+    prev_best = _market_avg_by_species(prev_rows)
 
     changes = []
     for species, today_price in today_best.items():
