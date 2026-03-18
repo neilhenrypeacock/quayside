@@ -40,7 +40,9 @@ from quayside.db import (
     create_user,
     get_all_ports,
     get_all_prices_for_date,
+    get_last_scrape_info,
     get_latest_date,
+    get_latest_port_date,
     get_latest_rich_date,
     get_latest_scraped_at,
     get_market_averages_for_date,
@@ -195,7 +197,32 @@ def create_app() -> Flask:
     def index():
         """Staging hub — links to all screens."""
         ports = get_all_ports(status="active")
-        return render_template("index.html", ports=ports)
+        actual_today = datetime.now().strftime("%Y-%m-%d")
+        latest = get_latest_rich_date()  # requires ≥2 ports — excludes demo-only data
+        is_fallback = bool(latest and latest != actual_today)
+        scrape_info = get_last_scrape_info()
+        scrape_info_display = _build_scrape_info_display(scrape_info)
+        if not is_fallback:
+            freshness_status = "live"
+        elif scrape_info["last_checked"]:
+            hours_since = (datetime.now() - datetime.fromisoformat(scrape_info["last_checked"])).total_seconds() / 3600
+            freshness_status = "stale" if hours_since < 4 else "offline"
+        else:
+            freshness_status = "offline"
+        # Per-port: which ports have data for today vs latest date?
+        ports_with_today = {
+            row[1] for row in get_all_prices_for_date(actual_today)
+        } if not is_fallback else set()
+        for p in ports:
+            p["freshness_status"] = "live" if p["name"] in ports_with_today else freshness_status
+        return render_template(
+            "index.html",
+            ports=ports,
+            is_fallback=is_fallback,
+            freshness_status=freshness_status,
+            scrape_info=scrape_info_display,
+            latest_date=latest,
+        )
 
     @app.route("/for-ports")
     def for_ports():
@@ -263,8 +290,10 @@ def create_app() -> Flask:
                 return "Invalid or expired link", 403
 
         latest = get_latest_date() or datetime.now().strftime("%Y-%m-%d")
+        actual_today = datetime.now().strftime("%Y-%m-%d")
         # Allow ?date= param to view historical auctions
-        date = request.args.get("date") or latest
+        explicitly_requested_date = request.args.get("date")
+        date = explicitly_requested_date or latest
 
         # Available auction dates for this port (for the date tab bar)
         available_dates = get_port_auction_dates(port["name"], limit=20)
@@ -274,6 +303,16 @@ def create_app() -> Flask:
 
         # Get this port's prices for today
         port_prices = get_prices_by_date(date, port["name"])
+
+        # If no data for the requested date and user hasn't explicitly chosen a date,
+        # fall back to the latest date this port actually has data for.
+        is_fallback = False
+        if not port_prices and not explicitly_requested_date:
+            fallback_date = get_latest_port_date(port["name"])
+            if fallback_date and fallback_date != date:
+                date = fallback_date
+                port_prices = get_prices_by_date(date, port["name"])
+                is_fallback = True
 
         # Get market averages for comparison
         market = get_market_averages_for_date(date)
@@ -449,6 +488,17 @@ def create_app() -> Flask:
         scraped_at_raw = get_latest_scraped_at(port["name"], date)
         data_freshness = _format_data_freshness(scraped_at_raw, date)
 
+        # ── Global freshness signal: green / amber / red badge + banner ──
+        scrape_info = get_last_scrape_info()
+        scrape_info_display = _build_scrape_info_display(scrape_info)
+        if today_data and date == actual_today:
+            freshness_status = "live"
+        elif scrape_info["last_checked"]:
+            hours_since = (datetime.now() - datetime.fromisoformat(scrape_info["last_checked"])).total_seconds() / 3600
+            freshness_status = "stale" if hours_since < 4 else "offline"
+        else:
+            freshness_status = "offline"
+
         # ── Performance overview: week-over-week & month-over-month ──
         perf = _build_performance_overview(port["name"], date, history, market)
 
@@ -483,6 +533,10 @@ def create_app() -> Flask:
             compare_date_display=compare_date_display,
             perf=perf,
             category_stats=json.dumps(category_stats),
+            is_fallback=is_fallback,
+            actual_today=actual_today,
+            freshness_status=freshness_status,
+            scrape_info=scrape_info_display,
         ))
 
         # Set auth cookie if token in query string
@@ -1812,12 +1866,28 @@ def create_app() -> Flask:
         if not _check_trade_access():
             return render_template("trade_gate.html"), 403
 
+        actual_today = datetime.now().strftime("%Y-%m-%d")
         if date is None:
             date = get_latest_rich_date()
         if not date:
             return "No data available", 404
 
+        is_fallback = (date != actual_today)
+        scrape_info = get_last_scrape_info()
+        scrape_info_display = _build_scrape_info_display(scrape_info)
+        if not is_fallback:
+            freshness_status = "live"
+        elif scrape_info["last_checked"]:
+            hours_since = (datetime.now() - datetime.fromisoformat(scrape_info["last_checked"])).total_seconds() / 3600
+            freshness_status = "stale" if hours_since < 4 else "offline"
+        else:
+            freshness_status = "offline"
+
         data = build_trade_data(date)
+        data["is_fallback"] = is_fallback
+        data["actual_today"] = actual_today
+        data["freshness_status"] = freshness_status
+        data["scrape_info"] = scrape_info_display
 
         response = app.make_response(render_template("trade.html", **data))
 
@@ -2748,6 +2818,36 @@ def _build_performance_overview(
         "total_boxes": total_boxes,
         "last_week_boxes": last_week_boxes,
         "boxes_change": boxes_change,
+    }
+
+
+def _time_ago(dt_str: str | None) -> str | None:
+    """Return a human-readable 'X mins ago' string for a datetime string."""
+    if not dt_str:
+        return None
+    try:
+        dt = datetime.fromisoformat(dt_str)
+        mins = int((datetime.now() - dt).total_seconds() / 60)
+        if mins < 1:
+            return "just now"
+        elif mins < 60:
+            return f"{mins} min{'s' if mins != 1 else ''} ago"
+        elif mins < 60 * 24:
+            hours = mins // 60
+            return f"{hours} hour{'s' if hours != 1 else ''} ago"
+        else:
+            return dt.strftime("%-d %b at %H:%M")
+    except (ValueError, TypeError):
+        return dt_str
+
+
+def _build_scrape_info_display(scrape_info: dict) -> dict:
+    """Format scrape_info timestamps as human-readable strings for templates."""
+    return {
+        "last_checked_ago": _time_ago(scrape_info.get("last_checked")),
+        "last_received_ago": _time_ago(scrape_info.get("last_received")),
+        "last_checked": scrape_info.get("last_checked"),
+        "last_received": scrape_info.get("last_received"),
     }
 
 

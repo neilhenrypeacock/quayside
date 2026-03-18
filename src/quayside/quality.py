@@ -85,9 +85,11 @@ def run_quality_checks(date: str | None = None) -> dict:
     issues.extend(_check_date_sanity(conn, date, checked_at, active_ports))
     issues.extend(_check_species_price_swing(conn, date, checked_at, active_ports))
 
-    # Write all issues to quality_log
+    # Write all issues to quality_log — OR IGNORE skips duplicates (unique index on
+    # check_type, severity, port, date, species, grade prevents the same issue being
+    # logged multiple times per day even if the pipeline runs several times)
     conn.executemany(
-        """INSERT INTO quality_log
+        """INSERT OR IGNORE INTO quality_log
            (checked_at, check_type, severity, port, date, species, grade, value, expected, message)
            VALUES (:checked_at, :check_type, :severity, :port, :date, :species, :grade, :value, :expected, :message)""",
         issues,

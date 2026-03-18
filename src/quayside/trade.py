@@ -687,6 +687,7 @@ def build_trade_data(date: str) -> dict:
             "port": port,
             "code": port_code_map.get(port, port[:3].upper()),
             "reporting": reporting,
+            "freshness_status": "live" if reporting else "stale",
             "species_count": port_species_count.get(port, 0),
         })
 

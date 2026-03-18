@@ -38,7 +38,43 @@
         letter-spacing: 0.06em;
     }
     .port-status.live { color: var(--up); }
+    .port-status.stale { color: #c8941a; }
+    .port-status.offline { color: var(--down); }
     .port-status.empty { color: var(--muted); }
+
+    /* Freshness banner — shown when displaying fallback (previous day's) data */
+    .freshness-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px;
+        background: rgba(200,148,26,0.08);
+        border: 1px solid rgba(200,148,26,0.25);
+        border-radius: 2px;
+        margin-bottom: 16px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.03em;
+        color: #7a5a10;
+        gap: 12px;
+    }
+    .freshness-banner.offline {
+        background: rgba(224,112,96,0.08);
+        border-color: rgba(224,112,96,0.25);
+        color: #8a3020;
+    }
+    .freshness-banner-close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0 4px;
+        line-height: 1;
+        opacity: 0.6;
+        flex-shrink: 0;
+    }
+    .freshness-banner-close:hover { opacity: 1; }
     .freshness-tag {
         font-family: var(--font-mono);
         font-size: 10px;
@@ -1276,7 +1312,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
         <a href="{{ url_for('export_port_data', slug=port.slug) }}" class="btn-export">&#x2913; Export all data</a>
-        {% if today_data %}
+        {% if freshness_status == 'live' %}
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
             <div>
                 <span class="status-dot status-confirmed"></span>
@@ -1286,14 +1322,30 @@
             <span class="freshness-tag freshness-{{ data_freshness.status }}" title="{{ data_freshness.tooltip }}">{{ data_freshness.label }}</span>
             {% endif %}
         </div>
+        {% elif freshness_status == 'stale' %}
+        <div>
+            <span class="status-dot status-stale"></span>
+            <span class="port-status stale">{% if today_data %}{{ latest_date_display }}{% else %}No data today{% endif %}</span>
+        </div>
         {% else %}
         <div>
-            <span class="status-dot status-none"></span>
-            <span class="port-status empty">No data today</span>
+            <span class="status-dot status-offline"></span>
+            <span class="port-status offline">Data unavailable</span>
         </div>
         {% endif %}
     </div>
 </div>
+
+{% if is_fallback %}
+<div class="freshness-banner{% if freshness_status == 'offline' %} offline{% endif %}" id="freshness-banner" data-key="{{ port.slug }}-{{ date }}">
+    <span>
+        Showing prices from <strong>{{ latest_date_display }}</strong>
+        &middot; Last checked {% if scrape_info.last_checked_ago %}<strong>{{ scrape_info.last_checked_ago }}</strong>{% else %}unknown{% endif %}
+        &middot; Last data received {% if scrape_info.last_received_ago %}<strong>{{ scrape_info.last_received_ago }}</strong>{% else %}unknown{% endif %}
+    </span>
+    <button class="freshness-banner-close" onclick="dismissFreshnessBanner()" title="Dismiss">&#215;</button>
+</div>
+{% endif %}
 
 {% if not today_data %}
 <div class="card empty-card">
@@ -1742,6 +1794,20 @@
 
 {% block scripts %}
 <script>
+// Freshness banner — dismissed per session, keyed by port+date
+function dismissFreshnessBanner() {
+    var banner = document.getElementById('freshness-banner');
+    if (!banner) return;
+    sessionStorage.setItem('freshness-dismissed-' + banner.dataset.key, '1');
+    banner.style.display = 'none';
+}
+(function() {
+    var banner = document.getElementById('freshness-banner');
+    if (banner && sessionStorage.getItem('freshness-dismissed-' + banner.dataset.key)) {
+        banner.style.display = 'none';
+    }
+})();
+
 // Welcome banner
 function dismissWelcome() {
     document.getElementById('welcomeBanner').style.display = 'none';

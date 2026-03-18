@@ -1171,7 +1171,42 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     vertical-align: middle;
 }
 .port-status-dot.reporting { background: #6db88a; }
+.port-status-dot.stale { background: #c8941a; }
 .port-status-dot.silent { background: var(--rule); }
+
+/* ── Freshness banner ── */
+.freshness-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: rgba(200,148,26,0.08);
+    border: 1px solid rgba(200,148,26,0.25);
+    border-radius: 2px;
+    margin-bottom: 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    color: #7a5a10;
+    gap: 12px;
+}
+.freshness-banner.offline {
+    background: rgba(224,112,96,0.08);
+    border-color: rgba(224,112,96,0.25);
+    color: #8a3020;
+}
+.freshness-banner-close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 4px;
+    line-height: 1;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+.freshness-banner-close:hover { opacity: 1; }
 
 /* ── Top movers table ── */
 .movers-grid {
@@ -1534,6 +1569,17 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 
 <!-- ══ MAIN CONTENT ═══════════════════════════════════════════════════════ -->
 <main class="trade-content">
+
+{% if is_fallback %}
+<div class="freshness-banner{% if freshness_status == 'offline' %} offline{% endif %}" id="freshness-banner" data-key="trade-{{ date }}">
+    <span>
+        Showing prices from <strong>{{ date_display }}</strong>
+        &middot; Last checked {% if scrape_info.last_checked_ago %}<strong>{{ scrape_info.last_checked_ago }}</strong>{% else %}unknown{% endif %}
+        &middot; Last data received {% if scrape_info.last_received_ago %}<strong>{{ scrape_info.last_received_ago }}</strong>{% else %}unknown{% endif %}
+    </span>
+    <button class="freshness-banner-close" onclick="dismissFreshnessBanner()" title="Dismiss">&#215;</button>
+</div>
+{% endif %}
 
 <!-- ── Page header ── -->
 <div class="trade-topbar">
@@ -2190,6 +2236,20 @@ const HIGHLIGHTS_DATA = {{ highlights | tojson }};
 const TIMEFRAME_CONTEXT = {{ timeframe_context | tojson }};
 const PORT_STATUS = {{ port_status | tojson }};
 
+// ── Freshness banner ──────────────────────────────────────────────────────
+function dismissFreshnessBanner() {
+    var banner = document.getElementById('freshness-banner');
+    if (!banner) return;
+    sessionStorage.setItem('freshness-dismissed-' + banner.dataset.key, '1');
+    banner.style.display = 'none';
+}
+(function() {
+    var banner = document.getElementById('freshness-banner');
+    if (banner && sessionStorage.getItem('freshness-dismissed-' + banner.dataset.key)) {
+        banner.style.display = 'none';
+    }
+})();
+
 // ── Contextual help system ────────────────────────────────────────────────
 let _helpOpen = false;
 function showHelp(event, text) {
@@ -2382,7 +2442,8 @@ function loadSpeciesDetail(species) {
             const vsStr = vsAvg != null ? `${vsAvg > 0 ? '+' : ''}${vsAvg.toFixed(1)}%` : '\u2014';
             const vsColour = vsAvg == null ? 'var(--muted)' : vsAvg < -2 ? '#2a6a4a' : vsAvg > 2 ? '#b04030' : 'var(--ink)';
             const portStatus = PORT_STATUS.find(p => p.port === port);
-            const dot = portStatus ? `<span class="port-status-dot" style="background:${portStatus.reporting ? '#6db88a' : '#c0b898'};"></span>` : '';
+            const dotColor = portStatus ? (portStatus.freshness_status === 'live' ? '#6db88a' : portStatus.freshness_status === 'stale' ? '#c8941a' : '#c0b898') : '#c0b898';
+            const dot = portStatus ? `<span class="port-status-dot" style="background:${dotColor};"></span>` : '';
             const bestMark = isBest ? ' <span style="color:var(--catch);">&#9733; best</span>' : '';
             return `<tr>
                 <td>${dot} ${PORT_CODES[port] || port}${bestMark}</td>
@@ -3531,9 +3592,12 @@ function renderPortIntel() {
     // Port reporting status
     const portInfo = PORT_STATUS.find(p => p.port === selectedIntelPort);
     const isReporting = portInfo && portInfo.reporting;
-    const reportingBadge = isReporting
+    const freshnessStatus = portInfo ? portInfo.freshness_status : 'stale';
+    const reportingBadge = freshnessStatus === 'live'
         ? `<span style="font-family:var(--font-mono);font-size:10px;color:#6db88a;">&#9679; Reporting today</span>`
-        : `<span style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">&#9675; Not reporting today</span>`;
+        : freshnessStatus === 'stale'
+        ? `<span style="font-family:var(--font-mono);font-size:10px;color:#c8941a;">&#9679; No data yet today</span>`
+        : `<span style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">&#9675; Not reporting</span>`;
 
     // Filter matrix rows to those where this port has data
     let rows = MATRIX_DATA.filter(r => r.ports[selectedIntelPort] != null);
@@ -3670,14 +3734,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add port status dots to price matrix column headers
     const portStatusMap = {};
-    PORT_STATUS.forEach(p => { portStatusMap[p.port] = p.reporting; });
+    PORT_STATUS.forEach(p => { portStatusMap[p.port] = p; });
     document.querySelectorAll('.port-header').forEach(th => {
         const port = th.dataset.port;
         if (!port) return;
-        const reporting = portStatusMap[port];
+        const info = portStatusMap[port];
+        const fs = info ? info.freshness_status : 'stale';
         const dot = document.createElement('span');
-        dot.className = 'port-status-dot ' + (reporting ? 'reporting' : 'silent');
-        dot.title = reporting ? 'Reporting today' : 'No data today';
+        dot.className = 'port-status-dot ' + (fs === 'live' ? 'reporting' : fs === 'stale' ? 'stale' : 'silent');
+        dot.title = fs === 'live' ? 'Reporting today' : fs === 'stale' ? 'No data yet today' : 'Not reporting';
         th.appendChild(dot);
     });
 

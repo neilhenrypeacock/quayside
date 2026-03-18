@@ -162,6 +162,25 @@ def _migrate(conn: sqlite3.Connection) -> None:
         """)
     except Exception:
         pass
+    # Deduplicate quality_log and add unique index to prevent future duplicates.
+    # Runs safely on both new and existing DBs.
+    existing_indexes = {
+        row[1] for row in conn.execute("PRAGMA index_list(quality_log)").fetchall()
+    }
+    if "quality_log_unique" not in existing_indexes:
+        # Remove duplicate rows first (keep lowest id per unique key)
+        conn.execute("""
+            DELETE FROM quality_log WHERE id NOT IN (
+                SELECT MIN(id) FROM quality_log
+                GROUP BY check_type, severity, port, date,
+                         COALESCE(species, ''), COALESCE(grade, '')
+            )
+        """)
+        conn.execute("""
+            CREATE UNIQUE INDEX quality_log_unique
+            ON quality_log(check_type, severity, port, date,
+                           COALESCE(species, ''), COALESCE(grade, ''))
+        """)
     # trade_feedback table
     try:
         conn.execute("""
@@ -245,7 +264,7 @@ def log_scrape_attempt(
     conn = get_connection()
     conn.execute(
         """INSERT INTO scrape_log (ran_at, port, success, record_count, error_type, error_msg)
-           VALUES (datetime('now'), ?, ?, ?, ?, ?)""",
+           VALUES (datetime('now', 'localtime'), ?, ?, ?, ?, ?)""",
         (port, 1 if success else 0, record_count, error_type, error_msg),
     )
     conn.commit()
@@ -343,6 +362,37 @@ def get_latest_rich_date(min_ports: int = 2) -> str | None:
     if row:
         return row[0]
     return get_latest_date()
+
+
+def get_latest_port_date(port: str) -> str | None:
+    """Most recent date with price data for a specific port."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT MAX(date) FROM prices WHERE port = ?", (port,)
+    ).fetchone()
+    conn.close()
+    return row[0] if row else None
+
+
+def get_last_scrape_info() -> dict:
+    """Returns timestamps of the last scrape check and last successful data receipt.
+
+    Returns:
+        {"last_checked": "2026-03-18T10:15:00" | None,
+         "last_received": "2026-03-17T10:12:00" | None}
+    """
+    conn = get_connection()
+    last_checked_row = conn.execute(
+        "SELECT MAX(ran_at) FROM scrape_log"
+    ).fetchone()
+    last_received_row = conn.execute(
+        "SELECT MAX(ran_at) FROM scrape_log WHERE success = 1 AND record_count > 0"
+    ).fetchone()
+    conn.close()
+    return {
+        "last_checked": last_checked_row[0] if last_checked_row else None,
+        "last_received": last_received_row[0] if last_received_row else None,
+    }
 
 
 def get_previous_date(date: str) -> str | None:

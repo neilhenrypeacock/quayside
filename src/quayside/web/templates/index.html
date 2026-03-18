@@ -107,10 +107,63 @@
     }
     .port-links a { color: var(--catch); text-decoration: none; }
     .port-links a:hover { color: #a83010; }
+
+    /* Freshness banner */
+    .freshness-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px;
+        background: rgba(200,148,26,0.08);
+        border: 1px solid rgba(200,148,26,0.25);
+        border-radius: 2px;
+        margin-bottom: 16px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.03em;
+        color: #7a5a10;
+        gap: 12px;
+    }
+    .freshness-banner.offline {
+        background: rgba(224,112,96,0.08);
+        border-color: rgba(224,112,96,0.25);
+        color: #8a3020;
+    }
+    .freshness-banner-close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0 4px;
+        line-height: 1;
+        opacity: 0.6;
+        flex-shrink: 0;
+    }
+    .freshness-banner-close:hover { opacity: 1; }
+    .port-freshness-dot {
+        display: inline-block;
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        margin-right: 4px;
+        vertical-align: middle;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+
+{% if is_fallback %}
+<div class="freshness-banner{% if freshness_status == 'offline' %} offline{% endif %}" id="freshness-banner" data-key="overview-{{ latest_date }}">
+    <span>
+        Latest data from <strong>{{ latest_date }}</strong>
+        &middot; Last checked {% if scrape_info.last_checked_ago %}<strong>{{ scrape_info.last_checked_ago }}</strong>{% else %}unknown{% endif %}
+        &middot; Last data received {% if scrape_info.last_received_ago %}<strong>{{ scrape_info.last_received_ago }}</strong>{% else %}unknown{% endif %}
+    </span>
+    <button class="freshness-banner-close" onclick="dismissFreshnessBanner()" title="Dismiss">&#215;</button>
+</div>
+{% endif %}
+
 <div class="hub-header">
     <span class="hub-label">Staging</span>
     <h1>Quayside Screens</h1>
@@ -155,6 +208,9 @@
     {% for port in ports %}
     <div class="port-row">
         <div>
+            {% set dot_color = '#6db88a' if port.freshness_status == 'live' else '#c8941a' if port.freshness_status == 'stale' else '#e07060' %}
+            {% set dot_title = 'Data in today' if port.freshness_status == 'live' else 'No data yet today' if port.freshness_status == 'stale' else 'Data unavailable' %}
+            <span class="port-freshness-dot" style="background:{{ dot_color }};" title="{{ dot_title }}"></span>
             <a href="{{ url_for('port_dashboard', slug=port.slug) }}">{{ port.name }}</a>
             <span class="region">{{ port.region }}</span>
         </div>
@@ -165,4 +221,19 @@
     </div>
     {% endfor %}
 </div>
+
+<script>
+function dismissFreshnessBanner() {
+    var banner = document.getElementById('freshness-banner');
+    if (!banner) return;
+    sessionStorage.setItem('freshness-dismissed-' + banner.dataset.key, '1');
+    banner.style.display = 'none';
+}
+(function() {
+    var banner = document.getElementById('freshness-banner');
+    if (banner && sessionStorage.getItem('freshness-dismissed-' + banner.dataset.key)) {
+        banner.style.display = 'none';
+    }
+})();
+</script>
 {% endblock %}
