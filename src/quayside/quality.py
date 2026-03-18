@@ -1,8 +1,20 @@
 """Data quality checks for Quayside.
 
-Runs six checks against the prices table and writes issues to quality_log.
-Check 6 (live_site) fetches each live port page and verifies displayed
-prices match the database — catching any display-layer bugs.
+Runs ten checks against the prices table and writes issues to quality_log.
+
+Statistical checks (1–6):
+  1. outlier_price   — per-record price >3σ/5σ from 30-day mean
+  2. record_count    — today's count <40% of rolling median
+  3. stale_data      — no new data for ≥2/4 trading days
+  4. day_avg_spike   — port daily avg ±50%/100% from rolling avg
+  5. seeded_data     — known seeded-data timestamp on live ports
+  6. live_site       — displayed price on live site matches DB
+
+Data-accuracy checks (7–10):
+  7. unknown_field   — NULL/blank/Unknown in port or species fields
+  8. unmapped_species — species with no canonical mapping in species.py
+  9. price_sanity    — price ≤0, >£200/kg, or price_low > price_high
+ 10. date_sanity     — future-dated or pre-2020 records
 
 Designed to run after every successful scrape and 3× daily as backstop.
 
@@ -66,6 +78,10 @@ def run_quality_checks(date: str | None = None) -> dict:
     issues.extend(_check_day_avg_spike(conn, date, checked_at, active_ports))
     issues.extend(_check_seeded_data(conn, date, checked_at, active_ports))
     issues.extend(_check_live_site(conn, date, checked_at, active_ports))
+    issues.extend(_check_unknown_fields(conn, date, checked_at, active_ports))
+    issues.extend(_check_unmapped_species(conn, date, checked_at, active_ports))
+    issues.extend(_check_price_sanity(conn, date, checked_at, active_ports))
+    issues.extend(_check_date_sanity(conn, date, checked_at, active_ports))
 
     # Write all issues to quality_log
     conn.executemany(
@@ -390,6 +406,204 @@ def _check_live_site(conn, date: str, checked_at: str, active_ports: list[str]) 
                 ))
             else:
                 logger.info("Live site OK: %s shows '—', DB has no data for today", port_name)
+
+    return issues
+
+
+# ── Check 7: Unknown / blank field values ────────────────────────────────────
+
+def _check_unknown_fields(conn, date: str, checked_at: str, active_ports: list[str]) -> list[dict]:
+    """Flag records with NULL, blank, or 'Unknown' in species or all price fields.
+
+    Covers the last 14 days so bad records from recent scrapes are caught even
+    if the pipeline ran on a different date than today's check.
+    Also checks for records where the port field itself is null/unknown.
+    """
+    issues = []
+    cutoff = (datetime.fromisoformat(date) - timedelta(days=14)).date().isoformat()
+
+    for port in active_ports:
+        # Species is NULL or blank
+        rows = conn.execute(
+            """SELECT date, COUNT(*) FROM prices
+               WHERE port = ? AND date >= ? AND date <= ?
+               AND (species IS NULL OR TRIM(species) = '')
+               GROUP BY date""",
+            (port, cutoff, date),
+        ).fetchall()
+        for row_date, count in rows:
+            issues.append(_issue(
+                checked_at, "unknown_field", "error", port, row_date,
+                message=f"{port} {row_date}: {count} record(s) with NULL or blank species",
+            ))
+
+        # Species contains "unknown" (case-insensitive)
+        rows = conn.execute(
+            """SELECT date, species, COUNT(*) FROM prices
+               WHERE port = ? AND date >= ? AND date <= ?
+               AND LOWER(species) LIKE '%unknown%'
+               GROUP BY date, species""",
+            (port, cutoff, date),
+        ).fetchall()
+        for row_date, species, count in rows:
+            issues.append(_issue(
+                checked_at, "unknown_field", "error", port, row_date,
+                species=species,
+                message=f"{port} {row_date}: species is '{species}' ({count} record(s)) — port name did not resolve",
+            ))
+
+        # All price fields NULL (no usable price data)
+        rows = conn.execute(
+            """SELECT date, COUNT(*) FROM prices
+               WHERE port = ? AND date >= ? AND date <= ?
+               AND price_avg IS NULL AND price_low IS NULL AND price_high IS NULL
+               GROUP BY date""",
+            (port, cutoff, date),
+        ).fetchall()
+        for row_date, count in rows:
+            issues.append(_issue(
+                checked_at, "unknown_field", "warn", port, row_date,
+                message=f"{port} {row_date}: {count} record(s) with all price fields NULL",
+            ))
+
+    # Catch records where the port column itself is null/blank/unknown (any port, any date)
+    bad_port_rows = conn.execute(
+        """SELECT port, date, COUNT(*) FROM prices
+           WHERE date >= ? AND date <= ?
+           AND (port IS NULL OR TRIM(port) = '' OR LOWER(port) LIKE '%unknown%')
+           GROUP BY port, date""",
+        (cutoff, date),
+    ).fetchall()
+    for bad_port, row_date, count in bad_port_rows:
+        issues.append(_issue(
+            checked_at, "unknown_field", "error", bad_port or "(blank)", row_date,
+            message=f"Port field is '{bad_port or '(blank)'}' on {row_date} ({count} record(s)) — scraper returned wrong port name",
+        ))
+
+    return issues
+
+
+# ── Check 8: Unmapped species names ──────────────────────────────────────────
+
+def _check_unmapped_species(conn, date: str, checked_at: str, active_ports: list[str]) -> list[dict]:
+    """Flag species names that have no entry in _CANONICAL_MAP in species.py.
+
+    Unmapped species display as-is (title-cased) and never merge with the same
+    species at other ports — breaking cross-port comparisons in the digest and
+    trade dashboard.
+    """
+    from quayside.species import _RAW_TO_CANONICAL, is_noisy_species
+
+    issues = []
+
+    for port in active_ports:
+        species_rows = conn.execute(
+            "SELECT DISTINCT species FROM prices WHERE port = ? AND date = ? AND species IS NOT NULL",
+            (port, date),
+        ).fetchall()
+
+        for (raw_species,) in species_rows:
+            if not raw_species or not raw_species.strip():
+                continue
+            if is_noisy_species(raw_species):
+                continue  # intentionally filtered — not a mapping problem
+            if raw_species.lower() not in _RAW_TO_CANONICAL:
+                issues.append(_issue(
+                    checked_at, "unmapped_species", "warn", port, date,
+                    species=raw_species,
+                    message=f"'{raw_species}' at {port} has no canonical mapping — displays as-is, won't aggregate cross-port",
+                ))
+
+    return issues
+
+
+# ── Check 9: Price sanity ─────────────────────────────────────────────────────
+
+_MAX_PLAUSIBLE_PRICE = 200.0   # £/kg — above this, likely a lot-total leak
+_MIN_PLAUSIBLE_PRICE = 0.0     # £/kg — at or below this is impossible
+
+
+def _check_price_sanity(conn, date: str, checked_at: str, active_ports: list[str]) -> list[dict]:
+    """Flag prices that are impossible or suspiciously extreme."""
+    issues = []
+
+    for port in active_ports:
+        # price_avg <= 0 → impossible → error
+        rows = conn.execute(
+            """SELECT species, grade, price_avg FROM prices
+               WHERE port = ? AND date = ? AND price_avg IS NOT NULL AND price_avg <= 0""",
+            (port, date),
+        ).fetchall()
+        for species, grade, price_avg in rows:
+            issues.append(_issue(
+                checked_at, "price_sanity", "error", port, date, species, grade,
+                value=round(price_avg, 4),
+                message=f"{species or '?'} {grade or ''} at {port}: price_avg £{price_avg:.2f}/kg is ≤0 — impossible value",
+            ))
+
+        # price_avg > £200/kg → likely lot-total misread as per-kg price → warn
+        rows = conn.execute(
+            """SELECT species, grade, price_avg FROM prices
+               WHERE port = ? AND date = ? AND price_avg > ?""",
+            (port, date, _MAX_PLAUSIBLE_PRICE),
+        ).fetchall()
+        for species, grade, price_avg in rows:
+            issues.append(_issue(
+                checked_at, "price_sanity", "warn", port, date, species, grade,
+                value=round(price_avg, 2),
+                message=f"{species or '?'} {grade or ''} at {port}: price_avg £{price_avg:.2f}/kg exceeds £{_MAX_PLAUSIBLE_PRICE:.0f}/kg — possible lot-total leak",
+            ))
+
+        # price_low > price_high → inverted range → error
+        rows = conn.execute(
+            """SELECT species, grade, price_low, price_high FROM prices
+               WHERE port = ? AND date = ?
+               AND price_low IS NOT NULL AND price_high IS NOT NULL
+               AND price_low > price_high""",
+            (port, date),
+        ).fetchall()
+        for species, grade, price_low, price_high in rows:
+            issues.append(_issue(
+                checked_at, "price_sanity", "error", port, date, species, grade,
+                value=round(price_low, 2), expected=round(price_high, 2),
+                message=f"{species or '?'} {grade or ''} at {port}: price_low £{price_low:.2f} > price_high £{price_high:.2f} — inverted range",
+            ))
+
+    return issues
+
+
+# ── Check 10: Date sanity ─────────────────────────────────────────────────────
+
+_OLDEST_PLAUSIBLE_DATE = "2020-01-01"
+
+
+def _check_date_sanity(conn, date: str, checked_at: str, active_ports: list[str]) -> list[dict]:
+    """Flag records with future or implausibly old dates."""
+    issues = []
+
+    # Future-dated records (could be timezone or scraper clock issue)
+    future_rows = conn.execute(
+        """SELECT port, date, COUNT(*) FROM prices
+           WHERE date > ? GROUP BY port, date""",
+        (date,),
+    ).fetchall()
+    for port, bad_date, count in future_rows:
+        issues.append(_issue(
+            checked_at, "date_sanity", "error", port, bad_date,
+            message=f"{port}: {count} record(s) dated {bad_date} — future date, check scraper timezone",
+        ))
+
+    # Pre-2020 records (likely seeded or test data that crept in)
+    old_rows = conn.execute(
+        """SELECT port, date, COUNT(*) FROM prices
+           WHERE date < ? GROUP BY port, date""",
+        (_OLDEST_PLAUSIBLE_DATE,),
+    ).fetchall()
+    for port, bad_date, count in old_rows:
+        issues.append(_issue(
+            checked_at, "date_sanity", "warn", port, bad_date,
+            message=f"{port}: {count} record(s) dated {bad_date} — before 2020, likely seeded or test data",
+        ))
 
     return issues
 

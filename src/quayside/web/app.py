@@ -171,7 +171,7 @@ def create_app() -> Flask:
                 if role == "port" and not port_slug:
                     flash("Please select your port.")
                 else:
-                    pw_hash = generate_password_hash(password)
+                    pw_hash = generate_password_hash(password, method="pbkdf2:sha256")
                     user_id = create_user(email, pw_hash, role, port_slug if role == "port" else None)
                     row = get_user_by_id(user_id)
                     user = User(row)
@@ -1345,6 +1345,22 @@ def create_app() -> Flask:
         quality_issues = get_quality_issues(days=7)
         quality_summary = get_quality_summary()
 
+        # Per-port issue counts from the most recent check run only
+        # (used for the per-page status grid in the ops dashboard)
+        latest_quality_by_port: dict[str, dict] = {}
+        if quality_summary.get("last_checked_at"):
+            latest_at = quality_summary["last_checked_at"]
+            for issue in quality_issues:
+                if issue["checked_at"] != latest_at:
+                    continue
+                port = issue["port"]
+                if port not in latest_quality_by_port:
+                    latest_quality_by_port[port] = {"errors": 0, "warns": 0}
+                if issue["severity"] == "error":
+                    latest_quality_by_port[port]["errors"] += 1
+                else:
+                    latest_quality_by_port[port]["warns"] += 1
+
         return render_template(
             "ops.html",
             ports=all_ports,
@@ -1385,6 +1401,7 @@ def create_app() -> Flask:
             historical_alerts=historical_alerts,
             quality_issues=quality_issues,
             quality_summary=quality_summary,
+            latest_quality_by_port=latest_quality_by_port,
             port_data_timing=port_data_timing,
         )
 

@@ -1283,6 +1283,44 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     margin-bottom: 10px;
 }
 .feedback-modal-input:focus, .feedback-modal-textarea:focus { outline: none; border-color: var(--tide); }
+
+/* ── Contextual help buttons & tooltip ── */
+.help-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: none;
+    color: var(--rule);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-left: 4px;
+    padding: 0;
+    line-height: 1;
+    transition: border-color 0.12s, color 0.12s;
+    flex-shrink: 0;
+}
+.help-btn:hover { border-color: var(--tide); color: var(--tide); }
+#help-tooltip {
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    background: #0f0e0c;
+    color: #c8c0b0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.65;
+    padding: 10px 14px;
+    border-radius: 2px;
+    width: 260px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.28);
+    pointer-events: none;
+}
 </style>
 {% endblock %}
 
@@ -1340,23 +1378,23 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 <div class="data-credentials">
     <div class="data-cred-item">
         <div class="data-cred-value">{{ db_stats.total_ports }}</div>
-        <div class="data-cred-label">UK ports</div>
+        <div class="data-cred-label">UK ports <button class="help-btn" data-h="Active auction ports we collect price data from daily. Only ports with data in the last 90 days are counted." onclick="showHelp(event,this.dataset.h)">?</button></div>
     </div>
     <div class="data-cred-item">
         <div class="data-cred-value">{{ db_stats.total_species }}</div>
-        <div class="data-cred-label">Species tracked</div>
+        <div class="data-cred-label">Species tracked <button class="help-btn" data-h="Distinct species with auction price data across all active ports. Species names are normalised to canonical names (e.g. Monks → Monkfish) for cross-port comparison." onclick="showHelp(event,this.dataset.h)">?</button></div>
     </div>
     <div class="data-cred-item">
         <div class="data-cred-value">{{ "{:,}".format(db_stats.total_records) }}</div>
-        <div class="data-cred-label">Price records</div>
+        <div class="data-cred-label">Price records <button class="help-btn" data-h="Total individual auction price records in our database across all ports and all dates since collection began." onclick="showHelp(event,this.dataset.h)">?</button></div>
     </div>
     <div class="data-cred-item">
         <div class="data-cred-value">{{ db_stats.total_trading_days }}</div>
-        <div class="data-cred-label">Trading days</div>
+        <div class="data-cred-label">Trading days <button class="help-btn" data-h="Total trading dates with at least one price record in the database. Most UK fish auctions operate Monday–Friday." onclick="showHelp(event,this.dataset.h)">?</button></div>
     </div>
     <div class="data-cred-item">
         <div class="data-cred-value">{{ db_stats.earliest_date_display }}</div>
-        <div class="data-cred-label">Data since</div>
+        <div class="data-cred-label">Data since <button class="help-btn" data-h="The date of the earliest auction price record in the database. Data quality improves as coverage grows." onclick="showHelp(event,this.dataset.h)">?</button></div>
     </div>
 </div>
 
@@ -1403,7 +1441,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 <!-- SECTION 2: MARKET INSIGHTS                                            -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-overview">
-    <div class="section-heading">Market Insights</div>
+    <div class="section-heading">Market Insights <button class="help-btn" data-h="Market-wide price momentum across all species and ports. The movers table shows today's biggest price changes at a glance. The pulse cards compare the overall market to recent periods — negative % means prices have fallen, which is good for buyers." onclick="showHelp(event,this.dataset.h)">?</button></div>
     <div class="section-desc">How is the market moving? The pulse cards show today's average price vs recent periods &mdash; a negative % means prices have fallen (good for buyers). The movers table shows today's biggest price changes at a glance.</div>
 
     <!-- Today's movers (rendered by JS) -->
@@ -1434,7 +1472,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
                 {% else %}<span style="color:var(--rule);">&mdash;</span>{% endif %}
             </div>
             <div class="pulse-sub" id="pulse-vs-yest-sub">{% if pulse.market_direction_pct is not none %}vs yesterday{% else %}no prev data{% endif %}</div>
-            <div class="pulse-label">vs Yesterday</div>
+            <div class="pulse-label">vs Yesterday <button class="help-btn" data-h="Average % change in market prices today vs yesterday across all species and ports. Negative = prices fell overall (good for buyers). Positive = prices rose." onclick="showHelp(event,this.dataset.h)">?</button></div>
         </div>
         <div class="pulse-card">
             <div class="pulse-value" id="pulse-vs-7d">
@@ -1443,7 +1481,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
                 {% else %}<span style="color:var(--rule);">&mdash;</span>{% endif %}
             </div>
             <div class="pulse-sub" id="pulse-vs-7d-sub">{% if pulse.vs_7d_market_pct is not none %}vs 7-day average{% else %}insufficient data{% endif %}</div>
-            <div class="pulse-label">vs 7-Day Avg</div>
+            <div class="pulse-label">vs 7-Day Avg <button class="help-btn" data-h="Today's overall market price level compared to the 7-day rolling average. Negative = cheaper than the recent week." onclick="showHelp(event,this.dataset.h)">?</button></div>
         </div>
         <div class="pulse-card">
             <div class="pulse-value" id="pulse-vs-30d">
@@ -1452,7 +1490,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
                 {% else %}<span style="color:var(--rule);">&mdash;</span>{% endif %}
             </div>
             <div class="pulse-sub" id="pulse-vs-30d-sub">{% if pulse.vs_30d_market_pct is not none %}vs 30-day average{% else %}insufficient data{% endif %}</div>
-            <div class="pulse-label">vs 30-Day Avg</div>
+            <div class="pulse-label">vs 30-Day Avg <button class="help-btn" data-h="Today's price vs the 30-day rolling average — a key benchmark for whether the market is currently cheap or expensive relative to recent history." onclick="showHelp(event,this.dataset.h)">?</button></div>
         </div>
         <div class="pulse-card">
             <div class="pulse-value" id="pulse-vs-alltime">
@@ -1461,7 +1499,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
                 {% else %}<span style="color:var(--rule);">&mdash;</span>{% endif %}
             </div>
             <div class="pulse-sub" id="pulse-vs-alltime-sub">data since {{ pulse.data_start_date }}</div>
-            <div class="pulse-label">vs All Time</div>
+            <div class="pulse-label">vs All Time <button class="help-btn" data-h="Today's price level compared to the entire history in our database. Useful for long-term context on whether the market is at a historic high or low." onclick="showHelp(event,this.dataset.h)">?</button></div>
         </div>
     </div>
 
@@ -1501,7 +1539,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 <!-- SECTION 3: PORT INTELLIGENCE                                          -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-intelligence">
-    <div class="section-heading">Port Intelligence</div>
+    <div class="section-heading">Port Intelligence <button class="help-btn" data-h="Compare a single port's prices against the UK-wide market average. Species are sorted by discount — most below market first. Click any row to open that species in Price History. The reporting status shows whether this port has submitted data today." onclick="showHelp(event,this.dataset.h)">?</button></div>
     <div class="section-desc">
         How does each port compare to the wider market? Select a port to see which species
         are priced below average &mdash; and where the buying opportunities are. Reporting status shows whether a port has data for today.
@@ -1569,7 +1607,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 <!-- SECTION 5: TODAY'S PRICES                                            -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-prices">
-    <div class="section-heading">Today's Prices</div>
+    <div class="section-heading">Today's Prices <button class="help-btn" data-h="Average auction prices per kg across UK ports for today's trading session. Click any row to open that species in Price History. Port column dots show whether each port reported data today (green = yes, grey = no)." onclick="showHelp(event,this.dataset.h)">?</button></div>
     <div class="section-desc">
         Average auction prices per kilogram across UK ports today. <strong style="color:var(--ink);font-weight:500;">Price cells:</strong> dark blue = cheapest port, green = below market avg, red = above market avg. <strong style="color:var(--ink);font-weight:500;">Change columns:</strong> green = price has fallen, red = price has risen. Click any row to chart its history.
     </div>
@@ -1617,6 +1655,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         <span style="color:#2a6a4a;">&#9660; fell (good)</span>
         <span style="color:#b04030;">&#9650; rose (bad)</span>
         <span style="color:var(--catch);margin-left:8px;">Orange spread = &gt;20% gap</span>
+        <button class="help-btn" data-h="Price cell colours: dark blue = cheapest port for this species today. Green = below the market average. Red = above market average. Change columns: green arrow down = price fell (good for buyers). Red arrow up = price rose. Orange spread = more than 20% gap between cheapest and most expensive port — a strong arbitrage signal." onclick="showHelp(event,this.dataset.h)" style="margin-left:8px;">?</button>
     </div>
 
     <!-- Matrix -->
@@ -1628,11 +1667,11 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
                 {% for port in all_ports %}
                 <th class="port-header" data-port="{{ port }}">{{ port_codes.get(port, port[:3]) }}</th>
                 {% endfor %}
-                <th title="Market average across all reporting ports today">Mkt avg</th>
-                <th title="Today's market avg vs yesterday">vs yest</th>
-                <th title="Today's market avg vs 7-day average">vs 7d</th>
-                <th title="Today's market avg vs 30-day average">vs 30d</th>
-                <th title="Cross-port price spread (max-min)/min">Spread</th>
+                <th>Mkt avg <button class="help-btn" data-h="Market average — the mean auction price per kg across all ports reporting today for this species." onclick="showHelp(event,this.dataset.h)">?</button></th>
+                <th>vs yest <button class="help-btn" data-h="% change in today's market average vs yesterday's. Green = price fell (good for buyers). Red = price rose." onclick="showHelp(event,this.dataset.h)">?</button></th>
+                <th>vs 7d <button class="help-btn" data-h="Today's market average vs the 7-day rolling average. Helps you see short-term price momentum." onclick="showHelp(event,this.dataset.h)">?</button></th>
+                <th>vs 30d <button class="help-btn" data-h="Today's price vs the 30-day rolling average. The most useful benchmark for whether today is a good or bad time to buy." onclick="showHelp(event,this.dataset.h)">?</button></th>
+                <th>Spread <button class="help-btn" data-h="The price gap between the cheapest and most expensive port for this species today, as a %. High spread = strong arbitrage opportunity — worth checking which port is cheapest." onclick="showHelp(event,this.dataset.h)">?</button></th>
             </tr>
         </thead>
         <!-- My Species pinned section -->
@@ -1721,7 +1760,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 <!-- SECTION 5: PRICE HISTORY                                             -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="section-chart">
-    <div class="section-heading">Price History</div>
+    <div class="section-heading">Price History <button class="help-btn" data-h="90-day auction price chart for a single species across all UK ports. Lines show each port's price over time. Overlays add the market average and 30-day rolling average for context. Click any row in Today's Prices to load that species here." onclick="showHelp(event,this.dataset.h)">?</button></div>
     <div class="section-desc">
         90-day price history for a species across UK ports. Only dates with real auction data are plotted &mdash; gaps in the line mean no data was recorded that day. Click any row in Today's Prices, or choose a species below.
     </div>
@@ -1765,10 +1804,10 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
                     <button class="range-btn" onclick="setRange(90,this)">90d</button>
                 </div>
                 <label class="chart-overlay-label" id="cb-mkt-label">
-                    <input type="checkbox" id="cb-mkt" checked onchange="rebuildChart()"> Mkt avg
+                    <input type="checkbox" id="cb-mkt" checked onchange="rebuildChart()"> Mkt avg <button class="help-btn" data-h="Market average overlay — the daily mean auction price across all reporting ports for this species. Shown as a dashed line." onclick="showHelp(event,this.dataset.h)">?</button>
                 </label>
                 <label class="chart-overlay-label" id="cb-30d-label">
-                    <input type="checkbox" id="cb-30d" checked onchange="rebuildChart()"> 30d avg
+                    <input type="checkbox" id="cb-30d" checked onchange="rebuildChart()"> 30d avg <button class="help-btn" data-h="30-day rolling average — a flat reference line showing the average price over the last 30 trading days. Useful for judging whether today's price is high or low." onclick="showHelp(event,this.dataset.h)">?</button>
                 </label>
             </div>
         </div>
@@ -1834,6 +1873,9 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     </div>
 </div>
 
+<!-- ── Contextual help tooltip ── -->
+<div id="help-tooltip"></div>
+
 <!-- ── Species picker modal ── -->
 <div class="picker-overlay" id="species-picker-overlay" onclick="if(event.target===this)closeSpeciesPicker()">
     <div class="picker-modal">
@@ -1889,6 +1931,42 @@ const MATRIX_DATA = {{ matrix | tojson }};
 const HIGHLIGHTS_DATA = {{ highlights | tojson }};
 const TIMEFRAME_CONTEXT = {{ timeframe_context | tojson }};
 const PORT_STATUS = {{ port_status | tojson }};
+
+// ── Contextual help system ────────────────────────────────────────────────
+let _helpOpen = false;
+function showHelp(event, text) {
+    event.stopPropagation();
+    const tip = document.getElementById('help-tooltip');
+    tip.textContent = text;
+    tip.style.display = 'block';
+    const rect = event.currentTarget.getBoundingClientRect();
+    const w = 260, margin = 10;
+    let left = rect.left;
+    let top  = rect.bottom + 6;
+    if (left + w > window.innerWidth - margin) left = window.innerWidth - w - margin;
+    if (left < margin) left = margin;
+    if (top + 120 > window.innerHeight) top = rect.top - 120;
+    tip.style.left = left + 'px';
+    tip.style.top  = top  + 'px';
+    _helpOpen = true;
+}
+document.addEventListener('click', () => {
+    if (_helpOpen) {
+        document.getElementById('help-tooltip').style.display = 'none';
+        _helpOpen = false;
+    }
+});
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && _helpOpen) {
+        document.getElementById('help-tooltip').style.display = 'none';
+        _helpOpen = false;
+    }
+});
+// Helper for JS-rendered content: returns help button HTML string
+function helpBtn(text) {
+    const esc = text.replace(/"/g, '&quot;');
+    return `<button class="help-btn" data-h="${esc}" onclick="showHelp(event,this.dataset.h)">?</button>`;
+}
 
 // ── State ─────────────────────────────────────────────────────────────────
 let currentSpecies = null;

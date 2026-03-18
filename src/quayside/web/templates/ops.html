@@ -480,6 +480,41 @@
     <span class="ops-badge">Internal</span>
 </div>
 
+{# ── Quality status bar — always visible at top of page ──────────────────── #}
+{% if quality_summary.open_errors > 0 %}
+<div id="quality-topbar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;margin-bottom:16px;border-radius:4px;background:rgba(224,112,96,0.1);border:1.5px solid rgba(224,112,96,0.4);">
+    <div style="font-size:13px;color:var(--down);">
+        <strong>❌ {{ quality_summary.open_errors }} error{{ 's' if quality_summary.open_errors != 1 }}</strong>
+        {% if quality_summary.open_warns %}&ensp;·&ensp;<strong>{{ quality_summary.open_warns }} warning{{ 's' if quality_summary.open_warns != 1 }}</strong>{% endif %}
+        &ensp;<span style="color:var(--muted);font-size:11px;">last checked {{ quality_summary.last_checked_at[:16].replace('T',' ') }} UTC</span>
+        &ensp;<a href="#quality-card" style="font-size:11px;color:var(--tide);text-decoration:none;">view details ↓</a>
+    </div>
+    <button onclick="runQualityCheck()" style="font-size:11px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;padding:5px 14px;border:1px solid rgba(224,112,96,0.4);border-radius:3px;background:var(--foam);color:var(--down);">Re-run checks</button>
+</div>
+{% elif quality_summary.open_warns > 0 %}
+<div id="quality-topbar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;margin-bottom:16px;border-radius:4px;background:rgba(224,183,96,0.08);border:1.5px solid rgba(224,183,96,0.35);">
+    <div style="font-size:13px;color:#8a6800;">
+        <strong>⚠️ {{ quality_summary.open_warns }} warning{{ 's' if quality_summary.open_warns != 1 }}</strong> — no errors
+        &ensp;<span style="color:var(--muted);font-size:11px;">last checked {{ quality_summary.last_checked_at[:16].replace('T',' ') }} UTC</span>
+        &ensp;<a href="#quality-card" style="font-size:11px;color:var(--tide);text-decoration:none;">view details ↓</a>
+    </div>
+    <button onclick="runQualityCheck()" style="font-size:11px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;padding:5px 14px;border:1px solid rgba(224,183,96,0.35);border-radius:3px;background:var(--foam);color:#8a6800;">Re-run checks</button>
+</div>
+{% elif quality_summary.last_checked_at %}
+<div id="quality-topbar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;margin-bottom:16px;border-radius:4px;background:rgba(109,184,138,0.08);border:1.5px solid rgba(109,184,138,0.3);">
+    <div style="font-size:13px;color:var(--up);">
+        <strong>✓ All clear</strong> — no data quality issues in the last 7 days
+        &ensp;<span style="color:var(--muted);font-size:11px;">last checked {{ quality_summary.last_checked_at[:16].replace('T',' ') }} UTC</span>
+    </div>
+    <button onclick="runQualityCheck()" style="font-size:11px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;padding:5px 14px;border:1px solid rgba(109,184,138,0.3);border-radius:3px;background:var(--foam);color:var(--up);">Re-run checks</button>
+</div>
+{% else %}
+<div id="quality-topbar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;margin-bottom:16px;border-radius:4px;background:var(--foam);border:1px solid var(--rule);">
+    <div style="font-size:13px;color:var(--muted);">No quality checks run yet</div>
+    <button onclick="runQualityCheck()" style="font-size:11px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;padding:5px 14px;border:1px solid var(--rule);border-radius:3px;background:var(--foam);color:var(--ink);">Run first check</button>
+</div>
+{% endif %}
+
 <!-- Today's Pipeline -->
 <div class="card" style="margin-bottom:16px;">
     <div class="section-head">
@@ -573,22 +608,16 @@
 <div id="quality-card" class="card" style="margin-bottom:16px;">
     <div class="section-head">
         Data Quality
-        <span class="count">last 7 days</span>
-        {% if quality_summary.last_checked_at %}
-        <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:8px;">
-            last checked {{ quality_summary.last_checked_at[:16].replace('T',' ') }} UTC
-        </span>
-        {% endif %}
+        <span class="count">checks: unknown fields · unmapped species · price sanity · statistical outliers · stale data · live site</span>
         <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
             {% if quality_summary.last_checked_at %}<a href="/ops/quality-report/download" style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:0.02em;" title="Download Markdown report">↓ Download</a>{% endif %}
             <button id="run-quality-btn" onclick="runQualityCheck()"
                 style="font-size:12px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;
                        padding:5px 14px;border:1px solid var(--rule);border-radius:3px;
                        background:var(--foam);color:var(--ink);">
-                Run Check
+                Re-run checks
             </button>
             <a id="quality-download-link" href="#" download style="display:none;font-size:12px;font-weight:600;color:var(--up);text-decoration:none;">↓ Download results</a>
-            {% if quality_summary.last_checked_at %}<a id="quality-hide-btn" href="#" onclick="hideQualityCard();return false;" style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:0.02em;" title="Hide this section">✕ Hide</a>{% endif %}
         </span>
     </div>
     <div id="quality-body">
@@ -603,14 +632,83 @@
         <strong>{{ quality_summary.open_errors }} error{{ 's' if quality_summary.open_errors != 1 }}</strong>
         {% if quality_summary.open_warns %} · {{ quality_summary.open_warns }} warning{{ 's' if quality_summary.open_warns != 1 }}{% endif %}
         — data accuracy issues require attention
+        <span style="margin-left:12px;color:var(--muted);font-size:11px;">last checked {{ quality_summary.last_checked_at[:16].replace('T',' ') }} UTC</span>
     </div>
     {% elif quality_summary.open_warns > 0 %}
     <div style="padding:14px 20px;background:rgba(224,183,96,0.08);border-bottom:1px solid rgba(224,183,96,0.3);font-size:13px;color:#8a6800;">
         <strong>{{ quality_summary.open_warns }} warning{{ 's' if quality_summary.open_warns != 1 }}</strong> — minor anomalies flagged, no errors
+        <span style="margin-left:12px;color:var(--muted);font-size:11px;">last checked {{ quality_summary.last_checked_at[:16].replace('T',' ') }} UTC</span>
     </div>
     {% else %}
     <div style="padding:14px 20px;background:rgba(109,184,138,0.08);border-bottom:1px solid rgba(109,184,138,0.25);font-size:13px;color:var(--up);">
         <strong>✓ No quality issues in the last 7 days.</strong> All port data within expected ranges.
+        <span style="margin-left:12px;color:var(--muted);font-size:11px;">last checked {{ quality_summary.last_checked_at[:16].replace('T',' ') }} UTC</span>
+    </div>
+    {% endif %}
+
+    {# ── Per-page status grid ────────────────────────────────────────────── #}
+    {% if quality_summary.last_checked_at and live_ports %}
+    <div style="padding:16px 20px 0;border-bottom:1px solid var(--rule);">
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">
+            Page status — most recent check only
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;margin-bottom:16px;">
+
+        {# Digest page — affected if any port has errors in latest check #}
+        {% set digest_errors = latest_quality_by_port.values() | selectattr('errors', 'gt', 0) | list | length %}
+        {% set digest_warns = latest_quality_by_port.values() | selectattr('warns', 'gt', 0) | list | length %}
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:3px;font-size:12px;
+            {% if digest_errors > 0 %}background:rgba(224,112,96,0.08);border:1px solid rgba(224,112,96,0.25);
+            {% elif digest_warns > 0 %}background:rgba(224,183,96,0.07);border:1px solid rgba(224,183,96,0.25);
+            {% else %}background:rgba(109,184,138,0.07);border:1px solid rgba(109,184,138,0.2);{% endif %}">
+            <span style="font-size:14px;">{% if digest_errors > 0 %}❌{% elif digest_warns > 0 %}⚠️{% else %}✅{% endif %}</span>
+            <div>
+                <a href="/digest" style="color:var(--ink);text-decoration:none;font-weight:600;">Digest</a>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">
+                    {% if digest_errors > 0 %}{{ digest_errors }} port{{ 's' if digest_errors != 1 }} with errors
+                    {% elif digest_warns > 0 %}{{ digest_warns }} port{{ 's' if digest_warns != 1 }} with warnings
+                    {% else %}all clear{% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Trade page — same cross-port logic #}
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:3px;font-size:12px;
+            {% if digest_errors > 0 %}background:rgba(224,112,96,0.08);border:1px solid rgba(224,112,96,0.25);
+            {% elif digest_warns > 0 %}background:rgba(224,183,96,0.07);border:1px solid rgba(224,183,96,0.25);
+            {% else %}background:rgba(109,184,138,0.07);border:1px solid rgba(109,184,138,0.2);{% endif %}">
+            <span style="font-size:14px;">{% if digest_errors > 0 %}❌{% elif digest_warns > 0 %}⚠️{% else %}✅{% endif %}</span>
+            <div>
+                <a href="/trade" style="color:var(--ink);text-decoration:none;font-weight:600;">Trade</a>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">
+                    {% if digest_errors > 0 %}{{ digest_errors }} port{{ 's' if digest_errors != 1 }} with errors
+                    {% elif digest_warns > 0 %}{{ digest_warns }} port{{ 's' if digest_warns != 1 }} with warnings
+                    {% else %}all clear{% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Per-port pages #}
+        {% for port in live_ports %}
+        {% set pq = latest_quality_by_port.get(port.name, {}) %}
+        {% set pe = pq.get('errors', 0) %}
+        {% set pw = pq.get('warns', 0) %}
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:3px;font-size:12px;
+            {% if pe > 0 %}background:rgba(224,112,96,0.08);border:1px solid rgba(224,112,96,0.25);
+            {% elif pw > 0 %}background:rgba(224,183,96,0.07);border:1px solid rgba(224,183,96,0.25);
+            {% else %}background:rgba(109,184,138,0.07);border:1px solid rgba(109,184,138,0.2);{% endif %}">
+            <span style="font-size:14px;">{% if pe > 0 %}❌{% elif pw > 0 %}⚠️{% else %}✅{% endif %}</span>
+            <div>
+                <a href="/port/{{ port.slug }}" style="color:var(--ink);text-decoration:none;font-weight:600;">{{ port.name }}</a>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">
+                    {% if pe > 0 %}{{ pe }} error{{ 's' if pe != 1 }}{% if pw > 0 %} · {{ pw }} warn{{ 's' if pw != 1 }}{% endif %}
+                    {% elif pw > 0 %}{{ pw }} warning{{ 's' if pw != 1 }}
+                    {% else %}all clear{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
     </div>
     {% endif %}
 
@@ -651,48 +749,35 @@
 </div>
 
 <script>
-function hideQualityCard() {
-    document.getElementById('quality-body').style.display = 'none';
-    const hideBtn = document.getElementById('quality-hide-btn');
-    if (hideBtn) hideBtn.textContent = '↺ Show';
-    hideBtn.onclick = function() {
-        document.getElementById('quality-body').style.display = '';
-        hideBtn.textContent = '✕ Hide';
-        hideBtn.onclick = function() { hideQualityCard(); return false; };
-        return false;
-    };
-}
 async function runQualityCheck() {
+    // Disable all re-run buttons on the page
+    document.querySelectorAll('[onclick="runQualityCheck()"]').forEach(b => {
+        b.disabled = true;
+        b.textContent = 'Running…';
+    });
     const btn = document.getElementById('run-quality-btn');
     const dlLink = document.getElementById('quality-download-link');
-    btn.disabled = true;
-    btn.textContent = 'Running…';
-    dlLink.style.display = 'none';
+    if (dlLink) dlLink.style.display = 'none';
     try {
         const r = await fetch('/ops/run-quality-check', {method: 'POST'});
         if (!r.ok) throw new Error('Server error ' + r.status);
         const d = await r.json();
         if (d.errors > 0) {
-            btn.textContent = d.errors + ' error' + (d.errors !== 1 ? 's' : '') + ' found';
-            btn.style.color = 'var(--down)';
-            dlLink.href = '/ops/quality-report/download';
-            dlLink.textContent = '↓ Download report';
-            dlLink.style.display = 'inline';
+            if (btn) { btn.textContent = d.errors + ' error' + (d.errors !== 1 ? 's' : '') + ' found'; btn.style.color = 'var(--down)'; }
+            if (dlLink) { dlLink.href = '/ops/quality-report/download'; dlLink.textContent = '↓ Download report'; dlLink.style.display = 'inline'; }
         } else if (d.warns > 0) {
-            btn.textContent = d.warns + ' warning' + (d.warns !== 1 ? 's' : '');
-            btn.style.color = '#8a6800';
-            dlLink.href = '/ops/quality-report/download';
-            dlLink.textContent = '↓ Download report';
-            dlLink.style.display = 'inline';
+            if (btn) { btn.textContent = d.warns + ' warning' + (d.warns !== 1 ? 's' : ''); btn.style.color = '#8a6800'; }
+            if (dlLink) { dlLink.href = '/ops/quality-report/download'; dlLink.textContent = '↓ Download report'; dlLink.style.display = 'inline'; }
         } else {
-            btn.textContent = '✓ All clear';
-            btn.style.color = 'var(--up)';
+            if (btn) { btn.textContent = '✓ All clear'; btn.style.color = 'var(--up)'; }
         }
-        setTimeout(() => window.location.reload(), d.errors > 0 || d.warns > 0 ? 8000 : 1400);
+        setTimeout(() => window.location.reload(), d.errors > 0 || d.warns > 0 ? 6000 : 1200);
     } catch(e) {
-        btn.textContent = 'Error — check logs';
-        btn.style.color = 'var(--down)';
-        btn.disabled = false;
+        document.querySelectorAll('[onclick="runQualityCheck()"]').forEach(b => {
+            b.textContent = 'Error — check logs';
+            b.style.color = 'var(--down)';
+            b.disabled = false;
+        });
     }
 }
 </script>

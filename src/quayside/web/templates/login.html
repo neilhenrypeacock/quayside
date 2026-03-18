@@ -83,6 +83,22 @@
   color: var(--tide);
   text-decoration: underline;
 }
+.auth-type-pills {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.auth-pill {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 4px 10px;
+  background: var(--salt);
+}
 .flash-error {
   padding: 10px 14px;
   border-radius: 2px;
@@ -99,7 +115,10 @@
 <div class="auth-wrap">
   <div class="auth-card">
     <h1>Sign in</h1>
-    <p class="auth-sub">Ports and trade members — same login.</p>
+    <div class="auth-type-pills">
+      <span class="auth-pill">Port Operator</span>
+      <span class="auth-pill">Trade Member</span>
+    </div>
 
     {% with messages = get_flashed_messages() %}
     {% if messages %}
