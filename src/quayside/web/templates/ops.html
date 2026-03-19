@@ -584,7 +584,7 @@
                         <span style="color:var(--muted);font-size:10px;"> → {{ s.last_success }}</span>
                         {% endif %}
                     {% elif s and s.first_attempt %}
-                        <span style="color:var(--down);">{{ s.first_attempt }}</span>
+                        <span style="color:var(--down);">{{ s.last_attempt or s.first_attempt }}</span>
                     {% else %}—{% endif %}
                 </td>
                 <td style="font-family:var(--font-mono);font-size:12px;">

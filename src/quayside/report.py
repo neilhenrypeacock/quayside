@@ -86,6 +86,8 @@ def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
             if not avg or _is_noisy(raw_species):
                 continue
             species = normalise_species(raw_species)
+            if species is None:
+                continue
             totals[species] = totals.get(species, 0.0) + avg
             counts[species] = counts.get(species, 0) + 1
         return {s: totals[s] / counts[s] for s in totals}
@@ -173,7 +175,7 @@ def _build_port_highlights(rows: list[tuple], thirty_day_raw: dict[str, float]) 
         if not avg:
             continue
         species = normalise_species(raw_species)
-        if _is_noisy_species(species):
+        if species is None or _is_noisy_species(species):
             continue
 
         # Track fallback (highest price per port)
@@ -244,6 +246,8 @@ def build_report_data(date: str) -> dict:
     for r in rows:
         _, port, raw_species, grade, low, high, avg = r
         species = normalise_species(raw_species)
+        if species is None:
+            continue  # noise-filtered species
         ports_seen.add(port)
         species_seen.add(species)
 
@@ -285,6 +289,8 @@ def build_report_data(date: str) -> dict:
                 if not avg:
                     continue
                 sp = normalise_species(raw_species)
+                if sp is None:
+                    continue
                 if sp not in prev_best or avg > prev_best[sp]:
                     prev_best[sp] = avg
 
@@ -331,7 +337,9 @@ def build_report_data(date: str) -> dict:
     # Aggregate raw names → canonical (average of raw averages)
     _thirty_accum: dict[str, list[float]] = defaultdict(list)
     for raw_sp, avg in thirty_day_raw.items():
-        _thirty_accum[normalise_species(raw_sp)].append(avg)
+        sp = normalise_species(raw_sp)
+        if sp is not None:
+            _thirty_accum[sp].append(avg)
     thirty_day_avgs: dict[str, float] = {
         sp: round(sum(vals) / len(vals), 2) for sp, vals in _thirty_accum.items()
     }
@@ -393,7 +401,7 @@ def build_report_data(date: str) -> dict:
     for r in rows:
         _, port, raw_species, grade, low, high, avg = r
         species = normalise_species(raw_species)
-        if _is_noisy_species(species):
+        if species is None or _is_noisy_species(species):
             continue
         if avg and (port not in port_best or avg > port_best[port]["price"]):
             port_best[port] = {
@@ -459,7 +467,10 @@ def build_landing_data(date: str) -> dict:
         for r in prev_rows:
             _, port, raw_species, _grade, _low, _high, avg = r
             if avg:
-                key = (port, normalise_species(raw_species))
+                _sp = normalise_species(raw_species)
+                if _sp is None:
+                    continue
+                key = (port, _sp)
                 if key not in prev_port_species or avg > prev_port_species[key]:
                     prev_port_species[key] = avg
 

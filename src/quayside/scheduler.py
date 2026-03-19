@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import date
+from datetime import date, datetime
 
 logger = logging.getLogger(__name__)
 
@@ -18,17 +18,18 @@ _scheduler = None
 
 def _run_pipeline_if_needed() -> None:
     """Run the pipeline only if we haven't already produced today's digest."""
-    from pathlib import Path
-
     from quayside.db import get_latest_date
 
-    today = date.today().isoformat()
-
-    # Skip weekends (Mon=0 ... Sun=6)
-    if date.today().weekday() >= 5:
+    # Only run Mon–Fri, 07:00–17:00 UTC
+    now_utc = datetime.utcnow()
+    if now_utc.weekday() >= 5:
         logger.debug("Scheduler: weekend, skipping")
         return
+    if not (7 <= now_utc.hour < 17):
+        logger.debug("Scheduler: outside 07:00–17:00 UTC, skipping")
+        return
 
+    today = date.today().isoformat()
     latest = get_latest_date()
     if latest == today:
         logger.debug("Scheduler: already have data for %s, skipping", today)
@@ -58,32 +59,24 @@ def start_scheduler(app) -> None:
 
     try:
         from apscheduler.schedulers.background import BackgroundScheduler
-        from apscheduler.triggers.cron import CronTrigger
     except ImportError:
         logger.warning("APScheduler not installed — scheduled pipeline disabled")
         return
 
     _scheduler = BackgroundScheduler(daemon=True)
 
-    # Run at 07:15 AM UTC Mon–Fri, and also every 30 min as a catch-up check
-    _scheduler.add_job(
-        _run_pipeline_if_needed,
-        CronTrigger(day_of_week="mon-fri", hour=7, minute=15),
-        id="pipeline_daily",
-        name="Daily scrape pipeline",
-        replace_existing=True,
-    )
+    # Run every 10 minutes; time-of-day + weekend guard is inside _run_pipeline_if_needed
     _scheduler.add_job(
         _run_pipeline_if_needed,
         "interval",
-        minutes=30,
-        id="pipeline_catchup",
-        name="Pipeline catch-up check",
+        minutes=10,
+        id="pipeline_10min",
+        name="Scrape pipeline (every 10 min, 07:00–17:00 UTC Mon–Fri)",
         replace_existing=True,
     )
 
     _scheduler.start()
-    logger.info("Scheduler started — pipeline will run Mon–Fri at 07:15 UTC")
+    logger.info("Scheduler started — pipeline will run Mon–Fri every 10 min, 07:00–17:00 UTC")
 
     with app.app_context():
         pass  # ensure app context available if needed later

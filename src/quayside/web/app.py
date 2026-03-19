@@ -1354,6 +1354,20 @@ def create_app() -> Flask:
             except Exception:
                 pass
 
+        # Pre-pass: capture most recent attempt time per port today (rows are DESC = newest first)
+        last_attempt_per_port: dict[str, str] = {}
+        for row in scrape_log_rows:
+            if not row["ran_at"].startswith(today_str_for_log):
+                continue
+            port_name = row["port"]
+            if port_name not in last_attempt_per_port:
+                try:
+                    from datetime import datetime as _dt5a
+                    ts = _dt5a.fromisoformat(row["ran_at"])
+                    last_attempt_per_port[port_name] = ts.strftime("%H:%M")
+                except Exception:
+                    pass
+
         # Today's scrape summary: per-port first attempt time, success time, record count
         today_scrape_summary: dict[str, dict] = {}
         for row in reversed(scrape_log_rows):  # reversed = chronological (earliest first)
@@ -1391,6 +1405,10 @@ def create_app() -> Flask:
             "SELECT port, MAX(date) as last_data_date FROM prices GROUP BY port"
         ).fetchall()
         latest_data_date = {row["port"]: row["last_data_date"] for row in latest_data_date_rows}
+
+        # Inject most recent attempt time into each summary entry
+        for _pname, _s in today_scrape_summary.items():
+            _s["last_attempt"] = last_attempt_per_port.get(_pname)
 
         # Refine status: scraper ran with no error but nothing published → "empty" not "failed"
         for _pname, _s in today_scrape_summary.items():
