@@ -508,6 +508,7 @@
     text-decoration: none;
     transition: all 0.2s;
     border-radius: 2px;
+    margin-top: auto;
   }
   .plan-cta:hover { border-color: var(--muted); color: var(--paper); }
   .plan.featured .plan-cta {
@@ -971,7 +972,6 @@
   .audience-card p {
     font-size: 15px;
     line-height: 1.7;
-    flex: 1;
     margin-bottom: 24px;
   }
   .audience-card-buyers p { color: #a8c8d8; }
@@ -1013,6 +1013,11 @@
     margin-bottom: 20px;
     font-weight: 500;
   }
+  .audience-card-everyone .audience-pill {
+    background: var(--catch);
+    color: white;
+    animation: pulse-pill 2s ease-in-out infinite;
+  }
   .audience-card-buyers .audience-pill {
     background: var(--catch);
     color: white;
@@ -1021,6 +1026,9 @@
   .audience-card-ports .audience-pill {
     background: rgba(255,255,255,0.15);
     color: white;
+  }
+  .audience-card ul {
+    flex: 1;
   }
   .audience-cta {
     display: inline-block;
@@ -1035,6 +1043,7 @@
     text-align: center;
     transition: transform 0.1s, box-shadow 0.2s;
     align-self: flex-start;
+    margin-top: auto;
   }
   .audience-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
   .audience-card-buyers .audience-cta { background: white; color: var(--tide); }
@@ -1389,19 +1398,17 @@
     </div>
     <!-- Custom / Enterprise -->
     <div class="plan">
-      <div class="plan-badge">Enterprise</div>
+      <div class="plan-badge">Bespoke</div>
       <div class="plan-name">Custom</div>
       <div class="plan-audience">Supermarkets &middot; Data teams &middot; Resellers</div>
       <div class="plan-price">
-        <div class="plan-amount">Enquire</div>
+        <div class="plan-amount">Talk to us</div>
         <div class="plan-period">&nbsp;</div>
       </div>
       <ul class="plan-features">
-        <li>API access &mdash; JSON feed, daily</li>
-        <li>Full historical dataset</li>
-        <li>Custom species coverage</li>
-        <li>SLA &amp; dedicated support</li>
-        <li>White-label available</li>
+        <li>You have an idea &mdash; we&rsquo;ll build it</li>
+        <li>API feeds, white-label, bulk data</li>
+        <li>Whatever you need</li>
       </ul>
       <a href="mailto:hello@quayside.trade" class="plan-cta">Get in touch</a>
     </div>
