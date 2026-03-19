@@ -18,3 +18,15 @@ class PriceRecord:
     defra_code: str | None = None  # 3-letter DEFRA/MMO species code (Brixham)
     week_avg: float | None = None  # rolling weekly average price £/kg (Brixham)
     size_band: str | None = None  # size descriptor e.g. "801g+", "0.5-0.7Kg" (Newlyn)
+
+
+@dataclass
+class LandingRecord:
+    date: str  # YYYY-MM-DD
+    port: str
+    vessel_name: str
+    vessel_code: str
+    species: str
+    boxes: int
+    boxes_msc: int
+    scraped_at: str  # ISO timestamp

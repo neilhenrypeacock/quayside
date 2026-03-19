@@ -111,6 +111,10 @@ def main() -> int:
     scraper_status["Fraserburgh prices"] = {
         "records": len(fraserburgh_prices), "error": err, "source": "SWFPA HTML",
     }
+    log_scrape_attempt("Fraserburgh", success=err is None and len(fraserburgh_prices) > 0,
+                       record_count=len(fraserburgh_prices),
+                       error_type=err["type"] if err else None,
+                       error_msg=err["error"] if err else None)
     all_prices += fraserburgh_prices
 
     # --- Brixham ---

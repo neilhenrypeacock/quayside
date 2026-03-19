@@ -817,7 +817,7 @@ def _report_port_dashboards(conn, date: str, active_ports: list[str]) -> list[di
                 hero_last_week_price = round(lw_overall, 2)
 
         # Vs market avg (for species this port sells, with ≥2 ports)
-        canonical_species = {normalise_species(r[0]) for r in rows}
+        canonical_species = {normalise_species(r[0]) for r in rows} - {None}
         market_avgs = [
             info["avg"] for canon, info in market.items()
             if info.get("avg") and canon in canonical_species and info.get("port_count", 0) >= 2
@@ -859,12 +859,14 @@ def _report_port_dashboards(conn, date: str, active_ports: list[str]) -> list[di
         this_month_avg = _period_avg(all_days_with_today[:20])
 
         # Species without market benchmark (only 1 port sells them)
-        no_benchmark = sorted([
-            normalise_species(r[0]) for r in rows
-            if market.get(normalise_species(r[0]), {}).get("port_count", 0) < 2
-        ])
-        # Deduplicate
-        no_benchmark = sorted(set(no_benchmark))
+        no_benchmark_set = set()
+        for r in rows:
+            canon = normalise_species(r[0])
+            if canon is None:
+                continue
+            if market.get(canon, {}).get("port_count", 0) < 2:
+                no_benchmark_set.add(canon)
+        no_benchmark = sorted(no_benchmark_set)
 
         # Classify hero stat nulls
         hero_nulls = []

@@ -8,7 +8,7 @@ Group=quayside
 WorkingDirectory=/home/quayside/app
 EnvironmentFile=/home/quayside/app/.env
 ExecStart=/home/quayside/app/venv/bin/gunicorn \
-    --workers 2 \
+    --workers 1 \
     --bind unix:/run/quayside/quayside.sock \
     --access-logfile /var/log/quayside/access.log \
     --error-logfile /var/log/quayside/error.log \

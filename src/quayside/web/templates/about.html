@@ -438,7 +438,7 @@
         <p>Longer-run summaries showing trends, seasonal patterns, and market-wide volatility.</p>
       </div>
     </div>
-    <a href="{{ url_for('digest_page') }}" class="btn-catch">View today&rsquo;s digest &rarr;</a>
+    <a href="{{ url_for('digest.digest_page') }}" class="btn-catch">View today&rsquo;s digest &rarr;</a>
   </div>
   <div class="tier-section-visual">
     <div class="mockup-digest fade-up" style="transition-delay:0.12s;">
@@ -514,7 +514,7 @@
         <p>Which port is consistently cheapest for your key species? The data, not the rumour.</p>
       </div>
     </div>
-    <a href="{{ url_for('login') }}" class="btn-catch">Get access &rarr;</a>
+    <a href="{{ url_for('auth.login') }}" class="btn-catch">Get access &rarr;</a>
   </div>
   <div class="tier-section-visual">
     <div class="mockup-email fade-up" style="transition-delay:0.12s;">
@@ -581,7 +581,7 @@
         <p>Every day&rsquo;s data gets a confirmation step. One click to approve, one to correct. We learn from every edit.</p>
       </div>
     </div>
-    <a href="{{ url_for('for_ports') }}" class="btn-tide">List your port &rarr;</a>
+    <a href="{{ url_for('public.for_ports') }}" class="btn-tide">List your port &rarr;</a>
   </div>
   <div class="tier-section-visual">
     <div class="mockup-port fade-up" style="transition-delay:0.12s;">
@@ -660,7 +660,7 @@
       <tbody>
         {% for port in ports %}
         <tr>
-          <td><a href="{{ url_for('port_dashboard', slug=port.slug) }}" class="port-name-link">{{ port.name }}</a></td>
+          <td><a href="{{ url_for('ports.port_dashboard', slug=port.slug) }}" class="port-name-link">{{ port.name }}</a></td>
           <td style="color:var(--muted);font-size:13px;">{{ port.region }}</td>
           <td><span class="data-badge">{{ port.data }}</span></td>
           <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">Daily</td>
@@ -669,7 +669,7 @@
       </tbody>
     </table>
     <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:14px;letter-spacing:0.03em;">
-      More ports join regularly. &rarr; <a href="{{ url_for('for_ports') }}" style="color:var(--tide);">Get your port listed</a>
+      More ports join regularly. &rarr; <a href="{{ url_for('public.for_ports') }}" style="color:var(--tide);">Get your port listed</a>
     </p>
   </div>
 </section>
@@ -681,19 +681,19 @@
       <span class="cta-card-tag tag-free">Free for everyone</span>
       <h3>Browse the digest</h3>
       <p>Today&rsquo;s UK fish prices across every covered port — no account needed.</p>
-      <a href="{{ url_for('digest_page') }}" class="btn-cta-primary">View today&rsquo;s digest &rarr;</a>
+      <a href="{{ url_for('digest.digest_page') }}" class="btn-cta-primary">View today&rsquo;s digest &rarr;</a>
     </div>
     <div class="cta-card">
       <span class="cta-card-tag tag-trade">Trade membership</span>
       <h3>Get full access</h3>
       <p>Personalised daily email, trade dashboard, 30-day history, and port rankings.</p>
-      <a href="{{ url_for('login') }}" class="btn-cta-primary">Sign up &rarr;</a>
+      <a href="{{ url_for('auth.login') }}" class="btn-cta-primary">Sign up &rarr;</a>
     </div>
     <div class="cta-card">
       <span class="cta-card-tag tag-port">Free for ports</span>
       <h3>List your port</h3>
       <p>Free dashboard, benchmarks, and marketing to UK buyers. Five minutes to get started.</p>
-      <a href="{{ url_for('for_ports') }}" class="btn-cta-secondary">Get listed &rarr;</a>
+      <a href="{{ url_for('public.for_ports') }}" class="btn-cta-secondary">Get listed &rarr;</a>
     </div>
   </div>
 </div>
@@ -702,9 +702,9 @@
 <footer>
   <div class="footer-logo">Quay<span>side</span></div>
   <ul class="footer-links">
-    <li><a href="{{ url_for('landing') }}">Home</a></li>
-    <li><a href="{{ url_for('for_ports') }}">For Ports</a></li>
-    <li><a href="{{ url_for('for_traders') }}">For Traders</a></li>
+    <li><a href="{{ url_for('public.landing') }}">Home</a></li>
+    <li><a href="{{ url_for('public.for_ports') }}">For Ports</a></li>
+    <li><a href="{{ url_for('public.for_traders') }}">For Traders</a></li>
     <li><a href="mailto:hello@quayside.fish">Contact</a></li>
   </ul>
   <div class="footer-copy">&copy; 2026 Quayside Data Ltd</div>

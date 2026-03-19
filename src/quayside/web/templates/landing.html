@@ -1123,6 +1123,7 @@
       Quayside is building the most comprehensive daily view of UK fish auction prices. Live across multiple UK ports and growing every week &mdash; species normalised, prices compared, trends tracked. One digest. One place to look.
     </p>
     <form class="hero-form" action="#" method="POST" id="signup-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="hero-actions">
         <input type="email" name="email" placeholder="Your email address" required class="email-input">
         <button type="submit" class="btn-primary">Get the free digest</button>
@@ -1211,7 +1212,7 @@
       </ul>
       <span class="audience-cta">Join waitlist &rarr;</span>
     </a>
-    <a href="{{ url_for('for_traders') }}" class="audience-card audience-card-buyers fade-up">
+    <a href="{{ url_for('public.for_traders') }}" class="audience-card audience-card-buyers fade-up">
       <div class="audience-label">For buyers, merchants &amp; processors</div>
       <div class="audience-pill">Launching April 2026</div>
       <div class="audience-product">Trade Membership</div>
@@ -1225,7 +1226,7 @@
       </ul>
       <span class="audience-cta">Join waitlist &rarr;</span>
     </a>
-    <a href="{{ url_for('for_ports') }}" class="audience-card audience-card-ports fade-up">
+    <a href="{{ url_for('public.for_ports') }}" class="audience-card audience-card-ports fade-up">
       <div class="audience-label">For port &amp; auction operators</div>
       <div class="audience-pill">Free for ports</div>
       <div class="audience-product">The Port Dashboard</div>
@@ -1376,7 +1377,7 @@
         <li>Price alerts by email</li>
         <li>AI chat &mdash; ask the data anything</li>
       </ul>
-      <a href="{{ url_for('for_traders') }}" class="plan-cta">Join waitlist</a>
+      <a href="{{ url_for('public.for_traders') }}" class="plan-cta">Join waitlist</a>
     </div>
     <!-- Port Dashboard — Free for ports -->
     <div class="plan plan-ports">
@@ -1394,7 +1395,7 @@
         <li>Featured in digest &amp; trade dashboard</li>
         <li>Just send your data &mdash; we do the rest</li>
       </ul>
-      <a href="{{ url_for('for_ports') }}" class="plan-cta plan-cta-ports">Sign up</a>
+      <a href="{{ url_for('public.for_ports') }}" class="plan-cta plan-cta-ports">Sign up</a>
     </div>
     <!-- Custom / Enterprise -->
     <div class="plan">
@@ -1420,6 +1421,7 @@
   <h2>UK auction prices. One digest. Every day.</h2>
   <p>Join the buyers and merchants building the most comprehensive daily view of UK fish prices.</p>
   <form class="cta-form" action="#" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;">
       <input type="email" name="email" placeholder="Your email address" required class="email-input" style="border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.95);">
       <button type="submit" class="btn-white">Get early access</button>

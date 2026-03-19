@@ -1226,8 +1226,8 @@
       Post-market price reporting for fish merchants, processors, buyers, and agents. Track trends, benchmark your costs, and understand the full UK market &mdash; updated daily across five major ports.
     </p>
     <div class="hero-ctas">
-      <a href="{{ url_for('register') }}" class="btn-primary">Start 7-day free trial</a>
-      <a href="{{ url_for('trade_dashboard') }}" class="btn-secondary">Open the demo dashboard &rarr;</a>
+      <a href="{{ url_for('auth.register') }}" class="btn-primary">Start 7-day free trial</a>
+      <a href="{{ url_for('trade.trade_dashboard') }}" class="btn-secondary">Open the demo dashboard &rarr;</a>
     </div>
     <div class="hero-trust">
       <span><span class="hero-trust-dot"></span>5 UK ports live</span>
@@ -1321,8 +1321,8 @@
           <li>Export any or all data for your own purposes</li>
         </ul>
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:32px;">
-          <a href="{{ url_for('register') }}" class="btn-primary">Start 7-day free trial</a>
-          <a href="{{ url_for('trade_dashboard') }}" class="btn-secondary">Open the demo dashboard &rarr;</a>
+          <a href="{{ url_for('auth.register') }}" class="btn-primary">Start 7-day free trial</a>
+          <a href="{{ url_for('trade.trade_dashboard') }}" class="btn-secondary">Open the demo dashboard &rarr;</a>
         </div>
         <div class="digest-free-note" style="margin-top:16px;">No card required &middot; 7 days free &middot; Cancel any time</div>
       </div>
@@ -1423,22 +1423,22 @@
     <div style="font-family:var(--font-serif);font-size:clamp(22px,2.5vw,32px);font-weight:700;color:var(--paper);letter-spacing:-0.02em;line-height:1.15;margin-bottom:8px;">See the full picture for yourself.</div>
     <div style="font-size:15px;color:var(--tide-light);line-height:1.6;max-width:480px;">Try the complete Trade dashboard — all ports, all features, no payment details required.</div>
   </div>
-  <a href="{{ url_for('register') }}" style="background:var(--catch);color:white;padding:14px 36px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;border-radius:2px;white-space:nowrap;transition:background 0.2s;flex-shrink:0;" onmouseover="this.style.background='#a83010'" onmouseout="this.style.background='var(--catch)'">Start free trial &rarr;</a>
+  <a href="{{ url_for('auth.register') }}" style="background:var(--catch);color:white;padding:14px 36px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;border-radius:2px;white-space:nowrap;transition:background 0.2s;flex-shrink:0;" onmouseover="this.style.background='#a83010'" onmouseout="this.style.background='var(--catch)'">Start free trial &rarr;</a>
 </div>
 
 <!-- ─────────────────── DEMO DASHBOARD SHOWCASE ─────────────────── -->
 <div style="background:var(--foam);border-bottom:1px solid var(--rule);padding:64px 48px;">
   <div style="max-width:900px;margin:0 auto;">
     <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;text-align:center;">Live demo dashboard</div>
-    <div style="position:relative;border:1px solid var(--rule);border-radius:2px;overflow:hidden;cursor:pointer;" onclick="window.location='{{ url_for('trade_dashboard') }}'">
+    <div style="position:relative;border:1px solid var(--rule);border-radius:2px;overflow:hidden;cursor:pointer;" onclick="window.location='{{ url_for('trade.trade_dashboard') }}'">
       <img src="{{ url_for('static', filename='img/dashboard-preview.jpg') }}" alt="Quayside trade dashboard — cross-port price intelligence for fish buyers and sellers" style="width:100%;display:block;">
       <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,14,12,0.35);transition:background 0.2s;" onmouseover="this.style.background='rgba(15,14,12,0.55)'" onmouseout="this.style.background='rgba(15,14,12,0.35)'">
-        <a href="{{ url_for('trade_dashboard') }}" style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:13px;letter-spacing:0.12em;text-transform:uppercase;padding:16px 36px;border-radius:2px;text-decoration:none;box-shadow:0 8px 32px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">Click to open the demo dashboard &rarr;</a>
+        <a href="{{ url_for('trade.trade_dashboard') }}" style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:13px;letter-spacing:0.12em;text-transform:uppercase;padding:16px 36px;border-radius:2px;text-decoration:none;box-shadow:0 8px 32px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">Click to open the demo dashboard &rarr;</a>
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
       <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;">Demo dashboard &mdash; live UK market data</span>
-      <a href="{{ url_for('trade_dashboard') }}" style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--tide);text-decoration:none;border-bottom:1px solid var(--rule);">Explore the demo &rarr;</a>
+      <a href="{{ url_for('trade.trade_dashboard') }}" style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--tide);text-decoration:none;border-bottom:1px solid var(--rule);">Explore the demo &rarr;</a>
     </div>
   </div>
 </div>
@@ -1888,7 +1888,7 @@
           <li>New ports added throughout 2026 &mdash; included at no extra cost</li>
         </ul>
         <div class="pricing-cta-wrap">
-          <a href="{{ url_for('register') }}" class="pricing-cta-btn">Start your free trial &rarr;</a>
+          <a href="{{ url_for('auth.register') }}" class="pricing-cta-btn">Start your free trial &rarr;</a>
           <div class="pricing-fine-print">No card required &middot; 7 days free &middot; Cancel any time</div>
         </div>
       </div>
@@ -1986,8 +1986,8 @@
   <h2>The UK fish market,<br><em>properly aggregated.</em></h2>
   <p>Start your 7-day free trial today. No card needed. Full access from day one. Cancel any time with no obligation.</p>
   <div class="final-ctas">
-    <a href="{{ url_for('register') }}" class="btn-primary" style="padding:16px 48px;font-size:13px;">Start free trial &rarr;</a>
-    <a href="{{ url_for('trade_dashboard') }}" class="btn-secondary" style="padding:16px 40px;font-size:13px;background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1);color:#c8d8e0;">Open the demo dashboard &rarr;</a>
+    <a href="{{ url_for('auth.register') }}" class="btn-primary" style="padding:16px 48px;font-size:13px;">Start free trial &rarr;</a>
+    <a href="{{ url_for('trade.trade_dashboard') }}" class="btn-secondary" style="padding:16px 40px;font-size:13px;background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1);color:#c8d8e0;">Open the demo dashboard &rarr;</a>
   </div>
   <div class="final-cta-secondary">
     Questions? <a href="mailto:hello@quayside.fish">hello@quayside.fish</a>
@@ -1998,9 +1998,9 @@
 <footer>
   <div class="footer-logo">Quay<span>side</span></div>
   <ul class="footer-links">
-    <li><a href="{{ url_for('landing') }}">Home</a></li>
-    <li><a href="{{ url_for('for_ports') }}">For Ports</a></li>
-    <li><a href="{{ url_for('about') }}">About</a></li>
+    <li><a href="{{ url_for('public.landing') }}">Home</a></li>
+    <li><a href="{{ url_for('public.for_ports') }}">For Ports</a></li>
+    <li><a href="{{ url_for('public.about') }}">About</a></li>
     <li><a href="mailto:hello@quayside.fish">Contact</a></li>
   </ul>
   <div class="footer-copy">&copy; 2026 Quayside Data Ltd</div>

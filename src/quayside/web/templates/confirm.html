@@ -77,12 +77,13 @@
 </div>
 
 <div class="confirm-actions">
-    <form method="POST" action="{{ url_for('approve_upload', token=token) }}" style="display:inline;">
+    <form method="POST" action="{{ url_for('ports.approve_upload', token=token) }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="btn btn-primary" style="padding:14px 40px;">
             &#10003; Looks good
         </button>
     </form>
-    <a href="{{ url_for('edit_upload', token=token) }}" class="btn btn-secondary" style="padding:14px 40px;">
+    <a href="{{ url_for('ports.edit_upload', token=token) }}" class="btn btn-secondary" style="padding:14px 40px;">
         Fix something
     </a>
 </div>

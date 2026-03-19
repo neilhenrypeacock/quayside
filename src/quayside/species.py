@@ -42,8 +42,8 @@ _CANONICAL_MAP: dict[str, list[str]] = {
 
     # --- PREMIUM / ROUND FISH ---
     "Monkfish":       ["Monks", "Monk", "Monk Or Anglers", "Monkfish", "MONK"],
-    "John Dory":      ["Dory", "John Dory"],
-    "Catfish":        ["Catfish Scottish", "Catfish"],
+    "John Dory":      ["Dory", "Dory Mini", "John Dory"],
+    "Catfish":        ["Catfish Scottish", "Catfish", "Cat"],
 
     # --- RAY WINGS (sold as wings — split by species) ---
     "Blonde Ray Wings":     ["Bl Wing", "Wings - Blonde"],
@@ -63,7 +63,7 @@ _CANONICAL_MAP: dict[str, list[str]] = {
     "Ray":            ["Ray", "Un Ray"],  # unidentified ray
 
     # --- SKATE (distinct from rays in trade) ---
-    "Skate":          ["Skate", "Skate Medium", "Skate Round", "Skate Small", "Thornback Skate"],
+    "Skate":          ["Skate", "Skate Medium", "Skate Round", "Skate Small", "Thornback Skate", "Skate & Rays"],
 
     # --- GURNARD (tub gurnard is distinct product from generic gurnard) ---
     "Gurnard":        ["Gurnard", "Gurnard and Latchet"],
@@ -73,7 +73,7 @@ _CANONICAL_MAP: dict[str, list[str]] = {
     "Black Bream":    ["Black Bream", "Bream"],
     "Red Bream":      ["Red Bream"],
     "Couch's Bream":  ["Couch Bream"],
-    "Gilthead Bream": ["Gilthead Bream 750-1KG"],  # Newlyn size-specific entry
+    "Gilthead Bream": ["Gilthead Bream 750-1KG", "Breamgilth"],
 
     # --- SHELLFISH / CEPHALOPODS ---
     "Crabs":          ["Crabs", "Crabs Hen", "Crabscock", "Crabsmx", "Crabclaws",
@@ -134,13 +134,13 @@ _NOISE_SUBSTRINGS: tuple[str, ...] = (
 # Brixham-style concatenated suffixes for damaged/mixed/bruised product.
 # e.g. "Hadddam" = Haddock damaged, "Solemixed" = Sole mixed,
 #      "Monkslink" = Monks link (offcuts), "Megrimbru" = Megrim bruised
-_NOISE_SUFFIXES: tuple[str, ...] = ("dam", "mx", "bru", "mixed", "tails", "link")
+_NOISE_SUFFIXES: tuple[str, ...] = ("dam", "mx", "bru", "mixed", "mixe", "tails", "link", "ungutt")
 
 # Brixham-style prefixes — "bru" + species = bruised, e.g. "Brubrill1" = Bruised Brill grade 1
 _NOISE_PREFIXES: tuple[str, ...] = ("bru",)
 
 
-def is_noisy_species(name: str) -> bool:
+def is_noisy_species(name: str | None) -> bool:
     """Return True if this species name is too generic/damaged to be meaningful.
 
     Used by report builders to filter out noise before cross-port comparisons.
@@ -149,7 +149,11 @@ def is_noisy_species(name: str) -> bool:
     - Noise substrings anywhere in the name (e.g. "Megrim Damaged", "Monk Cheeks")
     - Brixham-style concatenated suffixes (e.g. "Hadddam", "Solemixed", "Megrimbru")
     """
+    if not name:
+        return True
     low = name.lower().strip()
+    if len(low) <= 1:
+        return True
 
     # Check standalone noise words
     if any(word in _NOISE_WORDS for word in low.split()):
@@ -174,15 +178,17 @@ def is_noisy_species(name: str) -> bool:
     return False
 
 
-def normalise_species(raw_name: str) -> str | None:
+def normalise_species(raw_name: str | None) -> str | None:
     """Map a raw scraped species name to its canonical display name.
 
     Returns:
-        None            — if the name matches the noise filter
+        None            — if the name is None, empty, or matches the noise filter
         canonical str   — if a mapping exists in _CANONICAL_MAP
         title-cased str — if no mapping found (so it still appears in reports,
                           just without cross-port merging)
     """
+    if not raw_name:
+        return None
     if is_noisy_species(raw_name):
         return None
     return _RAW_TO_CANONICAL.get(raw_name.lower().strip(), raw_name.strip().title())

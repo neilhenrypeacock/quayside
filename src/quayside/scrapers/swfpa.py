@@ -235,7 +235,10 @@ def scrape_prices(xls_url: str | None = None, xls_bytes: bytes | None = None) ->
 
 
 def _read_prices(sheet, row_idx: int) -> tuple:
-    """Read LOW (col 3), HIGH (col 4), AVG (col 5) from a row."""
+    """Read LOW (col 3), HIGH (col 4), AVG (col 5) from a row.
+
+    Auto-swaps low/high if the source data has them inverted.
+    """
 
     def _val(col):
         v = sheet.cell_value(row_idx, col)
@@ -243,7 +246,10 @@ def _read_prices(sheet, row_idx: int) -> tuple:
             return round(v, 2)
         return None
 
-    return _val(3), _val(4), _val(5)
+    low, high, avg = _val(3), _val(4), _val(5)
+    if low is not None and high is not None and low > high:
+        low, high = high, low
+    return low, high, avg
 
 
 def _has_any_price(low, high, avg) -> bool:

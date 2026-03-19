@@ -194,7 +194,7 @@
 
 {% block content %}
 {% if port_slug %}
-<a href="{{ url_for('port_upload', slug=port_slug) }}" style="display:inline-block;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;color:var(--muted);text-decoration:none;margin-bottom:20px;">&larr; Back to add prices</a>
+<a href="{{ url_for('ports.port_upload', slug=port_slug) }}" style="display:inline-block;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;color:var(--muted);text-decoration:none;margin-bottom:20px;">&larr; Back to add prices</a>
 {% endif %}
 
 <div class="page-header">

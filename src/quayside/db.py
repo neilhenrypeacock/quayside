@@ -110,6 +110,19 @@ def init_db() -> None:
             created_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
 
+        CREATE TABLE IF NOT EXISTS landings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            port TEXT NOT NULL,
+            vessel_name TEXT NOT NULL,
+            vessel_code TEXT NOT NULL,
+            species TEXT NOT NULL,
+            boxes INTEGER NOT NULL,
+            boxes_msc INTEGER NOT NULL,
+            scraped_at TEXT NOT NULL,
+            UNIQUE(date, port, vessel_name, vessel_code, species)
+        );
+
         CREATE TABLE IF NOT EXISTS demo_prices (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date TEXT NOT NULL,
@@ -1031,18 +1044,26 @@ def get_market_averages_for_range(
 
 
 def get_30day_species_averages(date: str) -> dict[str, float]:
-    """Rolling 30-trading-day average best price per raw species, ending the day before date.
+    """Rolling 30-trading-day average price per raw species, ending the day before date.
+
+    Uses best-per-port-then-average methodology (matching market avg calculations):
+    for each (date, port, species), take MAX(price_avg) across grades, then AVG
+    across ports per (date, species), then AVG across dates.
 
     Uses ~45 calendar days to capture ~30 trading days.
     Returns {raw_species_name: avg_price}.
     """
     conn = get_connection()
     rows = conn.execute(
-        """SELECT species, AVG(day_best) as thirty_day_avg
+        """SELECT species, AVG(market_avg) as thirty_day_avg
            FROM (
-               SELECT date, species, MAX(price_avg) as day_best
-               FROM prices
-               WHERE date < ? AND date >= date(?, '-45 days') AND price_avg IS NOT NULL
+               SELECT date, species, AVG(port_best) as market_avg
+               FROM (
+                   SELECT date, port, species, MAX(price_avg) as port_best
+                   FROM prices
+                   WHERE date < ? AND date >= date(?, '-45 days') AND price_avg IS NOT NULL
+                   GROUP BY date, port, species
+               )
                GROUP BY date, species
            )
            GROUP BY species""",
@@ -1050,6 +1071,31 @@ def get_30day_species_averages(date: str) -> dict[str, float]:
     ).fetchall()
     conn.close()
     return {species: round(avg, 2) for species, avg in rows if avg}
+
+
+def get_30day_port_species_averages(date: str) -> dict[tuple[str, str], tuple[float, int]]:
+    """Rolling 30-trading-day average price per (port, raw_species), ending the day before date.
+
+    Uses MAX(price_avg) per (date, port, species) across grades, then AVGs over days.
+    trade_days = number of distinct dates that port traded that species in the window.
+
+    Uses ~45 calendar days to capture ~30 trading days.
+    Returns {(port, raw_species): (avg_price, trade_day_count)}.
+    """
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT port, species, AVG(port_best) as avg_price, COUNT(DISTINCT date) as trade_days
+           FROM (
+               SELECT date, port, species, MAX(price_avg) as port_best
+               FROM prices
+               WHERE date < ? AND date >= date(?, '-45 days') AND price_avg IS NOT NULL
+               GROUP BY date, port, species
+           )
+           GROUP BY port, species""",
+        (date, date),
+    ).fetchall()
+    conn.close()
+    return {(port, species): (round(avg, 2), trade_days) for port, species, avg, trade_days in rows if avg}
 
 
 def get_market_averages_for_date(date: str) -> dict[str, dict]:

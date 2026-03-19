@@ -388,6 +388,8 @@ def _best_price_per_port(rows: list[tuple]) -> dict[str, dict[str, float]]:
         if avg is None:
             continue
         canonical = normalise_species(raw_species)
+        if canonical is None:
+            continue
         existing = out[canonical].get(port)
         if existing is None or avg > existing:
             out[canonical][port] = avg
@@ -412,6 +414,8 @@ def _build_port_detail(rows: list[tuple]) -> tuple[dict, dict, dict]:
         if avg is None:
             continue
         canonical = normalise_species(raw_sp)
+        if canonical is None:
+            continue
 
         # Track best-avg row for port_ranges
         curr_best = best_avg_tracker[canonical].get(port)

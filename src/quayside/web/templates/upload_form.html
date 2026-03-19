@@ -105,7 +105,7 @@
 {% endblock %}
 
 {% block content %}
-<a href="{{ url_for('port_dashboard', slug=port.slug) }}" class="back-link">&larr; Back to dashboard</a>
+<a href="{{ url_for('ports.port_dashboard', slug=port.slug) }}" class="back-link">&larr; Back to dashboard</a>
 
 <div class="page-header">
     <h1>Add prices</h1>
@@ -122,6 +122,7 @@
             We&rsquo;ll extract the prices automatically.
         </p>
         <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="date" value="">
             <div class="dropzone">
                 <input type="file" name="file" accept=".xls,.xlsx,.csv,.pdf,.png,.jpg,.jpeg,.heic,.webp">
@@ -139,7 +140,7 @@
             Use our shared Google Sheet template.
             Fill in your prices each morning &mdash; we&rsquo;ll pull them in automatically.
         </p>
-        <a href="{{ url_for('download_template', slug=port.slug) }}" class="btn btn-secondary" style="width:100%;text-align:center;">
+        <a href="{{ url_for('ports.download_template', slug=port.slug) }}" class="btn btn-secondary" style="width:100%;text-align:center;">
             Download template
         </a>
         <div class="method-hint">
@@ -156,7 +157,7 @@
             Enter prices directly into our web form.
             Species autocomplete, grade selector, instant submission.
         </p>
-        <a href="{{ url_for('port_submit', slug=port.slug) }}" class="btn btn-primary" style="width:100%;text-align:center;">
+        <a href="{{ url_for('ports.port_submit', slug=port.slug) }}" class="btn btn-primary" style="width:100%;text-align:center;">
             Open price form
         </a>
         <div class="method-hint">No file needed &mdash; type it in</div>

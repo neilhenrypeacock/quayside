@@ -32,6 +32,8 @@ def _best_price_per_species_per_date(
         if avg is None:
             continue
         canonical = normalise_species(species)
+        if canonical is None:
+            continue
         if date not in out[canonical] or avg > out[canonical][date]:
             out[canonical][date] = avg
     return dict(out)
@@ -46,6 +48,8 @@ def _best_price_per_species_per_port(
         if avg is None:
             continue
         canonical = normalise_species(species)
+        if canonical is None:
+            continue
         out[canonical][port].append(avg)
     return dict(out)
 
@@ -56,7 +60,9 @@ def _port_daily_species_count(
     """Build {port: {date: species_count}}."""
     seen: dict[str, dict[str, set]] = defaultdict(lambda: defaultdict(set))
     for date, port, species, *_ in rows:
-        seen[port][date].add(normalise_species(species))
+        canonical = normalise_species(species)
+        if canonical is not None:
+            seen[port][date].add(canonical)
     return {
         port: {date: len(spp) for date, spp in dates.items()}
         for port, dates in seen.items()
@@ -132,7 +138,9 @@ def build_weekly_data(end_date: str | None = None) -> dict:
     # --- Summary strip ---
     all_species: set[str] = set()
     for _, _p, species, *_ in rows:
-        all_species.add(normalise_species(species))
+        canonical = normalise_species(species)
+        if canonical is not None:
+            all_species.add(canonical)
 
     avg_prices = []
     for _, _p, _s, _g, _l, _h, avg in rows:
@@ -163,10 +171,7 @@ def build_weekly_data(end_date: str | None = None) -> dict:
     prev_week_best = _best_price_per_species_per_date(prev_rows)
 
     movers = []
-    noisy = {"dam", "mx", "mixed", "tails", "bru", "link"}
     for species, date_prices in this_week_best.items():
-        if any(n in species.lower() for n in noisy):
-            continue
         # Get first and last price in the week
         sorted_dates = sorted(date_prices.keys())
         if len(sorted_dates) < 2:
@@ -203,13 +208,13 @@ def build_weekly_data(end_date: str | None = None) -> dict:
         port_prices = species_port_prices.get(sp, {})
         if not port_prices:
             continue
-        # Average across all data points for this week
-        all_vals = [v for vals in port_prices.values() for v in vals]
-        this_avg = round(sum(all_vals) / len(all_vals), 2) if all_vals else 0
+        # Best-per-port average: take max per port, then average across ports
+        port_bests = [max(vals) for vals in port_prices.values() if vals]
+        this_avg = round(sum(port_bests) / len(port_bests), 2) if port_bests else 0
 
         prev_port_prices = prev_species_port_prices.get(sp, {})
-        prev_vals = [v for vals in prev_port_prices.values() for v in vals]
-        prev_avg = round(sum(prev_vals) / len(prev_vals), 2) if prev_vals else None
+        prev_bests = [max(vals) for vals in prev_port_prices.values() if vals]
+        prev_avg = round(sum(prev_bests) / len(prev_bests), 2) if prev_bests else None
 
         benchmark_data.append({
             "species": sp,
@@ -340,7 +345,9 @@ def build_monthly_data(year_month: str | None = None) -> dict:
     all_species: set[str] = set()
     all_ports: set[str] = set()
     for _, port, species, *_ in rows:
-        all_species.add(normalise_species(species))
+        canonical = normalise_species(species)
+        if canonical is not None:
+            all_species.add(canonical)
         all_ports.add(port)
 
     summary = {
@@ -440,7 +447,8 @@ def build_monthly_data(year_month: str | None = None) -> dict:
     seen_per_day: dict[str, dict[str, set]] = defaultdict(lambda: defaultdict(set))
     for date, port, species, *_ in rows:
         canonical = normalise_species(species)
-        seen_per_day[canonical][port].add(date)
+        if canonical is not None:
+            seen_per_day[canonical][port].add(date)
     for species, port_dates in seen_per_day.items():
         for port, dates in port_dates.items():
             availability[species][port] = len(dates)

@@ -577,8 +577,7 @@
     z-index: 2;
     border-radius: 1px;
   }
-  .bar-marker.mkt-avg { background: rgba(200, 64, 26, 0.85); }
-  .bar-marker.thirty-day { background: rgba(200, 160, 50, 0.9); }
+  .bar-marker.thirty-port-avg { background: rgba(200, 64, 26, 0.85); }
 
   /* SNAPSHOT LEGEND */
   .snapshot-legend {
@@ -606,8 +605,7 @@
     border-radius: 1px;
     flex-shrink: 0;
   }
-  .legend-swatch.mkt { background: rgba(200, 64, 26, 0.85); }
-  .legend-swatch.thirty { background: rgba(200, 160, 50, 0.9); }
+  .legend-swatch.thirty-port { background: rgba(200, 64, 26, 0.85); }
   .bar-fill {
     height: 100%;
     background: #7ab0c8;
@@ -1237,7 +1235,9 @@
           {% else %}
           <div class="bar-fill{% if loop.first %} best{% endif %}" style="width:{{ p.bar_width_pct }}%"></div>
           {% endif %}
-          <div class="bar-marker mkt-avg" style="left:{{ b.market_avg_bar_pct }}%"></div>
+          {% if p.thirty_day_avg_pct is not none %}
+          <div class="bar-marker thirty-port-avg" style="left:{{ p.thirty_day_avg_pct }}%"></div>
+          {% endif %}
         </div>
         <div class="bar-price-cell">
           {% if p.is_range_bar %}
@@ -1252,7 +1252,7 @@
       </div>
       {% endfor %}
       <div class="snapshot-legend">
-        <span class="legend-item"><span class="legend-swatch mkt"></span>Mkt avg &nbsp;<strong>&pound;{{ "%.2f"|format(b.market_avg) }}</strong>&nbsp;<span class="legend-port-count">({{ b.ports|length }} port{{ 's' if b.ports|length != 1 else '' }})</span></span>
+        <span class="legend-item"><span class="legend-swatch thirty-port"></span>30-day avg at this port &mdash; shown where port has traded this species &ge;5 times in the last 30 days</span>
       </div>
     </div>
     {% endfor %}

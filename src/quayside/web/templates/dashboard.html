@@ -2,7 +2,7 @@
 {% block title %}{{ port.name }} — Quayside{% endblock %}
 
 {% block nav %}
-<a href="{{ url_for('port_upload', slug=port.slug) }}">Add Prices</a>
+<a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Add Prices</a>
 {% endblock %}
 
 {% block head %}
@@ -1333,7 +1333,7 @@
 
 <!-- Welcome banner (dismissible) -->
 <div class="welcome-banner" id="welcomeBanner" style="display:none;">
-    <span>New here? <a href="{{ url_for('port_upload', slug=port.slug) }}">Add your prices</a> or <a href="{{ url_for('for_ports') }}">learn how it works</a>.</span>
+    <span>New here? <a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Add your prices</a> or <a href="{{ url_for('public.for_ports') }}">learn how it works</a>.</span>
     <button onclick="dismissWelcome()" aria-label="Dismiss">&times;</button>
 </div>
 
@@ -1354,7 +1354,7 @@
         <li><a href="#section-chat">Ask Quayside</a></li>
         <li><a href="#section-prices">Prices</a></li>
         <li><a href="#section-customize">Customize</a></li>
-        <li><a href="{{ url_for('port_upload', slug=port.slug) }}" class="sidebar-upload-link">Upload &amp; Edit</a></li>
+        <li><a href="{{ url_for('ports.port_upload', slug=port.slug) }}" class="sidebar-upload-link">Upload &amp; Edit</a></li>
     </ul>
 </aside>
 
@@ -1367,11 +1367,11 @@
         <h1>{{ port.name }}</h1>
         <div class="port-meta">
             {{ port.region }} &middot; {{ latest_date_display }}
-            &middot; <a href="{{ url_for('port_upload', slug=port.slug) }}">Add prices</a>
+            &middot; <a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Add prices</a>
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
-        <a href="{{ url_for('export_port_data', slug=port.slug) }}" class="btn-export">&#x2913; Export all data</a>
+        <a href="{{ url_for('ports.export_port_data', slug=port.slug) }}" class="btn-export">&#x2913; Export all data</a>
         {% if freshness_status == 'live' %}
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
             <div>
@@ -1424,7 +1424,7 @@
     <p>No prices for today yet.</p>
     <p class="hint">
         Forward your price sheet to <strong>prices@quayside.fish</strong><br>
-        or <a href="{{ url_for('port_upload', slug=port.slug) }}">add prices directly</a>.
+        or <a href="{{ url_for('ports.port_upload', slug=port.slug) }}">add prices directly</a>.
     </p>
 </div>
 {% else %}

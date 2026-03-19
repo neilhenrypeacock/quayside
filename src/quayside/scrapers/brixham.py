@@ -94,6 +94,10 @@ def scrape_prices(
         if species_grade_raw.upper() in _SKIP_KEYWORDS:
             continue
 
+        # Skip zero/negative prices (noise species like Dead, Bull, Macdam)
+        if day_avg <= 0:
+            continue
+
         # Skip implausible prices — these are lot totals parsed as per-kg prices
         if day_avg > 500:
             logger.warning(

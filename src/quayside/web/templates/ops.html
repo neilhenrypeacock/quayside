@@ -766,7 +766,7 @@ async function runQualityCheck() {
     const dlLink = document.getElementById('quality-download-link');
     if (dlLink) dlLink.style.display = 'none';
     try {
-        const r = await fetch('/ops/run-quality-check', {method: 'POST'});
+        const r = await fetch('/ops/run-quality-check', {method: 'POST', headers: {'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content}});
         if (!r.ok) throw new Error('Server error ' + r.status);
         const d = await r.json();
         if (d.errors > 0) {
@@ -794,7 +794,7 @@ async function clearQualityIssue(issueId) {
     const btn = row.querySelector('button');
     if (btn) { btn.disabled = true; btn.textContent = '…'; }
     try {
-        const r = await fetch('/ops/quality/clear/' + issueId, {method: 'POST'});
+        const r = await fetch('/ops/quality/clear/' + issueId, {method: 'POST', headers: {'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content}});
         if (!r.ok) throw new Error('Server error');
         row.style.transition = 'opacity 0.3s';
         row.style.opacity = '0';

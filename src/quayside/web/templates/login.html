@@ -162,7 +162,8 @@
     {% endif %}
     {% endwith %}
 
-    <form method="post" action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
+    <form method="post" action="{{ url_for('auth.login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="hint_role" id="hint_role" value="">
       <div class="auth-field">
         <label for="email">Email</label>
@@ -176,7 +177,7 @@
     </form>
 
     <div class="auth-footer">
-      No account? <a href="{{ url_for('register') }}">Register here</a>
+      No account? <a href="{{ url_for('auth.register') }}">Register here</a>
     </div>
   </div>
 </div>

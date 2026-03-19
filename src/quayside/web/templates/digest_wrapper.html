@@ -100,7 +100,7 @@ function runPipeline() {
     status.style.background = '#e8f0f8';
     status.style.color = '#1a3a6a';
     status.textContent = 'Pipeline running — scraping all ports, please wait (up to 2 min)...';
-    fetch('/ops/run-pipeline', {method:'POST'})
+    fetch('/ops/run-pipeline', {method:'POST', headers:{'X-CSRF-Token':document.querySelector('meta[name="csrf-token"]').content}})
         .then(function(r){return r.json();})
         .then(function(d){
             if (d.ok) {

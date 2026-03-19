@@ -171,32 +171,32 @@
 </div>
 
 <div class="screen-grid">
-    <a href="{{ url_for('landing') }}" class="screen-card">
+    <a href="{{ url_for('public.landing') }}" class="screen-card">
         <h3>Landing Page</h3>
         <p>Subscriber-focused marketing. Pricing tiers, how it works, signup CTA.</p>
         <div class="url">/landing</div>
     </a>
-    <a href="{{ url_for('digest_page') }}" class="screen-card">
+    <a href="{{ url_for('digest.digest_page') }}" class="screen-card">
         <h3>Daily Digest</h3>
         <p>Web version of the email digest. Full price tables, movers, benchmarks.</p>
         <div class="url">/digest</div>
     </a>
-    <a href="{{ url_for('for_ports') }}" class="screen-card">
+    <a href="{{ url_for('public.for_ports') }}" class="screen-card">
         <h3>For Ports</h3>
         <p>Port marketing + onboarding. Value prop, demo, getting started steps.</p>
         <div class="url">/for-ports</div>
     </a>
-    <a href="{{ url_for('ops_dashboard') }}" class="screen-card">
+    <a href="{{ url_for('ops.ops_dashboard') }}" class="screen-card">
         <h3>Ops Dashboard</h3>
         <p>Internal. Scraper health, port coverage, data gaps, auction frequency.</p>
         <div class="url">/ops</div>
     </a>
-    <a href="{{ url_for('weekly_digest') }}" class="screen-card">
+    <a href="{{ url_for('digest.weekly_digest') }}" class="screen-card">
         <h3>Weekly Review</h3>
         <p>5-day snapshot. Movers, benchmarks, port heatmap, cross-port spreads.</p>
         <div class="url">/digest/weekly</div>
     </a>
-    <a href="{{ url_for('monthly_digest') }}" class="screen-card">
+    <a href="{{ url_for('digest.monthly_digest') }}" class="screen-card">
         <h3>Monthly Review</h3>
         <p>Trends, volatility, port reliability, species availability matrix.</p>
         <div class="url">/digest/monthly</div>
@@ -211,12 +211,12 @@
             {% set dot_color = '#6db88a' if port.freshness_status == 'live' else '#c8941a' if port.freshness_status == 'stale' else '#e07060' %}
             {% set dot_title = 'Data in today' if port.freshness_status == 'live' else 'No data yet today' if port.freshness_status == 'stale' else 'Data unavailable' %}
             <span class="port-freshness-dot" style="background:{{ dot_color }};" title="{{ dot_title }}"></span>
-            <a href="{{ url_for('port_dashboard', slug=port.slug) }}">{{ port.name }}</a>
+            <a href="{{ url_for('ports.port_dashboard', slug=port.slug) }}">{{ port.name }}</a>
             <span class="region">{{ port.region }}</span>
         </div>
         <div class="port-links">
-            <a href="{{ url_for('port_dashboard', slug=port.slug) }}">Dashboard</a>
-            <a href="{{ url_for('port_upload', slug=port.slug) }}">Upload</a>
+            <a href="{{ url_for('ports.port_dashboard', slug=port.slug) }}">Dashboard</a>
+            <a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Upload</a>
         </div>
     </div>
     {% endfor %}

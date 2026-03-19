@@ -6,7 +6,7 @@
         {% for d in available_dates %}
         {% set is_active = (d == date) %}
         <a class="date-tab {{ 'active' if is_active }}"
-           href="{{ url_for('port_dashboard', slug=port.slug, date=d) }}"
+           href="{{ url_for('ports.port_dashboard', slug=port.slug, date=d) }}"
            data-date="{{ d }}">
             {% if loop.index == 1 %}Latest ({{ d }}){% else %}{{ d }}{% endif %}
         </a>

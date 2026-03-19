@@ -9,11 +9,10 @@ from pathlib import Path
 
 import jinja2
 
-from quayside.db import get_30day_species_averages, get_all_prices_for_date, get_latest_date, get_latest_rich_date, get_previous_date, get_total_port_count
-from quayside.species import KEY_SPECIES
+from quayside.db import get_30day_port_species_averages, get_30day_species_averages, get_all_prices_for_date, get_latest_date, get_latest_rich_date, get_previous_date, get_total_port_count
+from quayside.species import KEY_SPECIES, is_noisy_species, normalise_species
 from quayside.fx import get_rate
 from quayside.ports import get_port_code_map
-from quayside.species import normalise_species
 
 logger = logging.getLogger(__name__)
 
@@ -34,18 +33,6 @@ def _get_port_codes() -> dict[str, str]:
 
 
 PORT_CODES = _get_port_codes()
-
-# Noisy/generic species names that produce meaningless price comparisons
-_NOISE_WORDS = {"mixed", "offal", "roe", "livers", "frames", "heads", "wings", "skin"}
-_NOISE_SUBSTRINGS = ("mixed", "damaged", "bruised", "bru ", " bru", "tails")
-
-
-def _is_noisy_species(sp: str) -> bool:
-    """Return True if this species name is too generic/damaged to be meaningful."""
-    low = sp.lower().strip()
-    if low in _NOISE_WORDS:
-        return True
-    return any(n in low for n in _NOISE_SUBSTRINGS)
 
 
 # Benchmark species shown in the market snapshot — ordered by commercial importance
@@ -70,27 +57,24 @@ def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
     if not prev_rows:
         return []
 
-    # Skip noisy damaged/mixed items that cause extreme swings
-    _NOISE_SUFFIXES = ("dam", "mx", "mixed", "tails", "bru", "link")
-
-    def _is_noisy(raw_species: str) -> bool:
-        low = raw_species.lower().strip()
-        return any(low.endswith(s) for s in _NOISE_SUFFIXES) or "damaged" in low
-
     def _market_avg_by_species(rows: list[tuple]) -> dict[str, float]:
-        """Market average price per normalised species across all ports (skip noisy items)."""
-        totals: dict[str, float] = {}
-        counts: dict[str, int] = {}
+        """Market average price per normalised species (best-per-port, then avg across ports)."""
+        # Track best avg per (species, port) — same methodology as trade.py
+        best_per_port: dict[str, dict[str, float]] = defaultdict(dict)
         for r in rows:
-            _, _port, raw_species, _grade, _low, _high, avg, _wkg, _boxes = r
-            if not avg or _is_noisy(raw_species):
+            _, port, raw_species, _grade, _low, _high, avg, _wkg, _boxes = r
+            if not avg:
                 continue
             species = normalise_species(raw_species)
             if species is None:
                 continue
-            totals[species] = totals.get(species, 0.0) + avg
-            counts[species] = counts.get(species, 0) + 1
-        return {s: totals[s] / counts[s] for s in totals}
+            existing = best_per_port[species].get(port)
+            if existing is None or avg > existing:
+                best_per_port[species][port] = avg
+        return {
+            sp: sum(ports.values()) / len(ports)
+            for sp, ports in best_per_port.items()
+        }
 
     today_best = _market_avg_by_species(today_rows)
     prev_best = _market_avg_by_species(prev_rows)
@@ -175,7 +159,7 @@ def _build_port_highlights(rows: list[tuple], thirty_day_raw: dict[str, float]) 
         if not avg:
             continue
         species = normalise_species(raw_species)
-        if species is None or _is_noisy_species(species):
+        if species is None or is_noisy_species(species):
             continue
 
         # Track fallback (highest price per port)
@@ -306,7 +290,7 @@ def build_report_data(date: str) -> dict:
 
     key_species_summary = []
     for species in multi_port_species:
-        if _is_noisy_species(species):
+        if is_noisy_species(species):
             continue
         port_prices = species_ports[species]
         best_port = max(port_prices, key=port_prices.get)
@@ -342,17 +326,24 @@ def build_report_data(date: str) -> dict:
     # Sort: port count desc, then best price desc
     key_species_summary.sort(key=lambda s: (-s["port_count"], -s["best_price"]))
 
-    # --- 30-day rolling averages (raw species names, then normalise) ---
+    # --- 30-day rolling averages: per-port (for bar markers) ---
     thirty_day_raw = get_30day_species_averages(date)
-    # Aggregate raw names → canonical (average of raw averages)
-    _thirty_accum: dict[str, list[float]] = defaultdict(list)
-    for raw_sp, avg in thirty_day_raw.items():
+    port_thirty_day_raw = get_30day_port_species_averages(date)
+
+    # Build canonical-keyed lookup: {(port, canonical_species): (avg, trade_days)}
+    # Multiple raw names can map to the same canonical — use weighted average by trade days.
+    _port_thirty_accum: dict[tuple[str, str], list[tuple[float, int]]] = defaultdict(list)
+    for (port, raw_sp), (avg, trade_days) in port_thirty_day_raw.items():
         sp = normalise_species(raw_sp)
         if sp is not None:
-            _thirty_accum[sp].append(avg)
-    thirty_day_avgs: dict[str, float] = {
-        sp: round(sum(vals) / len(vals), 2) for sp, vals in _thirty_accum.items()
-    }
+            _port_thirty_accum[(port, sp)].append((avg, trade_days))
+    port_thirty_day: dict[tuple[str, str], tuple[float, int]] = {}
+    for (port, sp), vals in _port_thirty_accum.items():
+        total_days = sum(c for _, c in vals)
+        weighted_avg = sum(a * c for a, c in vals) / total_days if total_days else 0
+        port_thirty_day[(port, sp)] = (round(weighted_avg, 2), total_days)
+
+    _MIN_TRADE_DAYS = 5  # minimum sessions before showing a 30d avg marker
 
     # --- Benchmark snapshot (top commercial species) ---
     benchmark_snapshot = []
@@ -361,7 +352,6 @@ def build_report_data(date: str) -> dict:
             continue
         port_prices = species_ports[species]
         best_price = max(port_prices.values())
-        market_avg = round(sum(port_prices.values()) / len(port_prices), 2)
 
         prev_price = prev_best.get(species)
         change = {}
@@ -376,9 +366,17 @@ def build_report_data(date: str) -> dict:
                     "direction": "up" if pct > 0 else "down",
                 }
 
-        thirty_avg = thirty_day_avgs.get(species)
+        # Collect per-port 30d avgs (only those with sufficient history)
+        port_30d_avgs: dict[str, float] = {}
+        for port in port_prices:
+            lookup = port_thirty_day.get((port, species))
+            if lookup and lookup[1] >= _MIN_TRADE_DAYS:
+                port_30d_avgs[port] = lookup[0]
 
-        # Per-port breakdown with bar widths (same pattern as cross-port comparisons)
+        # Scale: accommodate any 30d avg that exceeds today's best price
+        scale = max(best_price, max(port_30d_avgs.values())) if port_30d_avgs else best_price
+
+        # Per-port breakdown with bar widths
         ports = []
         for port, price in port_prices.items():
             details = species_port_details[species].get(port, {})
@@ -395,13 +393,16 @@ def build_report_data(date: str) -> dict:
                 and port_low != port_high
                 and abs(price - (port_low + port_high) / 2) < 0.01
             )
-            bar_low_pct = round((port_low / best_price) * 100) if (is_range_bar and best_price) else 0
-            bar_high_pct = round((port_high / best_price) * 100) if (is_range_bar and best_price) else 0
+            bar_low_pct = round((port_low / scale) * 100) if (is_range_bar and scale) else 0
+            bar_high_pct = round((port_high / scale) * 100) if (is_range_bar and scale) else 0
+
+            thirty_avg_port = port_30d_avgs.get(port)
+            thirty_day_avg_pct = round((thirty_avg_port / scale) * 100) if (thirty_avg_port and scale) else None
 
             ports.append({
                 "port": port,
                 "price_avg": price,
-                "bar_width_pct": round((price / best_price) * 100) if best_price else 0,
+                "bar_width_pct": round((price / scale) * 100) if scale else 0,
                 "price_low": port_low,
                 "price_high": port_high,
                 "weight_kg": port_wkg,
@@ -409,19 +410,14 @@ def build_report_data(date: str) -> dict:
                 "is_range_bar": is_range_bar,
                 "bar_low_pct": bar_low_pct,
                 "bar_range_width_pct": bar_high_pct - bar_low_pct,
+                "thirty_day_avg": thirty_avg_port,
+                "thirty_day_avg_pct": thirty_day_avg_pct,
             })
         ports.sort(key=lambda p: p["price_avg"], reverse=True)
-
-        market_avg_bar_pct = round((market_avg / best_price) * 100) if best_price else 0
-        thirty_day_avg_bar_pct = round((thirty_avg / best_price) * 100) if (thirty_avg and best_price) else None
 
         benchmark_snapshot.append({
             "species": species,
             "best_price": best_price,
-            "market_avg": market_avg,
-            "thirty_day_avg": thirty_avg,
-            "market_avg_bar_pct": market_avg_bar_pct,
-            "thirty_day_avg_bar_pct": thirty_day_avg_bar_pct,
             "change": change,
             "ports": ports,
         })
@@ -431,7 +427,7 @@ def build_report_data(date: str) -> dict:
     for r in rows:
         _, port, raw_species, grade, low, high, avg, _wkg, _boxes = r
         species = normalise_species(raw_species)
-        if species is None or _is_noisy_species(species):
+        if species is None or is_noisy_species(species):
             continue
         if avg and (port not in port_best or avg > port_best[port]["price"]):
             port_best[port] = {

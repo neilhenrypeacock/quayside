@@ -575,8 +575,8 @@
       Send us your daily price data after each auction and get a live market intelligence dashboard, free. See how you're trending, understand where you sit in the UK market, and give your prices daily visibility with buyers.
     </p>
     <div style="display:flex;gap:16px;flex-wrap:wrap;">
-      <a href="{{ url_for('port_submit') }}" class="btn-primary">Sign up free &rarr;</a>
-      <a href="{{ url_for('port_dashboard', slug='demo') }}" class="btn-secondary">Open the demo dashboard &rarr;</a>
+      <a href="{{ url_for('ports.port_submit') }}" class="btn-primary">Sign up free &rarr;</a>
+      <a href="{{ url_for('ports.port_dashboard', slug='demo') }}" class="btn-secondary">Open the demo dashboard &rarr;</a>
     </div>
   </div>
   <div class="port-hero-right">
@@ -592,7 +592,7 @@
       The moment your first prices land, your port gets a live dashboard. See how you're trending, where you sit in the national market for each species, and what's moving.
     </p>
     <div class="dashboard-screenshot fade-up">
-      <a href="{{ url_for('port_dashboard', slug='demo') }}" target="_blank" style="display:block;position:relative;">
+      <a href="{{ url_for('ports.port_dashboard', slug='demo') }}" target="_blank" style="display:block;position:relative;">
         <img src="{{ url_for('static', filename='img/dashboard-preview.jpg') }}" alt="Quayside demo dashboard — price data, species rankings, and market position">
         <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,14,12,0.3);transition:background 0.2s;" onmouseover="this.style.background='rgba(15,14,12,0.5)'" onmouseout="this.style.background='rgba(15,14,12,0.3)'">
           <div style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:13px;letter-spacing:0.12em;text-transform:uppercase;padding:16px 36px;border-radius:2px;box-shadow:0 8px 32px rgba(0,0,0,0.3);">Click to open the demo dashboard &rarr;</div>
@@ -600,7 +600,7 @@
       </a>
       <div class="dashboard-screenshot-caption">
         <span>Demo dashboard &mdash; representative data</span>
-        <a href="{{ url_for('port_dashboard', slug='demo') }}" target="_blank">Explore the demo &rarr;</a>
+        <a href="{{ url_for('ports.port_dashboard', slug='demo') }}" target="_blank">Explore the demo &rarr;</a>
       </div>
     </div>
 
@@ -652,7 +652,7 @@
         <p style="font-size:16px;line-height:1.7;color:rgba(255,255,255,0.7);margin-bottom:36px;">
           You choose what's in it: today's prices, your best performers, how you're tracking against the national market. Set a send time once &mdash; and it goes out automatically every auction day, the moment your data is processed.
         </p>
-        <a href="{{ url_for('port_submit') }}" style="background:white;color:var(--catch);padding:14px 32px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;border:none;cursor:pointer;text-decoration:none;display:inline-block;border-radius:2px;transition:transform 0.1s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">Get set up &rarr;</a>
+        <a href="{{ url_for('ports.port_submit') }}" style="background:white;color:var(--catch);padding:14px 32px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;border:none;cursor:pointer;text-decoration:none;display:inline-block;border-radius:2px;transition:transform 0.1s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">Get set up &rarr;</a>
       </div>
       <!-- HTML digest-style email mock -->
       <div class="fade-up" style="background:#f5f0e8;border-radius:4px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.35);">
@@ -767,7 +767,7 @@
             </div>
           </li>
         </ol>
-        <a href="{{ url_for('port_submit') }}" class="btn-primary" style="margin-top:32px;display:inline-block;">Sign up free &rarr;</a>
+        <a href="{{ url_for('ports.port_submit') }}" class="btn-primary" style="margin-top:32px;display:inline-block;">Sign up free &rarr;</a>
       </div>
       <div class="fade-up" style="display:flex;flex-direction:column;gap:1px;background:var(--rule);border:1px solid var(--rule);">
         <div class="share-card">
@@ -780,7 +780,7 @@
           <div class="share-card-method">Option B &mdash; Upload form</div>
           <h3>Upload directly to the site</h3>
           <p>Download our one-page Excel template with species dropdowns pre-filled. Fill in your prices after the market and upload here &mdash; it's live within minutes.</p>
-          <a href="{{ url_for('port_upload', slug='peterhead') }}" class="btn-secondary" style="padding:10px 20px;font-size:11px;">Try the upload form &rarr;</a>
+          <a href="{{ url_for('ports.port_upload', slug='peterhead') }}" class="btn-secondary" style="padding:10px 20px;font-size:11px;">Try the upload form &rarr;</a>
         </div>
       </div>
     </div>
@@ -835,7 +835,7 @@
 <div class="final-cta">
   <h2>Sign up. It costs nothing.</h2>
   <p style="color:var(--muted);margin-bottom:32px;">Fill in a short form and we&rsquo;ll verify you&rsquo;re the port, get you set up, and you&rsquo;ll be live from day one &mdash; dashboard, your own port email, and daily visibility with buyers, all included.</p>
-  <a href="{{ url_for('port_submit') }}" class="btn-primary" style="font-size:13px;padding:16px 40px;letter-spacing:0.12em;">Sign up free &rarr;</a>
+  <a href="{{ url_for('ports.port_submit') }}" class="btn-primary" style="font-size:13px;padding:16px 40px;letter-spacing:0.12em;">Sign up free &rarr;</a>
   <div class="cta-or-divider">or</div>
   <p style="color:var(--muted);font-size:14px;">Email us directly at <a href="mailto:hello@quayside.fish" style="color:var(--muted);">hello@quayside.fish</a></p>
   <p class="sub-text" style="margin-top:24px;">Free for port operators.</p>
@@ -845,7 +845,7 @@
 <footer>
   <div class="footer-logo">Quay<span>side</span></div>
   <ul class="footer-links">
-    <li><a href="{{ url_for('landing') }}">Home</a></li>
+    <li><a href="{{ url_for('public.landing') }}">Home</a></li>
     <li><a href="#">Privacy</a></li>
     <li><a href="mailto:hello@quayside.trade">Contact</a></li>
   </ul>

@@ -154,7 +154,8 @@
     {% endif %}
     {% endwith %}
 
-    <form method="post" action="{{ url_for('register') }}" id="register-form">
+    <form method="post" action="{{ url_for('auth.register') }}" id="register-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="margin-bottom:16px;">
         <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">I am a</div>
         <div class="role-picker">
@@ -195,7 +196,7 @@
     </form>
 
     <div class="auth-footer">
-      Already have an account? <a href="{{ url_for('login') }}">Sign in</a>
+      Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
     </div>
   </div>
 </div>

@@ -25,7 +25,7 @@ def export_prices_csv(date: str, port: str) -> Path | None:
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(
-            ["date", "port", "species", "grade", "price_low", "price_high", "price_avg"]
+            ["date", "port", "species", "grade", "price_low", "price_high", "price_avg", "weight_kg", "boxes"]
         )
         writer.writerows(rows)
 
