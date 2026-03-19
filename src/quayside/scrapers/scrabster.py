@@ -70,6 +70,9 @@ def scrape_prices(html: str | None = None) -> list[PriceRecord]:
         if not species or species.lower() in ("species", "total", "totals"):
             continue
 
+        boxes_str = cells[1].get_text(strip=True)
+        boxes = _parse_int(boxes_str)
+
         bottom_str = cells[2].get_text(strip=True)
         top_str = cells[3].get_text(strip=True)
 
@@ -98,11 +101,24 @@ def scrape_prices(html: str | None = None) -> list[PriceRecord]:
                 price_high=top,
                 price_avg=avg,
                 scraped_at=scraped_at,
+                boxes=boxes,
             )
         )
 
     logger.info("Scraped %d price records for %s on %s", len(records), PORT, date)
     return records
+
+
+def _parse_int(s: str) -> int | None:
+    """Parse an integer string, returning None for empty/invalid."""
+    s = s.strip().replace(",", "")
+    if not s or s == "-":
+        return None
+    try:
+        v = int(s)
+        return v if v > 0 else None
+    except ValueError:
+        return None
 
 
 def _parse_price(s: str) -> float | None:

@@ -14,3 +14,7 @@ class PriceRecord:
     price_avg: float | None
     scraped_at: str  # ISO timestamp
     weight_kg: float | None = None  # weight sold in kg (None if not published by port)
+    boxes: int | None = None  # number of boxes/lots sold (Scrabster)
+    defra_code: str | None = None  # 3-letter DEFRA/MMO species code (Brixham)
+    week_avg: float | None = None  # rolling weekly average price £/kg (Brixham)
+    size_band: str | None = None  # size descriptor e.g. "801g+", "0.5-0.7Kg" (Newlyn)

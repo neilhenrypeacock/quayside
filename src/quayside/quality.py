@@ -40,9 +40,9 @@ _SMOKE_TIMEOUT = 10  # seconds per port page fetch
 
 logger = logging.getLogger(__name__)
 
-# Active ports to monitor (exclude Demo Port)
+# Active ports to monitor — excludes demo ports (data_method = 'demo')
 _ACTIVE_PORTS_SQL = """
-    SELECT name FROM ports WHERE status = 'active' AND name != 'Demo Port'
+    SELECT name FROM ports WHERE status = 'active' AND data_method != 'demo'
 """
 
 # Thresholds
@@ -323,7 +323,7 @@ def _check_live_site(conn, date: str, checked_at: str, active_ports: list[str]) 
 
     # slug → port name from the ports table
     slug_rows = conn.execute(
-        "SELECT slug, name FROM ports WHERE status='active' AND name != 'Demo Port'"
+        "SELECT slug, name FROM ports WHERE status='active' AND data_method != 'demo'"
     ).fetchall()
     slug_map = {r[0]: r[1] for r in slug_rows}
 
@@ -974,7 +974,7 @@ def _report_ops_health(conn, date: str, active_ports: list[str]) -> dict:
     cutoff = (today_dt - timedelta(days=9)).isoformat()  # ~2 weeks back covers 5+ trading days
     coverage_rows = conn.execute(
         """SELECT port, COUNT(DISTINCT date) as n FROM prices
-           WHERE port != 'Demo Port' AND date >= ? AND date <= ?
+           WHERE date >= ? AND date <= ?
            GROUP BY port""",
         (cutoff, date),
     ).fetchall()
@@ -989,7 +989,7 @@ def _report_ops_health(conn, date: str, active_ports: list[str]) -> dict:
     # Historical gap count (weekday dates in last 2 weeks with no data for any port)
     gap_count = conn.execute(
         """SELECT COUNT(DISTINCT date) FROM prices
-           WHERE port != 'Demo Port' AND date >= date(?, '-14 days') AND date < ?""",
+           WHERE date >= date(?, '-14 days') AND date < ?""",
         (date, date),
     ).fetchone()[0]
     # Rough: 10 weekdays in 2 weeks, minus days with data

@@ -85,10 +85,10 @@ def scrape_prices(
             continue
 
         species_grade_raw = m.group(1).strip()
-        # group(2) = DEFRA code (not stored)
+        defra_code = m.group(2).strip()
         weight_kg = float(m.group(3))
         day_avg = float(m.group(4))
-        # group(5) = week avg (not stored)
+        week_avg = float(m.group(5))
 
         # Skip totals / footer lines
         if species_grade_raw.upper() in _SKIP_KEYWORDS:
@@ -124,6 +124,8 @@ def scrape_prices(
                 price_avg=round(day_avg, 2),
                 weight_kg=round(weight_kg, 2) if weight_kg > 0 else None,
                 scraped_at=scraped_at,
+                defra_code=defra_code,
+                week_avg=round(week_avg, 2),
             )
         )
 

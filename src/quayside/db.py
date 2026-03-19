@@ -109,6 +109,20 @@ def init_db() -> None:
             port_slug TEXT,
             created_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
+
+        CREATE TABLE IF NOT EXISTS demo_prices (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            port TEXT NOT NULL,
+            species TEXT NOT NULL,
+            grade TEXT NOT NULL,
+            price_low REAL,
+            price_high REAL,
+            price_avg REAL,
+            weight_kg REAL,
+            scraped_at TEXT NOT NULL,
+            UNIQUE(date, port, species, grade)
+        );
     """)
 
     # Migrations: add columns that were introduced after initial deploy
@@ -125,6 +139,33 @@ def _migrate(conn: sqlite3.Connection) -> None:
         conn.execute("ALTER TABLE prices ADD COLUMN upload_id INTEGER")
     if "weight_kg" not in existing:
         conn.execute("ALTER TABLE prices ADD COLUMN weight_kg REAL")
+    if "boxes" not in existing:
+        conn.execute("ALTER TABLE prices ADD COLUMN boxes INTEGER")
+    if "defra_code" not in existing:
+        conn.execute("ALTER TABLE prices ADD COLUMN defra_code TEXT")
+    if "week_avg" not in existing:
+        conn.execute("ALTER TABLE prices ADD COLUMN week_avg REAL")
+    if "size_band" not in existing:
+        conn.execute("ALTER TABLE prices ADD COLUMN size_band TEXT")
+    # demo_prices table — isolated store for Demo Port data (never mixed with real prices)
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS demo_prices (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT NOT NULL,
+                port TEXT NOT NULL,
+                species TEXT NOT NULL,
+                grade TEXT NOT NULL,
+                price_low REAL,
+                price_high REAL,
+                price_avg REAL,
+                weight_kg REAL,
+                scraped_at TEXT NOT NULL,
+                UNIQUE(date, port, species, grade)
+            )
+        """)
+    except Exception:
+        pass
     existing_landings = {row[1] for row in conn.execute("PRAGMA table_info(landings)").fetchall()}
     if existing_landings and "scraped_at" not in existing_landings:
         conn.execute("ALTER TABLE landings ADD COLUMN scraped_at TEXT NOT NULL DEFAULT ''")
@@ -281,8 +322,9 @@ def upsert_prices(records: list[PriceRecord]) -> int:
     conn = get_connection()
     conn.executemany(
         """INSERT OR REPLACE INTO prices
-           (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at,
+            boxes, defra_code, week_avg, size_band)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         [
             (
                 r.date,
@@ -294,6 +336,10 @@ def upsert_prices(records: list[PriceRecord]) -> int:
                 r.price_avg,
                 r.weight_kg,
                 r.scraped_at,
+                r.boxes,
+                r.defra_code,
+                r.week_avg,
+                r.size_band,
             )
             for r in records
         ],
@@ -305,10 +351,11 @@ def upsert_prices(records: list[PriceRecord]) -> int:
 
 
 def get_prices_by_date(date: str, port: str) -> list[tuple]:
+    table = _prices_table(port)
     conn = get_connection()
     rows = conn.execute(
-        """SELECT date, port, species, grade, price_low, price_high, price_avg
-           FROM prices WHERE date = ? AND port = ?
+        f"""SELECT date, port, species, grade, price_low, price_high, price_avg
+           FROM {table} WHERE date = ? AND port = ?
            ORDER BY species, grade""",
         (date, port),
     ).fetchall()
@@ -317,24 +364,18 @@ def get_prices_by_date(date: str, port: str) -> list[tuple]:
 
 
 def get_all_prices_for_date(date: str, exclude_demo: bool = False) -> list[tuple]:
-    """All price rows for a given date, across all ports."""
+    """All real-port price rows for a given date, across all ports.
+
+    Demo Port data lives in the separate 'demo_prices' table and is never
+    included here regardless of the exclude_demo flag (kept for backward compat).
+    """
     conn = get_connection()
-    if exclude_demo:
-        rows = conn.execute(
-            """SELECT p.date, p.port, p.species, p.grade, p.price_low, p.price_high, p.price_avg
-               FROM prices p
-               LEFT JOIN ports po ON po.name = p.port
-               WHERE p.date = ? AND (po.data_method IS NULL OR po.data_method != 'demo')
-               ORDER BY p.species, p.port, p.grade""",
-            (date,),
-        ).fetchall()
-    else:
-        rows = conn.execute(
-            """SELECT date, port, species, grade, price_low, price_high, price_avg
-               FROM prices WHERE date = ?
-               ORDER BY species, port, grade""",
-            (date,),
-        ).fetchall()
+    rows = conn.execute(
+        """SELECT date, port, species, grade, price_low, price_high, price_avg
+           FROM prices WHERE date = ?
+           ORDER BY species, port, grade""",
+        (date,),
+    ).fetchall()
     conn.close()
     return rows
 
@@ -370,9 +411,10 @@ def get_latest_rich_date(min_ports: int = 2) -> str | None:
 
 def get_latest_port_date(port: str) -> str | None:
     """Most recent date with price data for a specific port."""
+    table = _prices_table(port)
     conn = get_connection()
     row = conn.execute(
-        "SELECT MAX(date) FROM prices WHERE port = ?", (port,)
+        f"SELECT MAX(date) FROM {table} WHERE port = ?", (port,)
     ).fetchone()
     conn.close()
     return row[0] if row else None
@@ -482,9 +524,10 @@ def get_trading_dates_recent(n: int = 10) -> list[str]:
 
 def get_port_auction_dates(port: str, limit: int = 20) -> list[str]:
     """Most recent auction dates for a specific port, newest first."""
+    table = _prices_table(port)
     conn = get_connection()
     rows = conn.execute(
-        """SELECT DISTINCT date FROM prices
+        f"""SELECT DISTINCT date FROM {table}
            WHERE port = ?
            ORDER BY date DESC
            LIMIT ?""",
@@ -677,12 +720,14 @@ def upsert_prices_with_upload(records: list[PriceRecord], upload_id: int) -> int
     conn = get_connection()
     conn.executemany(
         """INSERT OR REPLACE INTO prices
-           (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at, upload_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at,
+            upload_id, boxes, defra_code, week_avg, size_band)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         [
             (
                 r.date, r.port, r.species, r.grade,
                 r.price_low, r.price_high, r.price_avg, r.weight_kg, r.scraped_at, upload_id,
+                r.boxes, r.defra_code, r.week_avg, r.size_band,
             )
             for r in records
         ],
@@ -693,15 +738,27 @@ def upsert_prices_with_upload(records: list[PriceRecord], upload_id: int) -> int
     return count
 
 
+# --- Demo Port isolation ---
+
+def _prices_table(port: str) -> str:
+    """Return the correct prices table name for a given port name.
+
+    Demo Port data lives in 'demo_prices' to keep it completely isolated
+    from real market data. All other ports use the 'prices' table.
+    """
+    return "demo_prices" if port == "Demo Port" else "prices"
+
+
 # --- Dashboard queries ---
 
 
 def get_port_prices_history(port: str, days: int = 30) -> list[tuple]:
     """Price history for a single port over the last N days."""
+    table = _prices_table(port)
     conn = get_connection()
     rows = conn.execute(
-        """SELECT date, species, grade, price_low, price_high, price_avg
-           FROM prices
+        f"""SELECT date, species, grade, price_low, price_high, price_avg
+           FROM {table}
            WHERE port = ? AND date >= date('now', ? || ' days')
            ORDER BY date DESC, species, grade""",
         (port, f"-{days}"),
@@ -810,9 +867,10 @@ def seed_demo_data() -> None:
 
 def get_latest_scraped_at(port: str, date: str) -> str | None:
     """Return the most recent scraped_at timestamp for a port on a given date."""
+    table = _prices_table(port)
     conn = get_connection()
     row = conn.execute(
-        "SELECT MAX(scraped_at) FROM prices WHERE port = ? AND date = ?",
+        f"SELECT MAX(scraped_at) FROM {table} WHERE port = ? AND date = ?",
         (port, date),
     ).fetchone()
     conn.close()
@@ -823,6 +881,7 @@ def seed_demo_port_data() -> None:
     """Seed 30 days of realistic price data for the Demo Port.
 
     Always runs — refreshes demo data so the dashboard always looks current.
+    Writes exclusively to the 'demo_prices' table — never touches 'prices'.
     Uses a fixed species/grade set matching a typical Scottish demersal port.
     """
     PORT_NAME = "Demo Port"
@@ -835,7 +894,7 @@ def seed_demo_port_data() -> None:
     grades = ["A1", "A2"]
 
     today = datetime.now()
-    records: list[PriceRecord] = []
+    rows = []
 
     for day_offset in range(30):
         date = today - timedelta(days=day_offset)
@@ -853,18 +912,24 @@ def seed_demo_port_data() -> None:
                 if g_idx > 0:
                     price_avg = round(price_avg * 0.85, 2)
                 spread = round(price_avg * 0.08, 2)
-                records.append(PriceRecord(
-                    date=date_str,
-                    port=PORT_NAME,
-                    species=species_name,
-                    grade=grade,
-                    price_low=round(price_avg - spread, 2),
-                    price_high=round(price_avg + spread, 2),
-                    price_avg=price_avg,
-                    scraped_at=date.isoformat(),
+                rows.append((
+                    date_str, PORT_NAME, species_name, grade,
+                    round(price_avg - spread, 2),
+                    round(price_avg + spread, 2),
+                    price_avg,
+                    None,  # weight_kg
+                    date.isoformat(),
                 ))
 
-    upsert_prices(records)
+    conn = get_connection()
+    conn.executemany(
+        """INSERT OR REPLACE INTO demo_prices
+           (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        rows,
+    )
+    conn.commit()
+    conn.close()
 
 
 def get_prices_by_date_for_port(date: str, port: str) -> list[tuple]:
@@ -877,10 +942,11 @@ def get_same_day_last_week(port: str, date: str) -> dict[str, dict]:
 
     Returns {(species, grade): {price_avg, price_low, price_high}}.
     """
+    table = _prices_table(port)
     conn = get_connection()
     rows = conn.execute(
-        """SELECT species, grade, price_low, price_high, price_avg
-           FROM prices
+        f"""SELECT species, grade, price_low, price_high, price_avg
+           FROM {table}
            WHERE port = ? AND date = date(?, '-7 days')""",
         (port, date),
     ).fetchall()
@@ -896,14 +962,15 @@ def get_species_availability_gaps(port: str, date: str) -> list[str]:
 
     Returns list of species names.
     """
+    table = _prices_table(port)
     conn = get_connection()
     rows = conn.execute(
-        """SELECT DISTINCT species FROM prices
+        f"""SELECT DISTINCT species FROM {table}
            WHERE port = ?
              AND date > date(?, '-30 days')
              AND date <= date(?, '-5 days')
              AND species NOT IN (
-                 SELECT DISTINCT species FROM prices
+                 SELECT DISTINCT species FROM {table}
                  WHERE port = ? AND date > date(?, '-5 days') AND date <= ?
              )""",
         (port, date, date, port, date, date),
@@ -917,10 +984,11 @@ def get_seasonal_comparison(port: str, date: str) -> dict[str, float]:
 
     Returns {species: avg_price} or empty dict if no data exists.
     """
+    table = _prices_table(port)
     conn = get_connection()
     rows = conn.execute(
-        """SELECT species, AVG(price_avg) as avg_price
-           FROM prices
+        f"""SELECT species, AVG(price_avg) as avg_price
+           FROM {table}
            WHERE port = ?
              AND date >= date(?, '-1 year', '-3 days')
              AND date <= date(?, '-1 year', '+3 days')

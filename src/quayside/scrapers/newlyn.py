@@ -114,6 +114,7 @@ def scrape_prices(
         #   "Weaver -"                            → species="Weaver", grade="ALL"
 
         # Check for continuation lines starting with (grade)
+        size_band: str | None = None
         cont_match = re.match(r"^\(([^)]+)\)\s*(.*)", prefix)
         if cont_match:
             grade = cont_match.group(1)
@@ -122,6 +123,8 @@ def scrape_prices(
                 species_part = current_species
                 if "damaged" in after.lower():
                     species_part = f"{current_species} Damaged"
+                elif after:
+                    size_band = after
             else:
                 continue
         else:
@@ -132,6 +135,8 @@ def scrape_prices(
                 after_grade = prefix[grade_match.end() :].strip()
                 if "damaged" in after_grade.lower():
                     species_part = f"{species_part} Damaged"
+                elif after_grade:
+                    size_band = after_grade
             else:
                 grade = "ALL"
                 # Remove size/trailing descriptors
@@ -162,6 +167,7 @@ def scrape_prices(
                 price_avg=round(avg, 2),
                 weight_kg=round(weight_kg, 2) if weight_kg and weight_kg > 0 else None,
                 scraped_at=scraped_at,
+                size_band=size_band,
             )
         )
 
