@@ -1264,6 +1264,66 @@
         /* Hide low/high and seasonal on mobile */
         .hide-mobile { display: none; }
     }
+
+    /* ═══ Port data note ═══ */
+    .port-data-note {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 16px;
+        padding: 8px 12px;
+        border-left: 2px solid var(--rule);
+        letter-spacing: 0.01em;
+    }
+
+    /* ═══ Info tooltips ═══ */
+    .info-tip {
+        display: inline-block;
+        position: relative;
+        cursor: pointer;
+        font-size: 9px;
+        color: var(--muted);
+        vertical-align: middle;
+        margin-left: 3px;
+        line-height: 1;
+        font-family: var(--font-mono);
+        font-style: normal;
+        font-weight: normal;
+        user-select: none;
+        opacity: 0.6;
+        transition: opacity 0.1s;
+    }
+    .info-tip:hover { opacity: 1; }
+    .info-tip-text {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 180px;
+        max-width: 260px;
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-radius: 3px;
+        padding: 8px 10px;
+        font-size: 10px;
+        line-height: 1.55;
+        color: var(--ink);
+        white-space: normal;
+        z-index: 200;
+        text-align: left;
+        pointer-events: none;
+        font-weight: normal;
+        letter-spacing: 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .info-tip:hover .info-tip-text,
+    .info-tip.open .info-tip-text { display: block; }
+    /* Keep tooltip on-screen at edges */
+    th:first-child .info-tip-text,
+    th:nth-child(2) .info-tip-text { left: 0; transform: none; }
+    th:last-child .info-tip-text { left: auto; right: 0; transform: none; }
 </style>
 {% endblock %}
 
@@ -1336,6 +1396,18 @@
     </div>
 </div>
 
+{% if port.slug == 'peterhead' %}
+<p class="port-data-note">Peterhead publishes daily auction prices with low, high, and average prices per grade (A1–A5). Volume data is not published by this port.</p>
+{% elif port.slug == 'brixham' %}
+<p class="port-data-note">Brixham publishes daily auction averages with weight sold per species and grade. Weekly averages and DEFRA species codes are also available.</p>
+{% elif port.slug == 'newlyn' %}
+<p class="port-data-note">Newlyn publishes daily auction averages with weight sold per species and grade. Size band descriptions are included where available.</p>
+{% elif port.slug == 'lerwick' %}
+<p class="port-data-note">Lerwick publishes daily auction averages and maximum prices with volume sold per species and grade. Minimum prices are not published by this port.</p>
+{% elif port.slug == 'scrabster' %}
+<p class="port-data-note">Scrabster publishes daily price ranges (low and high) with box counts per species. Average prices are not published — ranges shown are the auction floor and ceiling.</p>
+{% endif %}
+
 {% if is_fallback %}
 <div class="freshness-banner{% if freshness_status == 'offline' %} offline{% endif %}" id="freshness-banner" data-key="{{ port.slug }}-{{ date }}">
     <span>
@@ -1390,7 +1462,7 @@
         {% else %}
         <div class="hero-value" id="hero-vs-last-week">&mdash;</div>
         {% endif %}
-        <div class="hero-label">vs last {{ day_name }}</div>
+        <div class="hero-label">vs last {{ day_name }} <span class="info-tip">ⓘ<span class="info-tip-text">Change calculated against the same metric from the previous trading day at this port.</span></span></div>
         <div class="hero-sub-price" id="hero-last-week-price">{% if hero_last_week_price is not none %}&pound;{{ "%.2f"|format(hero_last_week_price) }} last {{ day_name }}{% endif %}</div>
         <div class="hero-description">Change vs the same weekday last week</div>
     </div>
@@ -1400,7 +1472,7 @@
         {% else %}
         <div class="hero-value" id="hero-vs-market">&mdash;</div>
         {% endif %}
-        <div class="hero-label">vs UK market avg</div>
+        <div class="hero-label">vs UK market avg <span class="info-tip">ⓘ<span class="info-tip-text">Market average is a simple mean across all ports reporting this species today. Ports are weighted equally regardless of volume. Scrabster's contribution is a midpoint estimate (not a true average).</span></span></div>
         <div class="hero-description">Today's avg above (+) or below (−) the UK-wide average across all ports</div>
     </div>
 </div>
@@ -1534,7 +1606,7 @@
 
 <!-- ═══ SECTION: Market Intelligence ═══ -->
 {% if market_insights %}
-<div class="section-heading">Market Position</div>
+<div class="section-heading">Market Position <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Market average is a simple mean across all ports reporting this species today. Ports are weighted equally regardless of volume. Scrabster's contribution is a midpoint estimate (not a true average).</span></span></div>
 <div id="section-position" class="insights-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div class="insights-label" style="margin:0;">Market Position</div>
@@ -1578,7 +1650,7 @@
         </div>
         <div class="mini-stat" id="aboveMarketStat">
             <div class="stat-value">{{ above_count }}/{{ total_species }}</div>
-            <div class="stat-label">Above market avg</div>
+            <div class="stat-label">Above market avg <span class="info-tip">ⓘ<span class="info-tip-text">Compares this port's average price against the simple mean of all reporting ports. Species where this port achieves above the UK average for the selected period.</span></span></div>
         </div>
         <div class="mini-stat" id="periodTrendStat">
             <div class="stat-value">&mdash;</div>
@@ -2528,5 +2600,18 @@ function scrollActiveDateTab() {
 
     sections.forEach(function(section) { observer.observe(section); });
 })();
+</script>
+<script>
+// Info tooltip toggle (click = mobile friendly; hover handled by CSS)
+document.addEventListener('click', function(e) {
+    var tip = e.target.closest('.info-tip');
+    document.querySelectorAll('.info-tip.open').forEach(function(t) {
+        if (t !== tip) t.classList.remove('open');
+    });
+    if (tip) {
+        tip.classList.toggle('open');
+        e.stopPropagation();
+    }
+});
 </script>
 {% endblock %}

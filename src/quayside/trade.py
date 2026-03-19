@@ -384,7 +384,7 @@ def _port_codes() -> dict[str, str]:
 def _best_price_per_port(rows: list[tuple]) -> dict[str, dict[str, float]]:
     """Build {canonical_species: {port: best_avg}} from price rows."""
     out: dict[str, dict[str, float]] = defaultdict(dict)
-    for _date, port, raw_species, _grade, _low, _high, avg in rows:
+    for _date, port, raw_species, _grade, _low, _high, avg, _wkg, _boxes in rows:
         if avg is None:
             continue
         canonical = normalise_species(raw_species)

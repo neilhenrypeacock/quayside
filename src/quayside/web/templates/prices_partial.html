@@ -43,10 +43,13 @@
                 <th class="text-right hide-mobile">Low</th>
                 <th class="text-right hide-mobile">High</th>
                 <th class="text-right">Avg £/kg</th>
-                <th class="text-right">vs {{ compare_label }}</th>
-                <th class="text-right">vs UK Market</th>
+                <th class="text-right">vs {{ compare_label }} <span class="info-tip">ⓘ<span class="info-tip-text">Change calculated against the same metric from the previous trading day at this port.</span></span></th>
+                <th class="text-right">vs UK Market <span class="info-tip">ⓘ<span class="info-tip-text">Market average is a simple mean across all ports reporting this species today. Ports are weighted equally regardless of volume. Scrabster's contribution is a midpoint estimate (not a true average).</span></span></th>
                 {% if has_seasonal %}
                 <th class="text-right hide-mobile">Last year</th>
+                {% endif %}
+                {% if has_volume %}
+                <th class="text-right hide-mobile">{{ 'Boxes' if volume_type == 'boxes' else 'Volume' }}</th>
                 {% endif %}
             </tr>
         </thead>
@@ -94,6 +97,11 @@
                     {% endif %}
                 </td>
                 {% endif %}
+                {% if has_volume %}
+                <td class="text-right hide-mobile" style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">
+                    {% if first.weight_kg and first.weight_kg > 0 %}{{ "{:,.0f}".format(first.weight_kg) }}kg{% elif first.boxes and first.boxes > 0 %}{{ first.boxes }} boxes{% else %}&mdash;{% endif %}
+                </td>
+                {% endif %}
             </tr>
             {# Grade breakdown rows (hidden by default if multiple grades) #}
             {% if has_grades %}
@@ -122,6 +130,11 @@
                 </td>
                 {% if has_seasonal %}
                 <td class="hide-mobile"></td>
+                {% endif %}
+                {% if has_volume %}
+                <td class="text-right hide-mobile" style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">
+                    {% if item.weight_kg and item.weight_kg > 0 %}{{ "{:,.0f}".format(item.weight_kg) }}kg{% elif item.boxes and item.boxes > 0 %}{{ item.boxes }} boxes{% else %}&mdash;{% endif %}
+                </td>
                 {% endif %}
             </tr>
             {% endfor %}

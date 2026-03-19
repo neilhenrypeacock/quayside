@@ -362,7 +362,7 @@ def create_app() -> Flask:
         # Normalise and build dashboard data
         today_data = []
         for row in port_prices:
-            _, _, species, grade, low, high, avg = row
+            _, _, species, grade, low, high, avg, weight_kg, boxes = row
             canonical = normalise_species(species)
             market_info = market.get(canonical, {})
 
@@ -400,6 +400,8 @@ def create_app() -> Flask:
                 "price_low": low,
                 "price_high": high,
                 "price_avg": avg,
+                "weight_kg": weight_kg,
+                "boxes": boxes,
                 "position": position,
                 "vs_last_week": vs_last_week,
                 "category": get_species_category(canonical),
@@ -427,6 +429,14 @@ def create_app() -> Flask:
             if sp not in species_grades:
                 species_grades[sp] = []
             species_grades[sp].append(item)
+
+        # ── Volume: check if this port publishes volume data ──
+        volume_type = "boxes" if port["slug"] == "scrabster" else "weight"
+        has_volume = any(
+            (item.get("weight_kg") and item["weight_kg"] > 0) or
+            (item.get("boxes") and item["boxes"] > 0)
+            for item in today_data
+        )
 
         # ── Hero summary stats ──
         avg_prices = [
@@ -568,6 +578,8 @@ def create_app() -> Flask:
             actual_today=actual_today,
             freshness_status=freshness_status,
             scrape_info=scrape_info_display,
+            has_volume=has_volume,
+            volume_type=volume_type,
         ))
 
         # Set auth cookie if token in query string
@@ -606,7 +618,7 @@ def create_app() -> Flask:
 
         today_data = []
         for row in port_prices:
-            _, _, species, grade, low, high, avg = row
+            _, _, species, grade, low, high, avg, weight_kg, boxes = row
             canonical = normalise_species(species)
             market_info = market.get(canonical, {})
 
@@ -641,6 +653,8 @@ def create_app() -> Flask:
                 "price_low": low,
                 "price_high": high,
                 "price_avg": avg,
+                "weight_kg": weight_kg,
+                "boxes": boxes,
                 "position": position,
                 "vs_last_week": vs_last_week,
                 "category": get_species_category(canonical),
@@ -653,6 +667,13 @@ def create_app() -> Flask:
             if sp not in species_grades:
                 species_grades[sp] = []
             species_grades[sp].append(item)
+
+        volume_type = "boxes" if port["slug"] == "scrabster" else "weight"
+        has_volume = any(
+            (item.get("weight_kg") and item["weight_kg"] > 0) or
+            (item.get("boxes") and item["boxes"] > 0)
+            for item in today_data
+        )
 
         seasonal_raw = get_seasonal_comparison(port["name"], date)
         seasonal_data = {
@@ -692,6 +713,8 @@ def create_app() -> Flask:
             species_grades=species_grades,
             has_seasonal=has_seasonal,
             seasonal_data=seasonal_data,
+            has_volume=has_volume,
+            volume_type=volume_type,
         )
 
     @app.route("/port/<slug>/api/ranking")
@@ -724,7 +747,7 @@ def create_app() -> Flask:
 
         # Aggregate: {(canonical_species, port_name): [avg_prices]}
         port_sp_prices: dict[tuple, list] = defaultdict(list)
-        for _d, row_port, row_sp, _grade, _low, _high, row_avg in all_rows:
+        for _d, row_port, row_sp, _grade, _low, _high, row_avg, *_ in all_rows:
             if row_avg:
                 canon = normalise_species(row_sp)
                 port_sp_prices[(canon, row_port)].append(row_avg)

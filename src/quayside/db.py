@@ -354,7 +354,7 @@ def get_prices_by_date(date: str, port: str) -> list[tuple]:
     table = _prices_table(port)
     conn = get_connection()
     rows = conn.execute(
-        f"""SELECT date, port, species, grade, price_low, price_high, price_avg
+        f"""SELECT date, port, species, grade, price_low, price_high, price_avg, weight_kg, boxes
            FROM {table} WHERE date = ? AND port = ?
            ORDER BY species, grade""",
         (date, port),
@@ -368,10 +368,12 @@ def get_all_prices_for_date(date: str, exclude_demo: bool = False) -> list[tuple
 
     Demo Port data lives in the separate 'demo_prices' table and is never
     included here regardless of the exclude_demo flag (kept for backward compat).
+
+    Returns 9-tuples: (date, port, species, grade, price_low, price_high, price_avg, weight_kg, boxes)
     """
     conn = get_connection()
     rows = conn.execute(
-        """SELECT date, port, species, grade, price_low, price_high, price_avg
+        """SELECT date, port, species, grade, price_low, price_high, price_avg, weight_kg, boxes
            FROM prices WHERE date = ?
            ORDER BY species, port, grade""",
         (date,),

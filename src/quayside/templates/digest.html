@@ -617,13 +617,60 @@
   .bar-fill.best {
     background: #1a3a4a;
   }
+  .bar-fill.range-bar {
+    height: 100%;
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(122,176,200,0.6) 0,
+      rgba(122,176,200,0.6) 3px,
+      rgba(122,176,200,0.18) 3px,
+      rgba(122,176,200,0.18) 7px
+    );
+    border-radius: 2px;
+  }
+  .bar-price-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 70px;
+    flex-shrink: 0;
+  }
   .bar-price {
     font-family: 'Courier New', monospace;
     font-size: 13px;
     font-weight: 700;
     color: #0f0e0c;
-    width: 55px;
     text-align: right;
+  }
+  .bar-volume {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #7a7060;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    margin-top: 1px;
+    text-align: right;
+  }
+  .legend-port-count {
+    color: #7a7060;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+  }
+  .methodology-note {
+    padding: 12px 32px 10px;
+    border-bottom: 1px solid #e8e0d0;
+    background: #f0ebe0;
+  }
+  .methodology-note p {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.03em;
+    color: #7a7060;
+    line-height: 1.85;
+  }
+  .methodology-note strong {
+    color: #5a5040;
+    font-weight: 600;
   }
 
   /* MOVERS */
@@ -1155,6 +1202,9 @@
 
     <!-- 5. KEY SPECIES BAR CHARTS (10 benchmark species) -->
     {% if benchmark_snapshot %}
+    <div class="methodology-note">
+      <p><strong>How to read this digest:</strong> Market averages are simple means across all reporting ports. Volume shown in brackets where published &mdash; Brixham, Newlyn and Lerwick report weight sold; Scrabster reports box counts; Peterhead does not publish volume data. Scrabster prices are shown as ranges (low&ndash;high) rather than averages. Full port data available to download below.</p>
+    </div>
     <div class="section-label">Key Species <span class="section-sub">best £/kg across ports today</span></div>
     {% for b in benchmark_snapshot %}
     {% if loop.index == (benchmark_snapshot|length // 2) %}
@@ -1182,14 +1232,27 @@
       <div class="bar-row">
         <span class="bar-port">{{ p.port }}</span>
         <div class="bar-track">
+          {% if p.is_range_bar %}
+          <div class="bar-fill range-bar" style="margin-left:{{ p.bar_low_pct }}%; width:{{ p.bar_range_width_pct }}%"></div>
+          {% else %}
           <div class="bar-fill{% if loop.first %} best{% endif %}" style="width:{{ p.bar_width_pct }}%"></div>
+          {% endif %}
           <div class="bar-marker mkt-avg" style="left:{{ b.market_avg_bar_pct }}%"></div>
         </div>
-        <span class="bar-price">&pound;{{ "%.2f"|format(p.price_avg) }}</span>
+        <div class="bar-price-cell">
+          {% if p.is_range_bar %}
+          <span class="bar-price">&pound;{{ "%.2f"|format(p.price_low) }}&ndash;&pound;{{ "%.2f"|format(p.price_high) }}</span>
+          {% if p.boxes %}<span class="bar-volume">({{ p.boxes }} boxes)</span>{% endif %}
+          {% else %}
+          <span class="bar-price">&pound;{{ "%.2f"|format(p.price_avg) }}</span>
+          {% if p.weight_kg and p.weight_kg > 0 %}<span class="bar-volume">({{ "%.0f"|format(p.weight_kg) }}kg)</span>
+          {% elif p.boxes and p.boxes > 0 %}<span class="bar-volume">({{ p.boxes }} boxes)</span>{% endif %}
+          {% endif %}
+        </div>
       </div>
       {% endfor %}
       <div class="snapshot-legend">
-        <span class="legend-item"><span class="legend-swatch mkt"></span>Market avg today &nbsp;<strong>&pound;{{ "%.2f"|format(b.market_avg) }}</strong></span>
+        <span class="legend-item"><span class="legend-swatch mkt"></span>Mkt avg &nbsp;<strong>&pound;{{ "%.2f"|format(b.market_avg) }}</strong>&nbsp;<span class="legend-port-count">({{ b.ports|length }} port{{ 's' if b.ports|length != 1 else '' }})</span></span>
       </div>
     </div>
     {% endfor %}

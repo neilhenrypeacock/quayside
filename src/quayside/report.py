@@ -82,7 +82,7 @@ def _build_movers(date: str, today_rows: list[tuple]) -> list[dict]:
         totals: dict[str, float] = {}
         counts: dict[str, int] = {}
         for r in rows:
-            _, _port, raw_species, _grade, _low, _high, avg = r
+            _, _port, raw_species, _grade, _low, _high, avg, _wkg, _boxes = r
             if not avg or _is_noisy(raw_species):
                 continue
             species = normalise_species(raw_species)
@@ -171,7 +171,7 @@ def _build_port_highlights(rows: list[tuple], thirty_day_raw: dict[str, float]) 
     port_fallback: dict[str, dict] = {}  # best price if no 30d avg available
 
     for r in rows:
-        _, port, raw_species, grade, low, high, avg = r
+        _, port, raw_species, grade, low, high, avg, _wkg, _boxes = r
         if not avg:
             continue
         species = normalise_species(raw_species)
@@ -239,12 +239,14 @@ def build_report_data(date: str) -> dict:
     # --- Group by species + track ports per species ---
     species_map: dict[str, list[dict]] = defaultdict(list)
     species_ports: dict[str, dict[str, float]] = defaultdict(dict)
+    # Tracks full record details for the best-avg row per (species, port)
+    species_port_details: dict[str, dict[str, dict]] = defaultdict(dict)
     ports_seen: set[str] = set()
     species_seen: set[str] = set()
     highest = None
 
     for r in rows:
-        _, port, raw_species, grade, low, high, avg = r
+        _, port, raw_species, grade, low, high, avg, weight_kg, boxes = r
         species = normalise_species(raw_species)
         if species is None:
             continue  # noise-filtered species
@@ -257,6 +259,8 @@ def build_report_data(date: str) -> dict:
             "price_low": low,
             "price_high": high,
             "price_avg": avg or 0,
+            "weight_kg": weight_kg,
+            "boxes": boxes,
             "is_best": False,
         }
         species_map[species].append(entry)
@@ -264,6 +268,12 @@ def build_report_data(date: str) -> dict:
         # Best price per species per port (for cross-port + tiering)
         if avg and (port not in species_ports[species] or avg > species_ports[species][port]):
             species_ports[species][port] = avg
+            species_port_details[species][port] = {
+                "price_low": low,
+                "price_high": high,
+                "weight_kg": weight_kg,
+                "boxes": boxes,
+            }
 
         if avg and (highest is None or avg > highest["price"]):
             highest = {"species": species, "grade": grade, "port": port, "price": avg}
@@ -285,7 +295,7 @@ def build_report_data(date: str) -> dict:
         prev_rows = get_all_prices_for_date(prev_date, exclude_demo=True)
         if prev_rows:
             for r in prev_rows:
-                _, _port, raw_species, _grade, _low, _high, avg = r
+                _, _port, raw_species, _grade, _low, _high, avg, _wkg, _boxes = r
                 if not avg:
                     continue
                 sp = normalise_species(raw_species)
@@ -369,18 +379,38 @@ def build_report_data(date: str) -> dict:
         thirty_avg = thirty_day_avgs.get(species)
 
         # Per-port breakdown with bar widths (same pattern as cross-port comparisons)
-        ports = sorted(
-            [
-                {
-                    "port": port,
-                    "price_avg": price,
-                    "bar_width_pct": round((price / best_price) * 100) if best_price else 0,
-                }
-                for port, price in port_prices.items()
-            ],
-            key=lambda p: p["price_avg"],
-            reverse=True,
-        )
+        ports = []
+        for port, price in port_prices.items():
+            details = species_port_details[species].get(port, {})
+            port_low = details.get("price_low")
+            port_high = details.get("price_high")
+            port_wkg = details.get("weight_kg")
+            port_boxes = details.get("boxes")
+
+            # Detect synthetic midpoint (range bar): price_low/high present, no weight,
+            # and price_avg equals the (low+high)/2 midpoint — e.g. Scrabster
+            is_range_bar = (
+                port_low is not None and port_high is not None
+                and port_wkg is None
+                and port_low != port_high
+                and abs(price - (port_low + port_high) / 2) < 0.01
+            )
+            bar_low_pct = round((port_low / best_price) * 100) if (is_range_bar and best_price) else 0
+            bar_high_pct = round((port_high / best_price) * 100) if (is_range_bar and best_price) else 0
+
+            ports.append({
+                "port": port,
+                "price_avg": price,
+                "bar_width_pct": round((price / best_price) * 100) if best_price else 0,
+                "price_low": port_low,
+                "price_high": port_high,
+                "weight_kg": port_wkg,
+                "boxes": port_boxes,
+                "is_range_bar": is_range_bar,
+                "bar_low_pct": bar_low_pct,
+                "bar_range_width_pct": bar_high_pct - bar_low_pct,
+            })
+        ports.sort(key=lambda p: p["price_avg"], reverse=True)
 
         market_avg_bar_pct = round((market_avg / best_price) * 100) if best_price else 0
         thirty_day_avg_bar_pct = round((thirty_avg / best_price) * 100) if (thirty_avg and best_price) else None
@@ -399,7 +429,7 @@ def build_report_data(date: str) -> dict:
     # --- Ticker: top price per port (skip noisy/generic species) ---
     port_best: dict[str, dict] = {}
     for r in rows:
-        _, port, raw_species, grade, low, high, avg = r
+        _, port, raw_species, grade, low, high, avg, _wkg, _boxes = r
         species = normalise_species(raw_species)
         if species is None or _is_noisy_species(species):
             continue
@@ -465,7 +495,7 @@ def build_landing_data(date: str) -> dict:
     if prev_date:
         prev_rows = get_all_prices_for_date(prev_date, exclude_demo=True)
         for r in prev_rows:
-            _, port, raw_species, _grade, _low, _high, avg = r
+            _, port, raw_species, _grade, _low, _high, avg, _wkg, _boxes = r
             if avg:
                 _sp = normalise_species(raw_species)
                 if _sp is None:
