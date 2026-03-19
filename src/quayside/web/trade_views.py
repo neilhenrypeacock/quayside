@@ -67,6 +67,11 @@ def trade_dashboard(date: str | None = None):
     data["actual_today"] = actual_today
     data["freshness_status"] = freshness_status
     data["scrape_info"] = scrape_info_display
+    data["chat_endpoint"] = "/trade/chat"
+    data["chat_pills"] = [
+        "Where's the cheapest haddock today?",
+        "What's the biggest arbitrage opportunity?",
+    ]
 
     response = current_app.make_response(render_template("trade.html", **data))
 

@@ -63,6 +63,35 @@
     background: rgba(26,58,74,0.05);
     font-weight: 500;
 }
+.sidebar-tab-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+}
+.sidebar-tab {
+    flex: 1;
+    padding: 8px 6px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--rule);
+    border-right-width: 0;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.sidebar-tab:first-child { border-radius: 2px 0 0 2px; }
+.sidebar-tab:last-child { border-radius: 0 2px 2px 0; border-right-width: 1px; }
+.sidebar-tab.active {
+    color: var(--ink);
+    background: var(--salt);
+    font-weight: 600;
+}
+.sidebar-tab:hover:not(.active) {
+    background: rgba(26,58,74,0.03);
+}
 .sidebar-favs {
     margin-top: 20px;
     padding-top: 16px;
@@ -1412,10 +1441,15 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 <aside class="trade-sidebar">
     <div class="sidebar-logo">Trade Dashboard</div>
     <nav>
-        <ul class="sidebar-nav" id="sidebar-nav">
-            <li><a href="#zone-top" onclick="scrollToZone('zone-top');return false;" data-zone="zone-top">My Dashboard</a></li>
-            <li><a href="#section-prices" onclick="scrollToZone('section-prices');return false;" data-zone="section-prices">Full Market</a></li>
-            <li><a href="#section-intelligence" onclick="scrollToZone('section-intelligence');return false;" data-zone="section-intelligence">Port Intelligence</a></li>
+        <div class="sidebar-tab-row">
+            <button class="sidebar-tab active" onclick="scrollToZone('zone-top');return false;" data-zone="zone-top">Dashboard</button>
+            <button class="sidebar-tab" onclick="scrollToZone('section-prices');return false;" data-zone="section-prices">Full Market</button>
+            <button class="sidebar-tab" onclick="scrollToZone('section-export');return false;" data-zone="section-export">Tools</button>
+        </div>
+        <ul class="sidebar-nav" id="sidebar-nav" style="display:none;">
+            <li><a href="#zone-top" data-zone="zone-top">My Dashboard</a></li>
+            <li><a href="#section-prices" data-zone="section-prices">Full Market</a></li>
+            <li><a href="#section-intelligence" data-zone="section-intelligence">Port Intelligence</a></li>
         </ul>
     </nav>
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule);">
@@ -1930,28 +1964,15 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 </div><!-- /trade-page -->
 
 <!-- ══ FLOATING CHAT BAR ══════════════════════════════════════════════════ -->
-<div class="chat-float-bar" id="chat-float-bar">
-    <!-- Collapsed state -->
-    <div class="chat-float-toggle" onclick="toggleChatBar()">
-        <span class="chat-float-label">Ask Quayside</span>
-    </div>
-    <div class="chat-float-input-wrap">
-        <input type="text" class="chat-float-input" id="chat-input"
-               placeholder="Ask about prices, trends, opportunities&hellip;"
-               onkeydown="if(event.key==='Enter')sendChat()"
-               onfocus="expandChatBar()">
-        <button class="chat-float-send" id="chat-send-btn" onclick="sendChat()">Send</button>
-    </div>
-    <div class="chat-float-pills" id="chat-float-pills"></div>
-
-    <!-- Expanded panel -->
-    <div class="chat-float-panel" id="chat-float-panel" style="display:none;">
-        <div class="chat-float-messages" id="chat-messages">
-            <div class="chat-msg system-msg" style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:8px 0;">Ask me anything about today's fish prices, trends, or market opportunities.</div>
-        </div>
-        <div class="chat-thinking" id="chat-thinking" style="display:none;">Thinking&hellip;</div>
-    </div>
-</div>
+<script>
+window.CHAT_CONTEXT = {
+    date: {{ date|tojson }},
+    selected_species: null,
+    top_prices: []
+};
+// Populated after matrix renders — see buildMatrixChatContext() below
+</script>
+{% include '_chat_float.html' %}
 <div class="feedback-modal-overlay" id="feedback-modal-overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
     <div class="feedback-modal-box">
         <div class="feedback-modal-title">Request a Feature</div>
@@ -2117,7 +2138,10 @@ function scrollToZone(id) {
             setTimeout(() => rebuildChart(), 100);
         }
     }
-    // Update sidebar active state
+    // Update sidebar active state (tabs + legacy nav)
+    document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+    const tab = document.querySelector(`.sidebar-tab[data-zone="${id}"]`);
+    if (tab) tab.classList.add('active');
     document.querySelectorAll('#sidebar-nav a').forEach(a => a.classList.remove('active'));
     const link = document.querySelector(`#sidebar-nav a[data-zone="${id}"]`);
     if (link) link.classList.add('active');
@@ -2128,10 +2152,15 @@ function showTab(id) { scrollToZone(id); }
 
 // IntersectionObserver for sidebar scroll-spy
 function initScrollSpy() {
-    const zones = ['zone-top', 'section-prices', 'section-intelligence'];
+    const zones = ['zone-top', 'section-prices', 'section-intelligence', 'section-export'];
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
+                // Update sidebar tabs
+                document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+                const tab = document.querySelector(`.sidebar-tab[data-zone="${entry.target.id}"]`);
+                if (tab) tab.classList.add('active');
+                // Update legacy nav links
                 document.querySelectorAll('#sidebar-nav a').forEach(a => a.classList.remove('active'));
                 const link = document.querySelector(`#sidebar-nav a[data-zone="${entry.target.id}"]`);
                 if (link) link.classList.add('active');
@@ -3017,56 +3046,8 @@ function rebuildChartGroup() {
     });
 }
 
-// ── Floating chat bar ─────────────────────────────────────────────────────
-function expandChatBar() {
-    const bar = document.getElementById('chat-float-bar');
-    const panel = document.getElementById('chat-float-panel');
-    if (bar) bar.classList.add('expanded');
-    if (panel) panel.style.display = '';
-}
-function collapseChatBar() {
-    const bar = document.getElementById('chat-float-bar');
-    const panel = document.getElementById('chat-float-panel');
-    if (bar) bar.classList.remove('expanded');
-    if (panel) panel.style.display = 'none';
-}
-function toggleChatBar() {
-    const bar = document.getElementById('chat-float-bar');
-    if (bar && bar.classList.contains('expanded')) collapseChatBar();
-    else expandChatBar();
-}
-
-function sendChatPill(text) {
-    document.getElementById('chat-input').value = text;
-    expandChatBar();
-    sendChat();
-}
-
-function initChatPills() {
-    const pillsEl = document.getElementById('chat-float-pills');
-    if (!pillsEl) return;
-    const topSp = mySpecies.size > 0 ? [...mySpecies][0] : 'haddock';
-    const pills = [
-        `Where's the cheapest ${topSp} today?`,
-        `What's the biggest arbitrage opportunity?`,
-    ];
-    pillsEl.innerHTML = pills.map(p => {
-        const esc = p.replace(/'/g, "\\'");
-        return `<button class="chat-float-pill" onclick="sendChatPill('${esc}')">${p}</button>`;
-    }).join('');
-}
-
-async function sendChat() {
-    const input = document.getElementById('chat-input');
-    const msg = input.value.trim();
-    if (!msg) return;
-
-    expandChatBar();
-    appendChatMsg('user', msg);
-    input.value = '';
-    document.getElementById('chat-send-btn').disabled = true;
-    document.getElementById('chat-thinking').style.display = 'block';
-
+// ── Update chat context from matrix data ─────────────────────────────────
+function buildMatrixChatContext() {
     const topPrices = [];
     document.querySelectorAll('#matrix-tbody .matrix-row').forEach((row, i) => {
         if (i >= 8) return;
@@ -3076,36 +3057,10 @@ async function sendChat() {
             spread_pct: parseFloat(row.dataset.spread || 0),
         });
     });
-
-    const context = {
-        date: TRADE_DATE,
-        selected_species: currentSpecies,
-        top_prices: topPrices,
-    };
-
-    try {
-        const resp = await fetch('/trade/chat', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ message: msg, context }),
-        });
-        const data = await resp.json();
-        appendChatMsg('assistant', data.reply || data.error || 'No response.');
-    } catch(e) {
-        appendChatMsg('assistant', 'Network error \u2014 please try again.');
+    if (window.CHAT_CONTEXT) {
+        window.CHAT_CONTEXT.selected_species = currentSpecies;
+        window.CHAT_CONTEXT.top_prices = topPrices;
     }
-
-    document.getElementById('chat-send-btn').disabled = false;
-    document.getElementById('chat-thinking').style.display = 'none';
-}
-
-function appendChatMsg(role, text) {
-    const container = document.getElementById('chat-messages');
-    const div = document.createElement('div');
-    div.className = 'chat-msg ' + role;
-    div.textContent = text;
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
 }
 
 // ── Port selector hidden input ────────────────────────────────────────────
@@ -3425,8 +3380,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Init port intelligence tabs
     initPortIntelTabs();
 
-    // Init chat pills
-    initChatPills();
+    // Update chat context with matrix data
+    buildMatrixChatContext();
 
     // Init scroll-spy for sidebar
     initScrollSpy();
