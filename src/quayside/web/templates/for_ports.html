@@ -572,7 +572,7 @@
     <div class="port-hero-eyebrow">For port &amp; auction operators</div>
     <h1>Send us your<br>daily prices.<br><em>We do<br>everything else.</em></h1>
     <p class="port-hero-sub">
-      Forward your price sheet after the auction &mdash; any format &mdash; and get a live market intelligence dashboard, free. See how you're trending, understand where you sit in the UK market, and give your prices daily visibility with buyers.
+      Send us your daily price data after each auction and get a live market intelligence dashboard, free. See how you're trending, understand where you sit in the UK market, and give your prices daily visibility with buyers.
     </p>
     <div style="display:flex;gap:16px;flex-wrap:wrap;">
       <a href="{{ url_for('port_submit') }}" class="btn-primary">Sign up free &rarr;</a>
@@ -581,6 +581,61 @@
   </div>
   <div class="port-hero-right">
     <img src="{{ url_for('static', filename='img/nets.jpg') }}" alt="Fishing nets on the water">
+  </div>
+</section>
+
+<!-- DASHBOARD SHOWCASE -->
+<section class="section" style="background:var(--foam);">
+  <div class="section-inner">
+    <div class="section-label">Your dashboard, live from day one</div>
+    <p style="font-size:17px;line-height:1.7;color:#4a4438;max-width:600px;margin-bottom:40px;">
+      The moment your first prices land, your port gets a live dashboard. See how you're trending, where you sit in the national market for each species, and what's moving.
+    </p>
+    <div class="dashboard-screenshot fade-up">
+      <a href="{{ url_for('port_dashboard', slug='demo') }}" target="_blank" style="display:block;position:relative;">
+        <img src="{{ url_for('static', filename='img/dashboard-preview.jpg') }}" alt="Quayside demo dashboard — price data, species rankings, and market position">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,14,12,0.3);transition:background 0.2s;" onmouseover="this.style.background='rgba(15,14,12,0.5)'" onmouseout="this.style.background='rgba(15,14,12,0.3)'">
+          <div style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:13px;letter-spacing:0.12em;text-transform:uppercase;padding:16px 36px;border-radius:2px;box-shadow:0 8px 32px rgba(0,0,0,0.3);">Click to open the demo dashboard &rarr;</div>
+        </div>
+      </a>
+      <div class="dashboard-screenshot-caption">
+        <span>Demo dashboard &mdash; representative data</span>
+        <a href="{{ url_for('port_dashboard', slug='demo') }}" target="_blank">Explore the demo &rarr;</a>
+      </div>
+    </div>
+
+    <div class="feature-grid fade-up">
+      <div class="feature-card">
+        <div class="feature-num">01 &mdash; SNAPSHOT</div>
+        <h4>Today's price at a glance</h4>
+        <p>The moment the auction closes, you have your average price per kg for the day &mdash; and instantly how that compares to yesterday, last week, this month, and this year. One number that tells the whole story. No spreadsheet required.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">02 &mdash; MARKET POSITION</div>
+        <h4>Where you sit in the market</h4>
+        <p>For every species you sell, see where your price sits in the national range. Not a competition &mdash; just context. When you're achieving strong prices, you'll know it. When there's a gap to close, you'll spot it early.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">03 &mdash; PERFORMANCE</div>
+        <h4>Full price history</h4>
+        <p>Every auction day adds to your history. The longer you&rsquo;re on Quayside, the richer your trend data &mdash; rolling averages, seasonal patterns, and long-run shifts you can share with sellers and buyers alike.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">04 &mdash; INSIGHTS</div>
+        <h4>Automated daily insights</h4>
+        <p>Plain-English commentary generated each auction day: which species are performing above or below the market, what's moved most, and how you compare to last week.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">05 &mdash; PRICE RANGE</div>
+        <h4>Your position in the national range</h4>
+        <p>Each species row shows a visual bar placing your price within the national min&ndash;max range. Instantly see where you sit without scanning a table.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">06 &mdash; BEST PERFORMERS</div>
+        <h4>Best performers today</h4>
+        <p>Your top species by price and volume, highlighted automatically. Share with sellers or use internally to identify where your port has a clear edge.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -599,25 +654,56 @@
         </p>
         <a href="{{ url_for('port_submit') }}" style="background:white;color:var(--catch);padding:14px 32px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;border:none;cursor:pointer;text-decoration:none;display:inline-block;border-radius:2px;transition:transform 0.1s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">Get set up &rarr;</a>
       </div>
-      <div class="fade-up" style="background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.15);border-radius:4px;overflow:hidden;">
-        <div style="background:rgba(0,0,0,0.2);padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:12px;">
-          <div style="display:flex;gap:6px;">
-            <div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.15);"></div>
-            <div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.15);"></div>
-            <div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.15);"></div>
+      <!-- HTML digest-style email mock -->
+      <div class="fade-up" style="background:#f5f0e8;border-radius:4px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.35);">
+        <!-- Email client bar -->
+        <div style="background:#e8e0d4;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #d4ccc0;">
+          <div style="font-family:var(--font-mono);font-size:9px;color:#9a9080;letter-spacing:0.06em;text-transform:uppercase;">Inbox &mdash; prices@quayside.fish</div>
+          <div style="display:flex;gap:5px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#ccc4b8;"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:#ccc4b8;"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:#ccc4b8;"></div>
           </div>
-          <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-left:8px;">Your daily port report</span>
         </div>
-        <div style="padding:28px 24px;">
-          <div style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.06em;margin-bottom:4px;">FROM: Quayside &mdash; for Peterhead Fish Market</div>
-          <div style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.55);letter-spacing:0.05em;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.1);">SUBJECT: Peterhead &mdash; today's prices &amp; highlights &mdash; Tue 18 Mar</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.7;margin-bottom:14px;">
-            <strong style="color:white;">Today's average: &pound;3.14/kg</strong> &mdash; up 8% on yesterday, tracking 4% above this month's average.
+        <!-- Email header -->
+        <div style="background:var(--tide);padding:20px 24px 18px;">
+          <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(122,176,200,0.7);margin-bottom:5px;">Peterhead Fish Market &mdash; Tue 18 Mar 2026</div>
+          <div style="font-family:var(--font-serif);font-size:19px;font-weight:700;color:white;letter-spacing:-0.01em;line-height:1.2;">Today's prices &amp; highlights</div>
+        </div>
+        <!-- Average price banner -->
+        <div style="background:#eeeae2;padding:14px 24px;border-bottom:1px solid #ddd8d0;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8a8070;margin-bottom:3px;">Today's average</div>
+            <div style="font-family:var(--font-serif);font-size:26px;font-weight:900;color:#1a2830;line-height:1;">&pound;3.14<span style="font-size:13px;font-weight:400;color:#8a8070;">/kg</span></div>
           </div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:14px;">
-            <strong style="color:rgba(255,255,255,0.85);">Top performers today:</strong> Halibut &pound;12.40/kg (top price nationally), Haddock A1 &pound;2.87/kg (+12% on last week), Monkfish &pound;5.60/kg.
+          <div style="text-align:right;">
+            <div style="font-family:var(--font-mono);font-size:11px;color:#4a8a30;font-weight:500;">&#9650; +8% on yesterday</div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:#8a8070;margin-top:3px;">+4% above this month</div>
           </div>
-          <div style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.04em;">Full breakdown &rarr; quaysidedata.duckdns.org/port/peterhead</div>
+        </div>
+        <!-- Price rows -->
+        <div style="padding:0 24px;">
+          <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8a8070;padding:12px 0 6px;">Top performers</div>
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #e4ddd4;">
+            <div style="font-family:var(--font-serif);font-size:14px;font-style:italic;color:#1a2830;">Halibut</div>
+            <div style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:#1a2830;">&pound;12.40</div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:#4a8a30;">&#9650; top nationally</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #e4ddd4;">
+            <div style="font-family:var(--font-serif);font-size:14px;font-style:italic;color:#1a2830;">Haddock A1</div>
+            <div style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:#1a2830;">&pound;2.87</div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:#4a8a30;">&#9650; +12%</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 0;">
+            <div style="font-family:var(--font-serif);font-size:14px;font-style:italic;color:#1a2830;">Monkfish</div>
+            <div style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:#1a2830;">&pound;5.60</div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:#8a8070;">&mdash;</div>
+          </div>
+        </div>
+        <!-- Footer -->
+        <div style="background:#e8e0d4;padding:11px 24px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #d4ccc0;">
+          <div style="font-family:var(--font-mono);font-size:9px;color:#9a9080;letter-spacing:0.04em;">Sent by Quayside &middot; Peterhead Fish Market</div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--tide);letter-spacing:0.04em;">Full dashboard &rarr;</div>
         </div>
       </div>
     </div>
@@ -675,7 +761,7 @@
             <span class="step-num">04</span>
             <div class="step-content">
               <h3>Share going forward</h3>
-              <p>After each auction, forward your daily price sheet to <strong>prices@quayside.fish</strong> &mdash; XLS, PDF, CSV, whatever you already produce. Or upload directly via your port page.</p>
+              <p>After each auction, send us your daily price data. We'll work with you to find a workflow that fits &mdash; email, upload, or a simple template we set up together.</p>
               <p>We extract the data privately and share back exactly what we've read, for your review. One click to confirm, one click to edit. Nothing goes live without your say&ndash;so.</p>
               <span class="step-highlight">Takes under two minutes once you're set up.</span>
             </div>
@@ -687,7 +773,7 @@
         <div class="share-card">
           <div class="share-card-method">Option A &mdash; Email</div>
           <h3>Forward your price sheet</h3>
-          <p>After the auction closes, just forward your daily price sheet &mdash; whatever format you already use. XLS, PDF, CSV. We extract, normalise, and prepare it automatically.</p>
+          <p>After the auction closes, forward your daily price sheet to our ingest address. We extract, normalise, and prepare it automatically.</p>
           <div class="share-detail">prices@quayside.fish &mdash; that's all you need</div>
         </div>
         <div class="share-card">
@@ -696,61 +782,6 @@
           <p>Download our one-page Excel template with species dropdowns pre-filled. Fill in your prices after the market and upload here &mdash; it's live within minutes.</p>
           <a href="{{ url_for('port_upload', slug='peterhead') }}" class="btn-secondary" style="padding:10px 20px;font-size:11px;">Try the upload form &rarr;</a>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- DASHBOARD SHOWCASE -->
-<section class="section" style="background:var(--foam);">
-  <div class="section-inner">
-    <div class="section-label">Your dashboard, live from day one</div>
-    <p style="font-size:17px;line-height:1.7;color:#4a4438;max-width:600px;margin-bottom:40px;">
-      The moment your first prices land, your port gets a live dashboard. See how you're trending, where you sit in the national market for each species, and what's moving.
-    </p>
-    <div class="dashboard-screenshot fade-up">
-      <a href="{{ url_for('port_dashboard', slug='demo') }}" target="_blank" style="display:block;position:relative;">
-        <img src="{{ url_for('static', filename='img/dashboard-preview.jpg') }}" alt="Quayside demo dashboard — price data, species rankings, and market position">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,14,12,0.3);transition:background 0.2s;" onmouseover="this.style.background='rgba(15,14,12,0.5)'" onmouseout="this.style.background='rgba(15,14,12,0.3)'">
-          <div style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:13px;letter-spacing:0.12em;text-transform:uppercase;padding:16px 36px;border-radius:2px;box-shadow:0 8px 32px rgba(0,0,0,0.3);">Click to open the demo dashboard &rarr;</div>
-        </div>
-      </a>
-      <div class="dashboard-screenshot-caption">
-        <span>Demo dashboard &mdash; representative data</span>
-        <a href="{{ url_for('port_dashboard', slug='demo') }}" target="_blank">Explore the demo &rarr;</a>
-      </div>
-    </div>
-
-    <div class="feature-grid fade-up">
-      <div class="feature-card">
-        <div class="feature-num">01 &mdash; SNAPSHOT</div>
-        <h4>Today's price at a glance</h4>
-        <p>The moment the auction closes, you have your average price per kg for the day &mdash; and instantly how that compares to yesterday, last week, this month, and this year. One number that tells the whole story. No spreadsheet required.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">02 &mdash; MARKET POSITION</div>
-        <h4>Where you sit in the market</h4>
-        <p>For every species you sell, see where your price sits in the national range. Not a competition &mdash; just context. When you're achieving strong prices, you'll know it. When there's a gap to close, you'll spot it early.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">03 &mdash; PERFORMANCE</div>
-        <h4>Full price history</h4>
-        <p>Every auction day adds to your history. The longer you&rsquo;re on Quayside, the richer your trend data &mdash; rolling averages, seasonal patterns, and long-run shifts you can share with sellers and buyers alike.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">04 &mdash; INSIGHTS</div>
-        <h4>Automated daily insights</h4>
-        <p>Plain-English commentary generated each auction day: which species are performing above or below the market, what's moved most, and how you compare to last week.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">05 &mdash; PRICE RANGE</div>
-        <h4>Your position in the national range</h4>
-        <p>Each species row shows a visual bar placing your price within the national min&ndash;max range. Instantly see where you sit without scanning a table.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">06 &mdash; BEST PERFORMERS</div>
-        <h4>Best performers today</h4>
-        <p>Your top species by price and volume, highlighted automatically. Share with sellers or use internally to identify where your port has a clear edge.</p>
       </div>
     </div>
   </div>
