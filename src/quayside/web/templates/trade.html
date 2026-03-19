@@ -95,7 +95,13 @@
 
 /* ── Section zones (scroll layout) ── */
 .trade-section {
-    margin-bottom: 48px;
+    margin-bottom: 20px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--rule);
+}
+.trade-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 /* ── Section headings ── */
@@ -106,6 +112,13 @@
     color: var(--ink);
     letter-spacing: -0.02em;
     margin-bottom: 6px;
+}
+.section-subheading {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
 }
 .section-desc {
     font-family: var(--font-sans);
@@ -1480,20 +1493,17 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 </form>
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- ZONE 1: SMART ALERTS                                                 -->
+<!-- ZONE 1+2: TODAY AT A GLANCE (Alerts + Watchlist)                     -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="trade-section" id="zone-top">
-    <div class="alert-cards-row" id="zone-alerts">
+    <div class="section-heading">Today at a Glance</div>
+
+    <div class="alert-cards-row" id="zone-alerts" style="margin-bottom:24px;">
         <div class="alert-skeleton" style="height:60px;"></div>
     </div>
-</div>
 
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- ZONE 2: WATCHLIST                                                    -->
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<div class="trade-section" id="section-dashboard">
     <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-        <div class="section-heading">Your Watchlist</div>
+        <div class="section-subheading">Your Watchlist</div>
         <div style="display:flex;gap:8px;">
             <button class="btn btn-secondary" onclick="showSpeciesPicker()" style="font-size:10px;padding:6px 12px;">&#9998; Species</button>
             <button class="btn btn-secondary" onclick="showPortPicker()" style="font-size:10px;padding:6px 12px;">&#9998; Ports</button>
@@ -2170,7 +2180,6 @@ function renderYourDashboard() {
         const row = MATRIX_DATA.find(r => r.species === sp);
         if (!row) return;
 
-        // Header: species name, category badge, change indicators
         const vs_yest = row.vs_yesterday_pct;
         const vs_30d = row.vs_30d_pct;
         // Buyer perspective: green = price fell (good), red = price rose (bad)
@@ -2179,18 +2188,28 @@ function renderYourDashboard() {
         const d30Cls = vs_30d != null ? (vs_30d < 0 ? 'style="color:var(--up)"' : vs_30d > 0 ? 'style="color:var(--down)"' : '') : '';
         const d30Sign = vs_30d != null ? (vs_30d > 0 ? '+' : '') : '';
 
+        // Best buy + spread for footer
+        const bestPort = row.best_buy_port;
+        const bestCode = bestPort ? (PORT_CODES[bestPort] || bestPort.substring(0, 3).toUpperCase()) : '';
+        const bestPrice = bestPort && row.ports[bestPort] ? row.ports[bestPort].toFixed(2) : '';
+        const spread = row.spread_pct;
+        const esc = sp.replace(/'/g, "\\'");
+
         html += `<div class="watchlist-card">
             <div class="watchlist-card-header">
                 <div>
                     <span class="watchlist-card-species">${sp}</span>
                     <span class="watchlist-card-cat">${row.category}</span>
                 </div>
-                <div class="watchlist-card-changes">
-                    ${vs_yest != null ? `<span ${yestCls}>${yestSign}${vs_yest.toFixed(1)}% vs yest</span>` : ''}
-                    ${vs_30d != null ? `<span ${d30Cls}>${d30Sign}${vs_30d.toFixed(1)}% vs 30d</span>` : ''}
+                <div class="watchlist-card-right">
+                    <div class="watchlist-card-changes">
+                        ${vs_yest != null ? `<span ${yestCls}>${yestSign}${vs_yest.toFixed(1)}% vs yest</span>` : ''}
+                        ${vs_30d != null ? `<span ${d30Cls}>${d30Sign}${vs_30d.toFixed(1)}% vs 30d</span>` : ''}
+                    </div>
+                    <a class="watchlist-dive-link" onclick="selectSpecies('${esc}');scrollToZone('section-deepdive');">Deep dive &rarr;</a>
                 </div>
             </div>
-            <div class="watchlist-card-grid">`;
+            <div class="watchlist-card-grid" style="grid-template-columns:repeat(${portsToShow.length},1fr);">`;
 
         // Port columns
         portsToShow.forEach(port => {
@@ -2199,23 +2218,21 @@ function renderYourDashboard() {
             const vol = PORT_VOLUMES[sp] && PORT_VOLUMES[sp][port];
             const ranges = PORT_RANGES[sp] && PORT_RANGES[sp][port];
             const grades = GRADE_DATA[sp] && GRADE_DATA[sp][port];
+            const isBest = bestPort === port;
 
-            html += `<div class="watchlist-port-cell">
-                <div class="watchlist-port-name">${code}</div>`;
+            html += `<div class="watchlist-port-cell${isBest ? ' cell-best' : ''}">
+                <div class="watchlist-port-name">${code}${isBest ? ' <span style="color:var(--catch);">★</span>' : ''}</div>`;
 
             if (price != null) {
-                // Show range for Scrabster
                 if (port === 'Scrabster' && ranges && ranges.low != null && ranges.high != null) {
                     html += `<div class="watchlist-port-price">&pound;${ranges.low.toFixed(2)}&ndash;${ranges.high.toFixed(2)}</div>`;
                 } else {
                     html += `<div class="watchlist-port-price">&pound;${price.toFixed(2)}</div>`;
                 }
-                // Grade info
                 if (grades && grades.length > 0) {
                     const gradeStr = grades.map(g => g.grade || '').filter(Boolean).join(', ');
                     if (gradeStr) html += `<div class="watchlist-port-meta">${gradeStr}</div>`;
                 }
-                // Volume
                 if (vol && vol.weight_kg > 0) {
                     const badge = vol.weight_kg < 10 ? ' <span class="watchlist-port-badge">Low vol</span>' : '';
                     html += `<div class="watchlist-port-meta">${Math.round(vol.weight_kg)}kg${badge}</div>`;
@@ -2223,8 +2240,7 @@ function renderYourDashboard() {
                     html += `<div class="watchlist-port-meta">${vol.boxes} boxes</div>`;
                 }
             } else {
-                html += `<div class="watchlist-port-price" style="color:var(--muted);">&mdash;</div>`;
-                html += `<div class="watchlist-port-meta" style="color:var(--muted);">No data today</div>`;
+                html += `<div class="watchlist-port-price" style="color:var(--rule);">&mdash;</div>`;
             }
 
             html += `</div>`;
@@ -2232,23 +2248,13 @@ function renderYourDashboard() {
 
         html += `</div>`; // close grid
 
-        // Footer: best buy + spread + dive link
-        const bestPort = row.best_buy_port;
-        const bestCode = bestPort ? (PORT_CODES[bestPort] || bestPort.substring(0, 3).toUpperCase()) : '';
-        const bestPrice = bestPort && row.ports[bestPort] ? row.ports[bestPort].toFixed(2) : '';
-        const spread = row.spread_pct;
-
-        html += `<div class="watchlist-card-footer">
-            <span>`;
-        if (bestPort && bestPrice) {
-            html += `Best buy: ${bestCode} &pound;${bestPrice}/kg`;
+        // Footer: best buy summary
+        let footerParts = [];
+        if (bestPort && bestPrice) footerParts.push(`Best buy: <strong>${bestCode}</strong> &pound;${bestPrice}/kg`);
+        if (spread != null) footerParts.push(`Spread: ${spread.toFixed(0)}%`);
+        if (footerParts.length) {
+            html += `<div class="watchlist-card-footer"><span>${footerParts.join(' &middot; ')}</span></div>`;
         }
-        if (spread != null) {
-            html += ` &middot; Spread: ${spread.toFixed(0)}%`;
-        }
-        html += `</span>
-            <a class="watchlist-dive-link" onclick="selectSpecies('${sp.replace(/'/g, "\\'")}');scrollToZone('section-deepdive');">Deep dive &rarr;</a>
-        </div>`;
 
         html += `</div>`; // close card
     });
