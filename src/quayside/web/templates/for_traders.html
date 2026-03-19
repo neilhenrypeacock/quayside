@@ -1306,16 +1306,16 @@
       <div class="digest-copy">
         <h2>An immersive view into the full UK market —<br><em>port by port, species by species, day by day.</em></h2>
         <p>
-          Trade membership is more than a daily report &mdash; it&rsquo;s a live window into the full UK fish market. Every port, every species, every auction day. No more piecing together data from half a dozen websites. No more relying on word-of-mouth pricing.
+          Trade membership is more than a daily report &mdash; it&rsquo;s a live window into the UK fish market across our live ports. Every auction day. No more piecing together data from half a dozen websites. No more relying on word-of-mouth pricing.
         </p>
         <p>
           Everything is normalised into a single, consistent format so you can compare haddock at Peterhead against haddock at Scrabster without hunting for the source data yourself.
         </p>
         <ul>
-          <li>Cross-port price comparison &mdash; all ports, all species, side by side</li>
+          <li>Cross-port price comparison &mdash; all live ports, side by side</li>
           <li>Price movements &mdash; see what changed since yesterday</li>
           <li>Port-by-port summary &mdash; each port&rsquo;s position against the national benchmark</li>
-          <li>90-day trends &mdash; understand where prices have been and where they&rsquo;re heading</li>
+          <li>7-day, 30-day, 90-day and all-time trends &mdash; understand where prices have been and where they&rsquo;re heading</li>
           <li>AI chat &mdash; ask any question about the data in plain English</li>
           <li>Create a custom email for you or your team &mdash; delivered automatically, every day you want it</li>
           <li>Export any or all data for your own purposes</li>
@@ -1504,13 +1504,13 @@
     <div class="feature-copy">
       <div class="feature-num">Feature 02</div>
       <h3>Understand how prices<br><em>moved today.</em></h3>
-      <p>
+      <p style="margin-bottom:0">
         Market movers shows the species with the biggest price changes from the previous day &mdash; ranked by percentage swing, with full port context. When haddock climbs 15% at Lerwick or plaice drops at Brixham, it shows clearly in your daily update.
       </p>
       <ul style="margin-bottom:0">
-        <li>Granular detail &mdash; every species, every port, every day</li>
+        <li>Port by port, fish by fish, day by day</li>
         <li>Up and down &mdash; both directions tracked</li>
-        <li>Top-line summary plus full port-by-port, fish-by-fish breakdown</li>
+        <li>Top-line summary plus granular port-level detail</li>
         <li>Day-by-day comparison to spot supply changes and seasonal patterns</li>
       </ul>
     </div>
@@ -1567,20 +1567,72 @@
   </div>
 </div>
 
-<!-- ─────────────────── FEATURE: AI CHAT ─────────────────── -->
+<!-- ─────────────────── FEATURE: CUSTOM EMAIL ─────────────────── -->
 <div style="border-bottom:1px solid var(--rule);">
   <div class="feature-row fade-up">
     <div class="feature-copy">
       <div class="feature-num">Feature 03</div>
+      <h3>Your market,<br><em>delivered to your inbox.</em></h3>
+      <p style="margin-bottom:0">
+        Create a custom email report for yourself or your whole team. Select the species and ports you care about, set your delivery schedule, and we&rsquo;ll send a tailored daily summary automatically &mdash; every market day, without opening an app.
+      </p>
+      <ul style="margin-bottom:0">
+        <li>Choose exactly which species and ports you want covered</li>
+        <li>Delivered every market day &mdash; or just the days you choose</li>
+        <li>Send to yourself or your whole team with one setup</li>
+        <li>Same clean, consistent data as the live dashboard</li>
+      </ul>
+    </div>
+    <div class="mockup">
+      <div class="mockup-chrome">
+        <div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div>
+        <span class="mockup-label">Custom email — configure delivery</span>
+      </div>
+      <div class="mockup-body" style="display:flex;flex-direction:column;gap:16px;">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Species to include</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--catch);"> Haddock</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--catch);"> Cod</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--catch);"> Monkfish</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--catch);"> Lemon Sole</label>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--rule);padding-top:12px;">
+          <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Deliver to</div>
+          <div style="font-size:12px;color:var(--ink);background:var(--foam);border:1px solid var(--rule);padding:8px 10px;border-radius:2px;">you@yourcompany.com, team@yourcompany.com</div>
+        </div>
+        <div style="border-top:1px solid var(--rule);padding-top:12px;">
+          <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Schedule</div>
+          <div style="display:flex;gap:6px;">
+            <span style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;">Mon</span>
+            <span style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;">Tue</span>
+            <span style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;">Wed</span>
+            <span style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;">Thu</span>
+            <span style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;">Fri</span>
+            <span style="background:var(--foam);color:var(--muted);font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;border:1px solid var(--rule);">Sat</span>
+          </div>
+        </div>
+        <button style="background:var(--catch);color:white;padding:10px 20px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;text-align:center;">Set up email delivery &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────── FEATURE: AI CHAT ─────────────────── -->
+<div class="feature-row-dark">
+  <div class="feature-row reverse fade-up">
+    <div class="feature-copy">
+      <div class="feature-num">Feature 04</div>
       <h3>Ask the market<br><em>anything.</em></h3>
       <p>
         The AI chat interface lets you ask questions about prices and trends in plain English. No spreadsheets, no filtering, no digging. Just ask &mdash; and get an immediate, data-backed answer drawn from the full Quayside dataset.
       </p>
       <ul>
-        <li>&ldquo;How has haddock trended across UK ports this month?&rdquo;</li>
+        <li>&ldquo;How has haddock trended at Peterhead this month?&rdquo;</li>
         <li>&ldquo;What&rsquo;s the typical seasonal pattern for monkfish?&rdquo;</li>
         <li>&ldquo;Which species have moved most in the last 30 days?&rdquo;</li>
-        <li>&ldquo;How does Peterhead cod compare to the national average historically?&rdquo;</li>
+        <li>&ldquo;How does Lerwick cod compare to the national average historically?&rdquo;</li>
       </ul>
     </div>
     <div class="mockup">
@@ -1591,13 +1643,13 @@
       <div class="chat-mockup-body">
         <div class="chat-msg chat-msg-user">
           <div class="chat-msg-label" style="text-align:right;">You</div>
-          <div class="chat-bubble chat-bubble-user">How has haddock trended across UK ports this month?</div>
+          <div class="chat-bubble chat-bubble-user">How has haddock trended at Peterhead this month?</div>
         </div>
         <div class="chat-msg">
           <div class="chat-msg-label">Quayside AI</div>
           <div class="chat-bubble chat-bubble-ai">
-            Haddock prices have risen <strong>+12% nationally</strong> over the last 30 days, with the strongest gains at <strong>Peterhead</strong> (+18%) and <strong>Lerwick</strong> (+14%).<br><br>
-            The national average is currently &pound;2.84/kg, up from &pound;2.53/kg at the start of the month. This follows a typical late-winter seasonal pattern.
+            Haddock at Peterhead has risen <strong>+18% this month</strong>, currently averaging &pound;3.02/kg &mdash; sitting <strong>8% above the national benchmark</strong> of &pound;2.80/kg.<br><br>
+            This follows a typical late-winter seasonal pattern, with prices at their strongest in week three of March.
           </div>
         </div>
         <div class="chat-msg chat-msg-user">
@@ -1614,16 +1666,16 @@
 </div>
 
 <!-- ─────────────────── FEATURE: PORT INTEL ─────────────────── -->
-<div class="feature-row-dark">
-  <div class="feature-row reverse fade-up">
+<div style="border-bottom:1px solid var(--rule);">
+  <div class="feature-row fade-up">
     <div class="feature-copy">
-      <div class="feature-num">Feature 04</div>
+      <div class="feature-num">Feature 05</div>
       <h3>Market benchmarks.<br><em>Where every port sits.</em></h3>
-      <p>
-        The port benchmarks view shows where each UK port&rsquo;s prices sit relative to the national average &mdash; species by species. When the whole market is visible, everyone benefits: buyers understand pricing context, sellers can see their market position, and the industry as a whole becomes more efficient.
+      <p style="margin-bottom:0">
+        The port benchmarks view shows where each live port&rsquo;s prices sit relative to the national average &mdash; species by species. When the whole market is visible, everyone benefits: buyers understand pricing context, sellers can see their market position, and the industry as a whole becomes more efficient.
       </p>
-      <ul>
-        <li>Every port vs. national market average, per species</li>
+      <ul style="margin-bottom:0">
+        <li>Each live port vs. national market average, per species</li>
         <li>Understand the spread &mdash; how wide price variation really is</li>
         <li>Spot regional and seasonal pricing patterns over time</li>
         <li>Better context for decisions on both sides of the market</li>
@@ -1697,16 +1749,16 @@
 </div>
 
 <!-- ─────────────────── FEATURE: CHART ─────────────────── -->
-<div style="border-bottom:1px solid var(--rule);">
-  <div class="feature-row fade-up">
+<div class="feature-row-dark">
+  <div class="feature-row reverse fade-up">
     <div class="feature-copy">
-      <div class="feature-num">Feature 05</div>
+      <div class="feature-num">Feature 06</div>
       <h3>Price history —<br><em>and growing every day.</em></h3>
       <p>
-        A single day&rsquo;s price is noise. A compounding archive of it is signal. Our dataset grows with every market report &mdash; building a richer picture over time. Track how prices have moved across ports, spot seasonal cycles, and plan with real market context behind you.
+        A single day&rsquo;s price is noise. A compounding archive of it is signal. Our dataset grows with every market report &mdash; building a richer picture over time. Track how prices have moved, spot seasonal cycles, and plan with real market context behind you.
       </p>
       <ul style="margin-bottom:0">
-        <li>Full price history per species and port &mdash; compounding every day</li>
+        <li>7-day, 30-day, 90-day and all-time views per species and port</li>
         <li>Multi-port overlay &mdash; compare ports on the same chart</li>
         <li>Identify seasonal floors and ceilings</li>
         <li>Download underlying data via CSV export</li>
@@ -1755,58 +1807,6 @@
   </div>
 </div>
 
-<!-- ─────────────────── FEATURE: CUSTOM EMAIL ─────────────────── -->
-<div class="feature-row-dark">
-  <div class="feature-row reverse fade-up">
-    <div class="feature-copy">
-      <div class="feature-num">Feature 06</div>
-      <h3>Your market,<br><em>delivered to your inbox.</em></h3>
-      <p>
-        Create a custom email report for yourself or your whole team. Select the species and ports you care about, set your delivery schedule, and we&rsquo;ll send a tailored daily summary automatically &mdash; every market day, without opening an app.
-      </p>
-      <ul style="margin-bottom:0">
-        <li>Choose exactly which species and ports you want covered</li>
-        <li>Delivered every market day &mdash; or just the days you choose</li>
-        <li>Send to yourself or your whole team with one setup</li>
-        <li>Same clean, consistent data as the live dashboard</li>
-      </ul>
-    </div>
-    <div class="mockup">
-      <div class="mockup-chrome">
-        <div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div>
-        <span class="mockup-label">Custom email — configure delivery</span>
-      </div>
-      <div class="mockup-body" style="display:flex;flex-direction:column;gap:16px;">
-        <div>
-          <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Species to include</div>
-          <div style="display:flex;flex-direction:column;gap:5px;">
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--catch);"> Haddock</label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--catch);"> Cod</label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--catch);"> Monkfish</label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--catch);"> Lemon Sole</label>
-          </div>
-        </div>
-        <div style="border-top:1px solid var(--rule);padding-top:12px;">
-          <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Deliver to</div>
-          <div style="font-size:12px;color:var(--ink);background:var(--foam);border:1px solid var(--rule);padding:8px 10px;border-radius:2px;">you@yourcompany.com, team@yourcompany.com</div>
-        </div>
-        <div style="border-top:1px solid var(--rule);padding-top:12px;">
-          <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Schedule</div>
-          <div style="display:flex;gap:6px;">
-            <span style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;">Mon</span>
-            <span style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;">Tue</span>
-            <span style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;">Wed</span>
-            <span style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;">Thu</span>
-            <span style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;">Fri</span>
-            <span style="background:var(--foam);color:var(--muted);font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:2px;border:1px solid var(--rule);">Sat</span>
-          </div>
-        </div>
-        <button style="background:var(--catch);color:white;padding:10px 20px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;text-align:center;">Set up email delivery &rarr;</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ─────────────────── FEATURE: CSV EXPORT ─────────────────── -->
 <div style="border-bottom:1px solid var(--rule);">
   <div class="feature-row fade-up">
@@ -1817,8 +1817,8 @@
         Take the Quayside dataset into your own systems. Export to CSV with one click &mdash; filtered by date range, port, and species. Feed it into your pricing model, your spreadsheet, or your ERP.
       </p>
       <ul>
-        <li>Full dataset export &mdash; all ports, all species</li>
-        <li>Filter by date range up to 90 days</li>
+        <li>Full dataset export &mdash; all live ports</li>
+        <li>Filter by date range &mdash; 7, 30, 90 days or all-time</li>
         <li>Clean, normalised column structure</li>
         <li>Instant download &mdash; no wait, no form submission</li>
       </ul>
@@ -1864,7 +1864,7 @@
   <div class="section-inner">
     <div class="section-label" style="justify-content:center;">Trade membership</div>
     <h2>The full UK fish market.<br><em>Seven days free.</em></h2>
-    <p>Try the complete Trade dashboard risk-free for a week. Full access to every feature, all five ports, and the complete price history. No payment details required.</p>
+    <p>Try the complete Trade dashboard risk-free for a week. Full access to every feature across all live ports, and the complete price history. No payment details required.</p>
 
     <div class="pricing-card fade-up">
       <div class="pricing-badge">Most popular</div>
@@ -1877,14 +1877,14 @@
       <div class="pricing-card-features">
         <ul class="pricing-feature-list">
           <li>Daily market report &mdash; updated every day with previous day&rsquo;s results</li>
-          <li>Full trade dashboard &mdash; all 5 live UK ports in one view</li>
+          <li>Full trade dashboard &mdash; all live UK ports in one view</li>
           <li>Favourites &amp; custom species watchlists</li>
           <li>Market movers &mdash; biggest daily price changes, ranked</li>
           <li>Market benchmarks &mdash; see where every port sits against the national average</li>
           <li>Full price history per species and port &mdash; growing every day</li>
           <li>AI chat &mdash; ask any question about the data in plain English</li>
           <li>Custom email delivery &mdash; configure a daily report for you or your team</li>
-          <li>CSV export &mdash; full dataset, up to 90 days</li>
+          <li>CSV export &mdash; full dataset, 7-day to all-time</li>
           <li>New ports added throughout 2026 &mdash; included at no extra cost</li>
         </ul>
         <div class="pricing-cta-wrap">
@@ -1950,6 +1950,7 @@
         <div class="faq-answer">
           <p>Quayside aggregates publicly available post-market auction data directly from UK port websites and official auction reports — including Peterhead, Brixham, Newlyn, Scrabster, and Lerwick. Data is collected daily and normalised into a single consistent format.</p>
           <p>Species names, grades, and price formats vary by port — we handle all of that so you see a clean, comparable view regardless of source.</p>
+          <p>We are also working directly with ports to automate and verify data delivery, which improves both speed and accuracy over time as more ports join the platform.</p>
         </div>
       </details>
       <details class="faq-item">
@@ -1967,7 +1968,7 @@
       <details class="faq-item">
         <summary>Can I cancel any time?</summary>
         <div class="faq-answer">
-          <p>Yes, absolutely. There's no minimum term. Cancel any time from your account settings and you won't be charged again. You'll keep access until the end of your current billing period.</p>
+          <p>Yes. Cancel any time from your account settings. You pay in full for the month in which you cancel, and your access continues until the end of that billing period. No further charges after that.</p>
         </div>
       </details>
       <details class="faq-item">
