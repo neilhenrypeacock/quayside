@@ -134,7 +134,25 @@ def init_db() -> None:
             price_avg REAL,
             weight_kg REAL,
             scraped_at TEXT NOT NULL,
+            upload_id INTEGER,
+            boxes INTEGER,
+            defra_code TEXT,
+            week_avg REAL,
+            size_band TEXT,
             UNIQUE(date, port, species, grade)
+        );
+
+        CREATE TABLE IF NOT EXISTS error_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            scanned_at TEXT NOT NULL,
+            check_name TEXT NOT NULL,
+            severity TEXT NOT NULL,
+            port TEXT,
+            species TEXT,
+            detail TEXT,
+            status TEXT DEFAULT 'open',
+            resolved_at TEXT,
+            resolution TEXT
         );
     """)
 
@@ -174,11 +192,28 @@ def _migrate(conn: sqlite3.Connection) -> None:
                 price_avg REAL,
                 weight_kg REAL,
                 scraped_at TEXT NOT NULL,
+                upload_id INTEGER,
+                boxes INTEGER,
+                defra_code TEXT,
+                week_avg REAL,
+                size_band TEXT,
                 UNIQUE(date, port, species, grade)
             )
         """)
     except Exception:
         pass
+    # Migrate existing demo_prices tables to add missing columns
+    existing_demo = {row[1] for row in conn.execute("PRAGMA table_info(demo_prices)").fetchall()}
+    if existing_demo:
+        for col, typ in [("upload_id", "INTEGER"), ("boxes", "INTEGER"),
+                         ("defra_code", "TEXT"), ("week_avg", "REAL"), ("size_band", "TEXT")]:
+            if col not in existing_demo:
+                try:
+                    conn.execute(f"ALTER TABLE demo_prices ADD COLUMN {col} {typ}")
+                except Exception:
+                    pass
+    # Clean up any Demo Port data that leaked into the prices table
+    conn.execute("DELETE FROM prices WHERE port = 'Demo Port'")
     existing_landings = {row[1] for row in conn.execute("PRAGMA table_info(landings)").fetchall()}
     if existing_landings and "scraped_at" not in existing_landings:
         conn.execute("ALTER TABLE landings ADD COLUMN scraped_at TEXT NOT NULL DEFAULT ''")
@@ -239,6 +274,24 @@ def _migrate(conn: sqlite3.Connection) -> None:
     existing_quality = {row[1] for row in conn.execute("PRAGMA table_info(quality_log)").fetchall()}
     if "cleared" not in existing_quality:
         conn.execute("ALTER TABLE quality_log ADD COLUMN cleared INTEGER DEFAULT 0")
+    # error_log table (for error dashboard)
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS error_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                scanned_at TEXT NOT NULL,
+                check_name TEXT NOT NULL,
+                severity TEXT NOT NULL,
+                port TEXT,
+                species TEXT,
+                detail TEXT,
+                status TEXT DEFAULT 'open',
+                resolved_at TEXT,
+                resolution TEXT
+            )
+        """)
+    except Exception:
+        pass
     # trade_feedback table
     try:
         conn.execute("""
@@ -333,30 +386,23 @@ def upsert_prices(records: list[PriceRecord]) -> int:
     if not records:
         return 0
     conn = get_connection()
-    conn.executemany(
-        """INSERT OR REPLACE INTO prices
-           (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at,
-            boxes, defra_code, week_avg, size_band)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        [
-            (
-                r.date,
-                r.port,
-                r.species,
-                r.grade,
-                r.price_low,
-                r.price_high,
-                r.price_avg,
-                r.weight_kg,
-                r.scraped_at,
-                r.boxes,
-                r.defra_code,
-                r.week_avg,
-                r.size_band,
-            )
-            for r in records
-        ],
-    )
+    # Group by target table so Demo Port data goes to demo_prices
+    by_table: dict[str, list] = {}
+    for r in records:
+        table = _prices_table(r.port)
+        by_table.setdefault(table, []).append((
+            r.date, r.port, r.species, r.grade,
+            r.price_low, r.price_high, r.price_avg, r.weight_kg, r.scraped_at,
+            r.boxes, r.defra_code, r.week_avg, r.size_band,
+        ))
+    for table, rows in by_table.items():
+        conn.executemany(
+            f"""INSERT OR REPLACE INTO {table}
+               (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at,
+                boxes, defra_code, week_avg, size_band)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            rows,
+        )
     conn.commit()
     count = len(records)
     conn.close()
@@ -733,20 +779,23 @@ def upsert_prices_with_upload(records: list[PriceRecord], upload_id: int) -> int
     if not records:
         return 0
     conn = get_connection()
-    conn.executemany(
-        """INSERT OR REPLACE INTO prices
-           (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at,
-            upload_id, boxes, defra_code, week_avg, size_band)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        [
-            (
-                r.date, r.port, r.species, r.grade,
-                r.price_low, r.price_high, r.price_avg, r.weight_kg, r.scraped_at, upload_id,
-                r.boxes, r.defra_code, r.week_avg, r.size_band,
-            )
-            for r in records
-        ],
-    )
+    # Group by target table so Demo Port data goes to demo_prices
+    by_table: dict[str, list] = {}
+    for r in records:
+        table = _prices_table(r.port)
+        by_table.setdefault(table, []).append((
+            r.date, r.port, r.species, r.grade,
+            r.price_low, r.price_high, r.price_avg, r.weight_kg, r.scraped_at, upload_id,
+            r.boxes, r.defra_code, r.week_avg, r.size_band,
+        ))
+    for table, rows in by_table.items():
+        conn.executemany(
+            f"""INSERT OR REPLACE INTO {table}
+               (date, port, species, grade, price_low, price_high, price_avg, weight_kg, scraped_at,
+                upload_id, boxes, defra_code, week_avg, size_band)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            rows,
+        )
     conn.commit()
     count = len(records)
     conn.close()
@@ -1208,3 +1257,75 @@ def get_quality_summary() -> dict:
         "open_warns": total_warns,
         "by_port": by_port,
     }
+
+
+# ── Error log (error dashboard) ────────────────────────────────────────────
+
+
+def insert_error_log(entries: list[dict]) -> None:
+    """Insert new error_log rows. Each entry needs: check_name, severity, port, species, detail."""
+    if not entries:
+        return
+    conn = get_connection()
+    scanned_at = datetime.utcnow().isoformat()
+    for e in entries:
+        conn.execute(
+            """INSERT INTO error_log (scanned_at, check_name, severity, port, species, detail, status)
+               VALUES (?, ?, ?, ?, ?, ?, 'open')""",
+            (scanned_at, e["check_name"], e["severity"], e.get("port"), e.get("species"), e.get("detail")),
+        )
+    conn.commit()
+    conn.close()
+
+
+def get_error_log(limit: int = 200) -> list[dict]:
+    """Return open errors + recently resolved (last 48h), ordered by severity then recency."""
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    cutoff_48h = (datetime.utcnow() - timedelta(hours=48)).isoformat()
+    rows = conn.execute(
+        """SELECT id, scanned_at, check_name, severity, port, species, detail,
+                  status, resolved_at, resolution
+           FROM error_log
+           WHERE status = 'open'
+              OR (status = 'resolved' AND resolved_at >= ?)
+           ORDER BY
+               CASE WHEN status = 'open' THEN 0 ELSE 1 END,
+               CASE severity WHEN 'error' THEN 0 WHEN 'warning' THEN 1 ELSE 2 END,
+               scanned_at DESC
+           LIMIT ?""",
+        (cutoff_48h, limit),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def resolve_error(error_id: int, resolution: str) -> None:
+    """Mark an error as resolved with a resolution message."""
+    conn = get_connection()
+    conn.execute(
+        "UPDATE error_log SET status = 'resolved', resolved_at = ?, resolution = ? WHERE id = ?",
+        (datetime.utcnow().isoformat(), resolution, error_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_last_scan_time() -> str | None:
+    """Return the most recent scanned_at timestamp from error_log, or None."""
+    conn = get_connection()
+    row = conn.execute("SELECT MAX(scanned_at) FROM error_log").fetchone()
+    conn.close()
+    return row[0] if row else None
+
+
+def clear_stale_errors(hours: int = 48) -> None:
+    """Delete resolved errors older than `hours` hours. Keeps all open errors."""
+    conn = get_connection()
+    cutoff = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
+    conn.execute(
+        "DELETE FROM error_log WHERE status = 'resolved' AND resolved_at < ?",
+        (cutoff,),
+    )
+    conn.commit()
+    conn.close()

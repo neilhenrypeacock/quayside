@@ -1,0 +1,546 @@
+{% extends "base.html" %}
+{% block title %}Error Dashboard — Quayside{% endblock %}
+
+{% block head %}
+<style>
+    .ops-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .ops-header h1 {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    .ops-header .ops-badge {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #fff;
+        background: var(--catch);
+        padding: 5px 12px;
+        border-radius: 2px;
+    }
+
+    /* Status bar */
+    .status-bar {
+        display: grid;
+        grid-template-columns: 1fr 1fr 80px 80px 80px;
+        gap: 1px;
+        background: var(--rule);
+        border: 1px solid var(--rule);
+        margin-bottom: 24px;
+    }
+    .status-bar .stat-box {
+        background: var(--foam);
+        padding: 16px 12px;
+        text-align: center;
+    }
+    .status-bar .val {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1;
+    }
+    .status-bar .val.red { color: var(--down); }
+    .status-bar .val.amber { color: #b8860b; }
+    .status-bar .val.green { color: var(--up); }
+    .status-bar .lbl {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+    .status-bar .time-val {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--ink);
+        line-height: 1.4;
+    }
+
+    /* Button row */
+    .btn-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .btn-row .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-row .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Section headers */
+    .section-head {
+        font-family: var(--font-serif);
+        font-size: 18px;
+        font-weight: 700;
+        margin: 32px 0 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--rule);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .section-head .count {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+    }
+
+    /* Error cards */
+    .error-card {
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 20px 24px;
+        margin-bottom: 12px;
+        border-left: 3px solid var(--rule);
+    }
+    .error-card.severity-error {
+        border-left-color: var(--catch);
+    }
+    .error-card.severity-warning {
+        border-left-color: #b8860b;
+    }
+    .error-card.severity-resolved {
+        border-left-color: var(--up);
+        opacity: 0.8;
+    }
+    .error-card.fixed {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+
+    .error-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .error-card-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .error-card-title h3 {
+        font-family: var(--font-serif);
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    /* Severity badges */
+    .sev-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 2px;
+        font-weight: 500;
+    }
+    .sev-badge.error {
+        background: var(--catch);
+        color: #fff;
+    }
+    .sev-badge.warning {
+        background: #b8860b;
+        color: #fff;
+    }
+    .sev-badge.resolved {
+        background: var(--up);
+        color: #fff;
+    }
+
+    .error-meta {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 8px;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .error-detail {
+        font-size: 13px;
+        color: var(--ink);
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        background: rgba(0,0,0,0.03);
+        border-radius: 2px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+    }
+
+    .error-explanation {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+
+    .error-card-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .error-card-actions .btn-fix {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 6px 14px;
+        border-radius: 2px;
+        border: 1px solid var(--catch);
+        background: none;
+        color: var(--catch);
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+    }
+    .error-card-actions .btn-fix:hover {
+        background: var(--catch);
+        color: #fff;
+    }
+    .error-card-actions .btn-fix:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+    .error-card-actions .fix-status {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--up);
+        letter-spacing: 0.06em;
+    }
+    .error-card-actions .download-hint {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+    }
+
+    .error-resolution {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--up);
+        margin-top: 6px;
+    }
+
+    /* Resolved section toggle */
+    .resolved-toggle {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .resolved-toggle:hover { color: var(--ink); }
+    .resolved-toggle .caret {
+        display: inline-block;
+        transition: transform 0.2s;
+        font-size: 10px;
+    }
+    .resolved-toggle.open .caret {
+        transform: rotate(90deg);
+    }
+    .resolved-section {
+        display: none;
+    }
+    .resolved-section.open {
+        display: block;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--muted);
+    }
+    .empty-state .check-mark {
+        font-size: 48px;
+        margin-bottom: 12px;
+        color: var(--up);
+    }
+    .empty-state h3 {
+        font-family: var(--font-serif);
+        font-size: 20px;
+        color: var(--ink);
+        margin-bottom: 8px;
+    }
+    .empty-state p {
+        font-size: 14px;
+    }
+
+    /* Back link */
+    .back-link {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-decoration: none;
+        margin-bottom: 20px;
+        display: inline-block;
+    }
+    .back-link:hover { color: var(--ink); }
+
+    @media (max-width: 768px) {
+        .status-bar {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .btn-row {
+            flex-wrap: wrap;
+        }
+        .error-card-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('ops.ops_dashboard') }}" class="back-link">&larr; Ops Dashboard</a>
+
+<div class="ops-header">
+    <h1>Error Dashboard</h1>
+    <span class="ops-badge">Internal</span>
+</div>
+
+<!-- Status bar -->
+<div class="status-bar">
+    <div class="stat-box">
+        <div class="time-val">{{ last_scan[:16].replace('T', ' ') if last_scan else '—' }}</div>
+        <div class="lbl">Last Scan</div>
+    </div>
+    <div class="stat-box">
+        <div class="time-val">{{ next_scan or '—' }}</div>
+        <div class="lbl">Next Scan</div>
+    </div>
+    <div class="stat-box">
+        <div class="val {{ 'red' if error_count else 'green' }}">{{ error_count }}</div>
+        <div class="lbl">Errors</div>
+    </div>
+    <div class="stat-box">
+        <div class="val {{ 'amber' if warning_count else 'green' }}">{{ warning_count }}</div>
+        <div class="lbl">Warnings</div>
+    </div>
+    <div class="stat-box">
+        <div class="val green">{{ resolved_count }}</div>
+        <div class="lbl">Resolved (48h)</div>
+    </div>
+</div>
+
+<!-- Button row -->
+<div class="btn-row">
+    <form method="POST" action="{{ url_for('ops.ops_errors_scan') }}" style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-primary" id="btn-scan">Scan Now</button>
+    </form>
+    <a href="{{ url_for('ops.ops_errors_download') }}" class="btn btn-secondary">Download Report</a>
+    {% if errors %}
+    <button class="btn btn-secondary" id="btn-fix-all" onclick="fixAll()">Fix All Auto-fixable</button>
+    {% endif %}
+</div>
+
+{% if errors %}
+<!-- Open errors -->
+<div class="section-head">
+    <span>Open Issues</span>
+    <span class="count">{{ error_count }} ERRORS &middot; {{ warning_count }} WARNINGS</span>
+</div>
+
+{% for e in errors %}
+<div class="error-card severity-{{ e.severity }}" id="error-{{ e.id }}" data-id="{{ e.id }}" data-check="{{ e.check_name }}">
+    <div class="error-card-header">
+        <div class="error-card-title">
+            <span class="sev-badge {{ e.severity }}">{{ e.severity }}</span>
+            <h3>{{ e.check_name | replace('_', ' ') | title }}</h3>
+        </div>
+    </div>
+
+    <div class="error-meta">
+        {% if e.port %}<span>Port: {{ e.port }}</span>{% endif %}
+        {% if e.species %}<span>Species: {{ e.species }}</span>{% endif %}
+        {% if e.scanned_at %}<span>Logged: {{ e.scanned_at[:16].replace('T', ' ') }} UTC</span>{% endif %}
+    </div>
+
+    {% if e.detail %}
+    <div class="error-detail">{{ e.detail }}</div>
+    {% endif %}
+
+    {% if plain_english.get(e.check_name) %}
+    <div class="error-explanation">{{ plain_english[e.check_name] }}</div>
+    {% endif %}
+
+    <div class="error-card-actions">
+        {% if fix_actions.get(e.check_name) == 'download_only' %}
+        <span class="download-hint">Needs manual investigation — download report to review</span>
+        {% else %}
+        <button class="btn-fix" onclick="fixError({{ e.id }})" id="fix-btn-{{ e.id }}">Fix</button>
+        <span class="fix-status" id="fix-status-{{ e.id }}"></span>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+{% elif not resolved_errors %}
+<!-- Empty state -->
+<div class="empty-state">
+    <div class="check-mark">&#10003;</div>
+    <h3>All Clear</h3>
+    <p>No quality issues detected. Next scan: {{ next_scan or 'not scheduled' }}</p>
+</div>
+{% endif %}
+
+{% if resolved_errors %}
+<!-- Resolved section -->
+<div style="margin-top: 32px;">
+    <button class="resolved-toggle" id="resolved-toggle" onclick="toggleResolved()">
+        <span class="caret">&#9654;</span>
+        Resolved in last 48 hours ({{ resolved_count }})
+    </button>
+
+    <div class="resolved-section" id="resolved-section">
+        {% for e in resolved_errors %}
+        <div class="error-card severity-resolved" style="margin-top: 12px;">
+            <div class="error-card-header">
+                <div class="error-card-title">
+                    <span class="sev-badge resolved">Resolved</span>
+                    <h3>{{ e.check_name | replace('_', ' ') | title }}</h3>
+                </div>
+            </div>
+
+            <div class="error-meta">
+                {% if e.port %}<span>Port: {{ e.port }}</span>{% endif %}
+                {% if e.species %}<span>Species: {{ e.species }}</span>{% endif %}
+                {% if e.resolved_at %}<span>Resolved: {{ e.resolved_at[:16].replace('T', ' ') }} UTC</span>{% endif %}
+            </div>
+
+            {% if e.resolution %}
+            <div class="error-resolution">{{ e.resolution }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if not errors and not resolved_errors %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+function fixError(errorId) {
+    const btn = document.getElementById('fix-btn-' + errorId);
+    const status = document.getElementById('fix-status-' + errorId);
+    const card = document.getElementById('error-' + errorId);
+    btn.disabled = true;
+    btn.textContent = 'Fixing...';
+
+    fetch('/ops/errors/fix/' + errorId, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            status.textContent = data.message;
+            card.classList.add('fixed');
+            btn.textContent = 'Fixed';
+            updateCounts();
+        } else {
+            status.textContent = data.message;
+            status.style.color = 'var(--down)';
+            btn.disabled = false;
+            btn.textContent = 'Fix';
+        }
+    })
+    .catch(() => {
+        status.textContent = 'Request failed';
+        status.style.color = 'var(--down)';
+        btn.disabled = false;
+        btn.textContent = 'Fix';
+    });
+}
+
+function fixAll() {
+    const btn = document.getElementById('btn-fix-all');
+    btn.disabled = true;
+    btn.textContent = 'Fixing...';
+
+    fetch('/ops/errors/fix-all', {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            btn.textContent = 'Fixed ' + data.fixed + ' (skipped ' + data.skipped + ')';
+            document.querySelectorAll('.error-card[data-check]').forEach(card => {
+                const check = card.dataset.check;
+                if (check !== 'stale_data' && check !== 'seeded_data' &&
+                    check !== 'live_site' && check !== 'unmapped_species') {
+                    card.classList.add('fixed');
+                    const fixBtn = card.querySelector('.btn-fix');
+                    if (fixBtn) {
+                        fixBtn.disabled = true;
+                        fixBtn.textContent = 'Fixed';
+                    }
+                }
+            });
+            updateCounts();
+        } else {
+            btn.textContent = 'Fix All Auto-fixable';
+            btn.disabled = false;
+        }
+    })
+    .catch(() => {
+        btn.textContent = 'Fix All Auto-fixable';
+        btn.disabled = false;
+    });
+}
+
+function toggleResolved() {
+    const toggle = document.getElementById('resolved-toggle');
+    const section = document.getElementById('resolved-section');
+    toggle.classList.toggle('open');
+    section.classList.toggle('open');
+}
+
+function updateCounts() {
+    const remaining = document.querySelectorAll('.error-card.severity-error:not(.fixed):not(.severity-resolved)').length;
+    const remainingWarns = document.querySelectorAll('.error-card.severity-warning:not(.fixed):not(.severity-resolved)').length;
+    const countEl = document.querySelector('.section-head .count');
+    if (countEl) {
+        countEl.textContent = remaining + ' ERRORS \u00b7 ' + remainingWarns + ' WARNINGS';
+    }
+}
+</script>
+{% endblock %}

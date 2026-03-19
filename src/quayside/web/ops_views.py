@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, render_template, request, send_file
 
 from quayside.db import get_quality_issues, get_quality_summary
+
 ops_bp = Blueprint("ops", __name__)
 
 
@@ -649,6 +650,140 @@ def ops_quality_report_download():
 
     md_content = "\n".join(lines)
     filename = f"quayside-quality-{date_param}.md"
+    return send_file(
+        io.BytesIO(md_content.encode("utf-8")),
+        mimetype="text/markdown",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+# ── Error dashboard routes ──────────────────────────────────────────────────
+
+
+def _next_scan_time() -> str | None:
+    """Calculate the next scheduled error scan time (Mon-Fri 8am-5pm UTC, on the hour)."""
+    now = datetime.utcnow()
+    # Weekend — next scan is Monday 8am
+    if now.weekday() >= 5:
+        days_until_monday = 7 - now.weekday()
+        next_monday = now.replace(hour=8, minute=0, second=0, microsecond=0) + timedelta(days=days_until_monday)
+        return next_monday.strftime("%Y-%m-%d %H:%M UTC")
+    # Before 8am — next scan is 8am today
+    if now.hour < 8:
+        return now.replace(hour=8, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M UTC")
+    # After 5pm — next scan is 8am next weekday
+    if now.hour >= 17:
+        next_day = now + timedelta(days=1)
+        if next_day.weekday() >= 5:
+            next_day += timedelta(days=7 - next_day.weekday())
+        return next_day.replace(hour=8, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M UTC")
+    # During hours — next scan is next hour
+    next_hour = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    return next_hour.strftime("%Y-%m-%d %H:%M UTC")
+
+
+@ops_bp.route("/ops/errors")
+def ops_errors():
+    """Error dashboard — quality check results with plain-English explanations."""
+    from quayside.db import get_error_log, get_last_scan_time
+    from quayside.error_actions import PLAIN_ENGLISH, FIX_ACTIONS
+
+    errors = get_error_log()
+    last_scan = get_last_scan_time()
+    next_scan = _next_scan_time()
+
+    open_errors = [e for e in errors if e["status"] == "open"]
+    resolved_errors = [e for e in errors if e["status"] == "resolved"]
+    error_count = sum(1 for e in open_errors if e["severity"] == "error")
+    warning_count = sum(1 for e in open_errors if e["severity"] == "warning")
+    resolved_count = len(resolved_errors)
+
+    return render_template(
+        "errors.html",
+        errors=open_errors,
+        resolved_errors=resolved_errors,
+        last_scan=last_scan,
+        next_scan=next_scan,
+        error_count=error_count,
+        warning_count=warning_count,
+        resolved_count=resolved_count,
+        plain_english=PLAIN_ENGLISH,
+        fix_actions=FIX_ACTIONS,
+    )
+
+
+@ops_bp.route("/ops/errors/scan", methods=["POST"])
+def ops_errors_scan():
+    """Run a quality scan now and redirect back to the error dashboard."""
+    from flask import flash, redirect, url_for
+    from quayside.scheduler import run_and_log_quality_check
+
+    run_and_log_quality_check()
+    flash("Scan complete")
+    return redirect(url_for("ops.ops_errors"))
+
+
+@ops_bp.route("/ops/errors/fix/<int:error_id>", methods=["POST"])
+def ops_errors_fix(error_id):
+    """Fix a single error by applying the appropriate fix action."""
+    from quayside.db import get_error_log, resolve_error
+    from quayside.error_actions import FIX_ACTIONS, apply_fix
+
+    # Find the error
+    all_errors = get_error_log()
+    error = next((e for e in all_errors if e["id"] == error_id), None)
+    if not error:
+        return jsonify({"status": "error", "message": "Error not found"}), 404
+
+    check_name = error["check_name"]
+    if FIX_ACTIONS.get(check_name) == "download_only":
+        return jsonify({"status": "error", "message": "This error requires manual investigation — download the report to review."}), 400
+
+    try:
+        resolution = apply_fix(error)
+        resolve_error(error_id, resolution)
+        return jsonify({"status": "ok", "message": resolution})
+    except Exception as exc:
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
+
+@ops_bp.route("/ops/errors/fix-all", methods=["POST"])
+def ops_errors_fix_all():
+    """Fix all auto-fixable errors. Skips download_only errors."""
+    from quayside.db import get_error_log, resolve_error
+    from quayside.error_actions import FIX_ACTIONS, apply_fix
+
+    all_errors = get_error_log()
+    open_errors = [e for e in all_errors if e["status"] == "open"]
+
+    fixed = 0
+    skipped = 0
+    for error in open_errors:
+        if FIX_ACTIONS.get(error["check_name"]) == "download_only":
+            skipped += 1
+            continue
+        try:
+            resolution = apply_fix(error)
+            resolve_error(error["id"], resolution)
+            fixed += 1
+        except Exception:
+            skipped += 1
+
+    return jsonify({"status": "ok", "fixed": fixed, "skipped": skipped})
+
+
+@ops_bp.route("/ops/errors/download")
+def ops_errors_download():
+    """Download error report as markdown."""
+    from quayside.db import get_error_log
+    from quayside.error_actions import generate_error_markdown
+
+    errors = get_error_log()
+    date_str = _date_type.today().isoformat()
+    md_content = generate_error_markdown(errors, date_str)
+    filename = f"quayside-errors-{date_str}.md"
+
     return send_file(
         io.BytesIO(md_content.encode("utf-8")),
         mimetype="text/markdown",
