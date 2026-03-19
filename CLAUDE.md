@@ -1,12 +1,13 @@
 # Quayside
 
-UK fish auction price aggregator. Scrapes daily price and landing data from public sources across UK ports, normalizes it into a single SQLite database, and generates a daily HTML digest report.
+UK fish auction price aggregator. Scrapes daily price and landing data from public sources across UK ports, normalizes it into a single SQLite database, and generates a daily HTML digest report. Also supports a port upload workflow where ports email price sheets that are AI-extracted and human-approved before publishing.
 
 ## Quick start
 
 ```bash
 pip install -e ".[dev]"       # install with dev deps
 python -m quayside            # run full pipeline (scrape → store → export → report)
+python -m quayside --update   # ETag-aware intraday update (only re-scrapes changed sources)
 pytest                        # run tests
 ```
 
@@ -14,54 +15,88 @@ pytest                        # run tests
 
 ```
 src/quayside/
-├── run.py              # Pipeline orchestrator — runs all scrapers, stores, exports
+├── run.py              # Pipeline orchestrator — runs all scrapers, stores, exports, quality checks
 ├── db.py               # SQLite connection, schema, upsert, queries
 ├── models.py           # PriceRecord and LandingRecord dataclasses
 ├── export.py           # Per-port CSV export
 ├── email.py            # SMTP email delivery (env-var configured)
 ├── report.py           # Daily HTML digest generator (Jinja2)
-├── species.py          # Species name normalisation (raw → canonical)
-├── templates/
-│   └── digest.html     # Jinja2 template for the daily digest
+├── species.py          # Species name normalisation (raw → canonical) + category + noise filter
+├── ports.py            # Port registry — seeds/queries the ports table; replaces hardcoded PORT_CODES
+├── ingest.py           # Email ingestion — polls IMAP mailbox for price sheet attachments
+├── confirm.py          # HITL confirmation logic — token generation, approval, auto-publish
+├── review.py           # Review utilities (sparkline SVG, etc.)
+├── quality.py          # 11 data-quality checks (outliers, stale data, price sanity, etc.)
+├── scheduler.py        # APScheduler background scheduler (runs inside web process)
+├── trade.py            # Trade dashboard data — species-first cross-port intelligence
+├── fx.py               # FX rate fetching (for future multi-currency support)
+├── template.py         # Upload template generation (per-port CSV/XLS templates)
+├── http_cache.py       # ETag/Last-Modified HTTP caching for intraday update runs
+├── extractors/
+│   ├── __init__.py     # Router: dispatch file to correct extractor
+│   ├── ai.py           # Claude API fallback extractor for unknown formats
+│   ├── csv_ext.py      # CSV price sheet extractor
+│   ├── image.py        # Image extractor (PNG/JPG/HEIC — passes to AI)
+│   ├── pdf.py          # PDF extractor (pdfplumber + AI fallback)
+│   └── xls.py          # XLS/XLSX price sheet extractor
 └── scrapers/
     ├── swfpa.py        # SWFPA event page discovery + Peterhead XLS prices
-    ├── peterhead.py    # Peterhead landings (HTML table)
     ├── brixham.py      # Brixham prices (PDF via pdfplumber)
-    ├── newlyn.py       # Newlyn prices (PDF via pdfplumber)
+    ├── newlyn.py       # Newlyn prices (PDF via pdfplumber; CFPO fallback)
     ├── scrabster.py    # Scrabster prices (HTML table)
-    ├── lerwick.py      # Lerwick/Shetland landings (HTML table)
+    ├── lerwick.py      # Lerwick/Shetland prices (XLSX from SSA portal)
+    ├── cfpo.py         # CFPO PDF scraper (Newlyn fallback)
     └── fraserburgh.py  # Fraserburgh prices (dormant — SWFPA stopped publishing)
 ```
 
 ## Data model
 
-Two tables in `data/quayside.db`:
+Tables in `data/quayside.db`:
 
 - **prices**: date, port, species, grade, price_low, price_high, price_avg
   - UNIQUE(date, port, species, grade)
 - **landings**: date, port, vessel_name, vessel_code, species, boxes, boxes_msc
   - UNIQUE(date, port, vessel_name, vessel_code, species)
+- **ports**: slug, name, code, region, data_method, status
+  - Seeded on startup via `ports.py`; statuses: `active`, `outreach`, `future`; methods: `scraper`, `upload`, `demo`
+- **uploads**: upload records for the port upload/HITL workflow
+- **quality_log**: issues logged by quality checks
 
 Upsert strategy: `INSERT OR REPLACE` — latest scrape wins for the same key.
 
 ## Conventions
 
 - **Scrapers return dataclass lists**: Every scraper returns `list[PriceRecord]` or `list[LandingRecord]`. No raw dicts.
-- **Resilient pipeline**: Each scraper is wrapped in `_run_scraper()` which catches exceptions. One failing port doesn't kill the pipeline.
-- **Species names are normalised at display time**: Raw names stored in DB exactly as scraped. `species.py` maps raw names to canonical names (e.g. "Monks" → "Monkfish") for cross-port comparison in the digest report. Add new mappings to `_CANONICAL_MAP` in `species.py` when adding new ports.
+- **Resilient pipeline**: Each scraper is wrapped in `_run_scraper()` which catches exceptions and returns `(results, error_info)`. One failing port doesn't kill the pipeline.
+- **Species names are normalised at display time**: Raw names stored in DB exactly as scraped. `species.py` maps raw names to canonical names (e.g. "Monks" → "Monkfish") for cross-port comparison. Add new mappings to `_CANONICAL_MAP` in `species.py` when adding new ports.
 - **Grade systems differ by port**: Peterhead uses A1-A5, Brixham uses 1-10, Scrabster has none. The `grade` field stores whatever the source provides.
 - **Dates are ISO 8601**: Always `YYYY-MM-DD` in the database and filenames.
 - **Output goes to `output/`**: CSVs as `prices_{port}_{date}.csv`, digest as `digest_{date}.html`. This directory is gitignored.
-- **Data goes to `data/`**: SQLite DB. Also gitignored.
+- **Data goes to `data/`**: SQLite DB and uploaded files (`data/uploads/`). Also gitignored.
+- **Port registry**: `ports.py` is the single source of truth for port slugs, codes, regions, and statuses. Do not hardcode port codes elsewhere.
 
 ## Adding a new scraper
 
 1. Create `src/quayside/scrapers/{port}.py`
 2. Implement `scrape_prices() -> list[PriceRecord]` or `scrape_landings() -> list[LandingRecord]`
-3. Add to `run.py` pipeline (import + `_run_scraper()` call + CSV export)
-4. Add port code to `PORT_CODES` dict in `report.py`
+3. Add to `run.py` pipeline (import + `_run_scraper()` call + CSV export + `log_scrape_attempt()`)
+4. Add port to `_SEED_PORTS` in `ports.py` with `data_method="scraper"` and `status="active"`
 5. Add species name mappings to `_CANONICAL_MAP` in `species.py`
 6. Test: `python -m quayside` then check `output/digest_*.html`
+
+## Upload / HITL workflow
+
+Ports that can't be scraped submit price sheets by email or web form:
+
+1. Port emails a file (XLS/CSV/PDF/image) to the ingest mailbox
+2. `ingest.py` polls via IMAP, identifies the port, routes the attachment to `extractors/`
+3. Extractor parses the file; `ai.py` is the fallback for unknown formats (uses Claude API)
+4. An upload record is created in the DB; a confirmation email is sent with a review link
+5. Reviewer visits `/confirm/<token>` to approve or edit the extracted data
+6. On approval, records are upserted into the prices table
+7. Uploads pending > 2 hours are auto-published by `confirm.auto_publish_stale_uploads()`
+
+Web upload via `/port/<slug>/upload` follows the same confirmation flow.
 
 ## Email delivery
 
@@ -75,9 +110,33 @@ export QUAYSIDE_RECIPIENTS="buyer1@example.com,buyer2@example.com"
 
 For Gmail, use an App Password (not your account password). The pipeline sends the digest automatically at the end of each run if configured.
 
+Email ingestion (for port uploads) uses a separate IMAP config:
+
+```bash
+export QUAYSIDE_INGEST_HOST="imap.gmail.com"   # default
+export QUAYSIDE_INGEST_PORT="993"               # default
+export QUAYSIDE_INGEST_USER="prices@quayside.fish"
+export QUAYSIDE_INGEST_PASS="app-password"
+```
+
 ## Scheduling
 
-Pipeline runs weekdays at 10:15 AM via macOS launchd. Plist at `com.quayside.pipeline.plist`.
+The pipeline runs inside the web process via APScheduler (`scheduler.py`):
+- **07:15 UTC Mon–Fri** — full daily pipeline
+- **Every 30 minutes** — catch-up check (skips if today's data already exists)
+
+Gunicorn must use a single worker to avoid duplicate runs.
+
+> The old macOS launchd `.plist` approach is no longer used.
+
+## Quality checks
+
+`quality.py` runs 11 checks after every successful scrape and 3× daily as a backstop:
+
+- Statistical: outlier prices (MAD), low record counts, stale data, daily avg spikes, seeded data detection, live-site smoke test
+- Data accuracy: NULL/unknown fields, unmapped species, price sanity (≤0, >£200/kg, low>high), date sanity, price swings vs 30-day mean
+
+Results are stored in `quality_log` table and surfaced at `/ops/quality-report`.
 
 ## Local development server
 
@@ -94,23 +153,40 @@ All routes served by `src/quayside/web/app.py`:
 | Route | Description |
 |---|---|
 | `/` | Homepage — port index, links to all port dashboards |
+| `/login` · `/register` · `/logout` | Auth (trade dashboard access) |
 | `/overview` | Market overview across all ports |
 | `/for-ports` | Marketing/onboarding page for port operators |
+| `/for-traders` | Marketing page for fish merchants/traders |
+| `/about` | About page |
 | `/digest` | Daily price digest (latest date) |
 | `/digest/<date>` | Daily price digest for a specific date (YYYY-MM-DD) |
-| `/digest/weekly` | Weekly digest (latest) |
-| `/digest/weekly/<date>` | Weekly digest for specific week |
-| `/digest/monthly` | Monthly digest (latest) |
-| `/digest/monthly/<year_month>` | Monthly digest e.g. `/digest/monthly/2026-03` |
-| `/port/<slug>` | Individual port dashboard — prices history, species breakdown, benchmarks |
+| `/digest/yesterday` · `/digest/today` | Convenience redirects |
+| `/digest/weekly` · `/digest/weekly/<date>` | Weekly digest |
+| `/digest/monthly` · `/digest/monthly/<year_month>` | Monthly digest e.g. `/digest/monthly/2026-03` |
+| `/port/<slug>` | Individual port dashboard — price history, species breakdown, benchmarks |
+| `/port/<slug>/prices` | Prices partial (HTMX/AJAX endpoint) |
+| `/port/<slug>/api/ranking` | Port ranking API |
+| `/port/<slug>/api/compare` | Cross-port species comparison API |
 | `/port/<slug>/upload` | Upload form for port operators to submit price data |
+| `/port/<slug>/export` | Download CSV of port price data |
+| `/port/<slug>/template` | Download upload template for a port |
+| `/port/submit` or `/port/<slug>/submit` | Port signup/contact form |
 | `/confirm/<token>` | HITL confirmation page — review extracted price data before approving |
 | `/confirm/<token>/approve` | Approve confirmed upload (POST) |
 | `/confirm/<token>/edit` | Edit extracted data before approving |
 | `/ops` | Internal ops dashboard — scrape status, pipeline health, upload queue |
-| `/port/<slug>/export` | Download CSV of port price data |
-| `/port/<slug>/template` | Download upload template for a port |
-| `/port/submit` or `/port/<slug>/submit` | Port signup/contact form |
+| `/ops/run-pipeline` | Trigger pipeline manually (POST) |
+| `/ops/run-quality-check` | Trigger quality checks manually (POST) |
+| `/ops/quality/clear/<id>` | Clear a quality issue (POST) |
+| `/ops/quality-report` | Quality report page |
+| `/ops/quality-report/download` | Download quality report as CSV |
+| `/trade` · `/trade/<date>` | Trade dashboard — species-first cross-port intelligence (auth required) |
+| `/trade/export` | Export trade data as CSV |
+| `/trade/ports` | Trade port coverage map |
+| `/trade/feedback` | Trade dashboard feedback (POST) |
+| `/trade/compare` | Cross-port species comparison |
+| `/api/v1/ingest` | API endpoint for price data ingestion (POST) |
+| `/api/v1/export/csv` | API endpoint for bulk CSV export |
 
 ## Git workflow
 

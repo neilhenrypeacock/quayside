@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Daily Digest — {{ date }} — Quayside{% endblock %}
+{% block title %}{{ page_title|default("Daily Digest") }} — {{ date }} — Quayside{% endblock %}
 
 {% block head %}
 <style>
@@ -54,11 +54,11 @@
 {% block content %}
 <div class="digest-page-header">
     <div>
-        <h1>Daily Digest</h1>
-        <div class="meta">{{ date }} &middot; The same report sent to subscribers each morning</div>
+        <h1>{{ page_title|default("Daily Digest") }}</h1>
+        <div class="meta">{{ date }} &middot; {% if page_title == "Today's Digest" %}Updates as ports report throughout the day{% else %}The same report sent to subscribers each morning{% endif %}</div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;align-self:center;">
-        <span class="digest-note">Delivered every weekday morning</span>
+        <span class="digest-note">{% if page_title == "Today's Digest" %}Live — updates as ports report{% else %}Delivered every weekday morning{% endif %}</span>
         <button id="refresh-btn" onclick="runPipeline()" style="background:var(--rust,#c8401a);color:white;border:none;font-family:var(--font-mono,'Courier New'),monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 16px;border-radius:2px;cursor:pointer;white-space:nowrap;">&#8635; Refresh Data</button>
     </div>
 </div>
@@ -82,8 +82,8 @@
             if (statusEl) statusEl.textContent = 'Auto-refresh: off (outside 08:00–16:00)';
             return;
         }
-        var INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
-        if (statusEl) statusEl.textContent = 'Auto-refresh: on (every 10 min, 08:00–16:00)';
+        var INTERVAL_MS = {{ auto_refresh_interval|default(10) }} * 60 * 1000;
+        if (statusEl) statusEl.textContent = 'Auto-refresh: on (every {{ auto_refresh_interval|default(10) }} min, 08:00–16:00)';
         setTimeout(function() {
             if (withinTradingHours()) { window.location.reload(); }
             else { scheduleAutoRefresh(); }

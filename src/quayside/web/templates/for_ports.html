@@ -552,10 +552,12 @@
     .feature-grid { grid-template-columns: 1fr 1fr; }
     .share-grid { grid-template-columns: 1fr; }
     .benefit-list { grid-template-columns: 1fr; }
-    .digest-preview-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
     .final-cta { padding: 48px 24px; }
     footer { padding: 24px; flex-direction: column; align-items: flex-start; }
     .benefits-section { padding: 64px 24px; }
+    .email-feature-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+    .email-sub-grid { grid-template-columns: 1fr !important; }
+    .started-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
   }
   @media (max-width: 600px) {
     .feature-grid { grid-template-columns: 1fr; }
@@ -570,11 +572,11 @@
     <div class="port-hero-eyebrow">For port &amp; auction operators</div>
     <h1>Send us your<br>daily prices.<br><em>We do<br>everything else.</em></h1>
     <p class="port-hero-sub">
-      Forward your price sheet after the auction &mdash; any format &mdash; and get a live market intelligence dashboard for free. See how you're trending, understand your position against the UK market, and put your prices in front of every serious buyer through the daily digest and trade membership.
+      Forward your price sheet after the auction &mdash; any format &mdash; and get a live market intelligence dashboard, free. See how you're trending, understand where you sit in the UK market, and give your prices daily visibility with buyers.
     </p>
     <div style="display:flex;gap:16px;flex-wrap:wrap;">
-      <a href="{{ url_for('port_submit') }}" class="btn-primary">Sign up &rarr;</a>
-      <a href="{{ url_for('port_dashboard', slug='demo') }}" class="btn-secondary">See live demo</a>
+      <a href="{{ url_for('port_submit') }}" class="btn-primary">Sign up free &rarr;</a>
+      <a href="{{ url_for('port_dashboard', slug='demo') }}" class="btn-secondary">Open the demo dashboard &rarr;</a>
     </div>
   </div>
   <div class="port-hero-right">
@@ -582,22 +584,118 @@
   </div>
 </section>
 
-<!-- TWO WAYS TO SHARE -->
-<section class="section" style="background:var(--paper);padding-top:64px;padding-bottom:64px;">
+<!-- YOUR OWN PORT EMAIL — BIG FEATURE -->
+<section style="background:var(--catch);padding:96px 48px;border-bottom:1px solid #a83010;">
   <div class="section-inner">
-    <div class="section-label">How to share your prices</div>
-    <div class="share-grid fade-up">
-      <div class="share-card">
-        <div class="share-card-method">Option 1 &mdash; Email</div>
-        <h3>Forward your price sheet</h3>
-        <p>After the auction closes, just forward your daily price sheet &mdash; whatever format you already use. XLS, PDF, CSV. We extract, normalise, and publish it automatically.</p>
-        <div class="share-detail">prices@quayside.fish &mdash; that's all you need</div>
+    <div class="section-label" style="color:rgba(255,255,255,0.45);">New &mdash; your own port email</div>
+    <div class="email-feature-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;">
+      <div class="fade-up">
+        <h2 style="font-family:var(--font-serif);font-size:clamp(32px,4vw,52px);font-weight:700;color:white;letter-spacing:-0.02em;line-height:1.05;margin-bottom:24px;">A daily email for <em style="font-style:italic;color:rgba(255,255,255,0.7);">your buyers.</em><br>About <em style="font-style:italic;color:rgba(255,255,255,0.7);">your port.</em></h2>
+        <p style="font-size:17px;line-height:1.7;color:rgba(255,255,255,0.85);margin-bottom:20px;">
+          Quayside can build and send a custom daily email &mdash; just about your port &mdash; automatically to your team and your buyers. No design work. No spreadsheets. No chasing anyone.
+        </p>
+        <p style="font-size:16px;line-height:1.7;color:rgba(255,255,255,0.7);margin-bottom:36px;">
+          You choose what's in it: today's prices, your best performers, how you're tracking against the national market. Set a send time once &mdash; and it goes out automatically every auction day, the moment your data is processed.
+        </p>
+        <a href="{{ url_for('port_submit') }}" style="background:white;color:var(--catch);padding:14px 32px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;border:none;cursor:pointer;text-decoration:none;display:inline-block;border-radius:2px;transition:transform 0.1s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">Get set up &rarr;</a>
       </div>
-      <div class="share-card">
-        <div class="share-card-method">Option 2 &mdash; Upload</div>
-        <h3>Upload directly to the site</h3>
-        <p>Download our one-page Excel template with species dropdowns pre-filled. Fill in your prices after the market, upload it here, and it goes live within minutes. Takes under two minutes once you're set up.</p>
-        <a href="{{ url_for('port_upload', slug='peterhead') }}" class="btn-secondary" style="padding:10px 20px;font-size:11px;">Try the upload form &rarr;</a>
+      <div class="fade-up" style="background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.15);border-radius:4px;overflow:hidden;">
+        <div style="background:rgba(0,0,0,0.2);padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:12px;">
+          <div style="display:flex;gap:6px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.15);"></div>
+            <div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.15);"></div>
+            <div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.15);"></div>
+          </div>
+          <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-left:8px;">Your daily port report</span>
+        </div>
+        <div style="padding:28px 24px;">
+          <div style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.06em;margin-bottom:4px;">FROM: Quayside &mdash; for Peterhead Fish Market</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.55);letter-spacing:0.05em;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.1);">SUBJECT: Peterhead &mdash; today's prices &amp; highlights &mdash; Tue 18 Mar</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.7;margin-bottom:14px;">
+            <strong style="color:white;">Today's average: &pound;3.14/kg</strong> &mdash; up 8% on yesterday, tracking 4% above this month's average.
+          </div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:14px;">
+            <strong style="color:rgba(255,255,255,0.85);">Top performers today:</strong> Halibut &pound;12.40/kg (top price nationally), Haddock A1 &pound;2.87/kg (+12% on last week), Monkfish &pound;5.60/kg.
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.04em;">Full breakdown &rarr; quaysidedata.duckdns.org/port/peterhead</div>
+        </div>
+      </div>
+    </div>
+    <div class="email-sub-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(0,0,0,0.2);border:1px solid rgba(0,0,0,0.2);margin-top:64px;">
+      <div style="background:rgba(0,0,0,0.15);padding:32px 28px;">
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;color:rgba(255,255,255,0.45);margin-bottom:12px;text-transform:uppercase;">Custom content</div>
+        <h4 style="font-family:var(--font-serif);font-size:18px;font-weight:700;color:white;margin-bottom:10px;letter-spacing:-0.01em;">You choose what's in it</h4>
+        <p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;">Today's prices, your best performers, how you're tracking against the national market. Your email, your story &mdash; about your port only.</p>
+      </div>
+      <div style="background:rgba(0,0,0,0.15);padding:32px 28px;">
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;color:rgba(255,255,255,0.45);margin-bottom:12px;text-transform:uppercase;">Fully automatic</div>
+        <h4 style="font-family:var(--font-serif);font-size:18px;font-weight:700;color:white;margin-bottom:10px;letter-spacing:-0.01em;">Goes out at a time you set</h4>
+        <p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;">Configure it once. The moment your data is processed each day, your email is ready and sent automatically &mdash; every auction day, no effort required.</p>
+      </div>
+      <div style="background:rgba(0,0,0,0.15);padding:32px 28px;">
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;color:rgba(255,255,255,0.45);margin-bottom:12px;text-transform:uppercase;">Your audience</div>
+        <h4 style="font-family:var(--font-serif);font-size:18px;font-weight:700;color:white;margin-bottom:10px;letter-spacing:-0.01em;">Your team and your buyers</h4>
+        <p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;">Send it to whoever matters to you &mdash; operations, management, regular buyers. Keep your people informed and your buyers in the loop, automatically.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO GET STARTED -->
+<section class="section" style="background:var(--paper);padding-top:80px;padding-bottom:80px;">
+  <div class="section-inner">
+    <div class="section-label">How to get started</div>
+    <div class="started-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;">
+      <div>
+        <p style="font-size:17px;line-height:1.7;color:#4a4438;margin-bottom:40px;">Four steps from today to live. No software, no IT, no disruption to how you already operate.</p>
+        <ol class="steps-list fade-up">
+          <li>
+            <span class="step-num">01</span>
+            <div class="step-content">
+              <h3>We verify you're the port</h3>
+              <p>Fill in a short form &mdash; port name, contact details, that's it. We'll reach out within 24 hours for a quick email exchange to confirm you're a legitimate operator. This keeps your port's data in the right hands.</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">02</span>
+            <div class="step-content">
+              <h3>You get your logins</h3>
+              <p>Once confirmed, your port account is ready. Log in, see your dashboard, and manage everything in one place. No software to install. No IT required.</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">03</span>
+            <div class="step-content">
+              <h3>Add your prices</h3>
+              <p>Upload any historic data you want and we'll backfill your dashboard with rich history immediately. Or just start from today &mdash; your data builds from here. The longer you're on Quayside, the richer the picture.</p>
+              <span class="step-highlight">Have old price sheets? Email them over and we'll load them.</span>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">04</span>
+            <div class="step-content">
+              <h3>Share going forward</h3>
+              <p>After each auction, forward your daily price sheet to <strong>prices@quayside.fish</strong> &mdash; XLS, PDF, CSV, whatever you already produce. Or upload directly via your port page.</p>
+              <p>We extract the data privately and share back exactly what we've read, for your review. One click to confirm, one click to edit. Nothing goes live without your say&ndash;so.</p>
+              <span class="step-highlight">Takes under two minutes once you're set up.</span>
+            </div>
+          </li>
+        </ol>
+        <a href="{{ url_for('port_submit') }}" class="btn-primary" style="margin-top:32px;display:inline-block;">Sign up free &rarr;</a>
+      </div>
+      <div class="fade-up" style="display:flex;flex-direction:column;gap:1px;background:var(--rule);border:1px solid var(--rule);">
+        <div class="share-card">
+          <div class="share-card-method">Option A &mdash; Email</div>
+          <h3>Forward your price sheet</h3>
+          <p>After the auction closes, just forward your daily price sheet &mdash; whatever format you already use. XLS, PDF, CSV. We extract, normalise, and prepare it automatically.</p>
+          <div class="share-detail">prices@quayside.fish &mdash; that's all you need</div>
+        </div>
+        <div class="share-card">
+          <div class="share-card-method">Option B &mdash; Upload form</div>
+          <h3>Upload directly to the site</h3>
+          <p>Download our one-page Excel template with species dropdowns pre-filled. Fill in your prices after the market and upload here &mdash; it's live within minutes.</p>
+          <a href="{{ url_for('port_upload', slug='peterhead') }}" class="btn-secondary" style="padding:10px 20px;font-size:11px;">Try the upload form &rarr;</a>
+        </div>
       </div>
     </div>
   </div>
@@ -608,11 +706,14 @@
   <div class="section-inner">
     <div class="section-label">Your dashboard, live from day one</div>
     <p style="font-size:17px;line-height:1.7;color:#4a4438;max-width:600px;margin-bottom:40px;">
-      The moment your first prices land, your port gets a live dashboard. See how you're trending over time, where you sit in the national market for each species, and what's moving. The longer you're on Quayside, the richer it gets.
+      The moment your first prices land, your port gets a live dashboard. See how you're trending, where you sit in the national market for each species, and what's moving.
     </p>
     <div class="dashboard-screenshot fade-up">
-      <a href="{{ url_for('port_dashboard', slug='demo') }}" target="_blank">
+      <a href="{{ url_for('port_dashboard', slug='demo') }}" target="_blank" style="display:block;position:relative;">
         <img src="{{ url_for('static', filename='img/dashboard-preview.jpg') }}" alt="Quayside demo dashboard — price data, species rankings, and market position">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,14,12,0.3);transition:background 0.2s;" onmouseover="this.style.background='rgba(15,14,12,0.5)'" onmouseout="this.style.background='rgba(15,14,12,0.3)'">
+          <div style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:13px;letter-spacing:0.12em;text-transform:uppercase;padding:16px 36px;border-radius:2px;box-shadow:0 8px 32px rgba(0,0,0,0.3);">Click to open the demo dashboard &rarr;</div>
+        </div>
       </a>
       <div class="dashboard-screenshot-caption">
         <span>Demo dashboard &mdash; representative data</span>
@@ -622,19 +723,19 @@
 
     <div class="feature-grid fade-up">
       <div class="feature-card">
-        <div class="feature-num">01 &mdash; OVERVIEW</div>
-        <h4>Today's average price</h4>
-        <p>Your port's average price per kg across all species sold today, with change vs last week and vs the UK market average &mdash; at a glance.</p>
+        <div class="feature-num">01 &mdash; SNAPSHOT</div>
+        <h4>Today's price at a glance</h4>
+        <p>The moment the auction closes, you have your average price per kg for the day &mdash; and instantly how that compares to yesterday, last week, this month, and this year. One number that tells the whole story. No spreadsheet required.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-num">02 &mdash; RANKING</div>
-        <h4>Your rank vs UK ports</h4>
-        <p>For every species you sell, see exactly where your price sits against every other UK port reporting to Quayside. Updated every auction day.</p>
+        <div class="feature-num">02 &mdash; MARKET POSITION</div>
+        <h4>Where you sit in the market</h4>
+        <p>For every species you sell, see where your price sits in the national range. Not a competition &mdash; just context. When you're achieving strong prices, you'll know it. When there's a gap to close, you'll spot it early.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">03 &mdash; PERFORMANCE</div>
         <h4>Full price history</h4>
-        <p>Every auction day you upload adds to your history. The longer you&rsquo;re on Quayside, the richer your trend data &mdash; rolling averages, seasonal patterns, and long-run shifts against the UK market.</p>
+        <p>Every auction day adds to your history. The longer you&rsquo;re on Quayside, the richer your trend data &mdash; rolling averages, seasonal patterns, and long-run shifts you can share with sellers and buyers alike.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">04 &mdash; INSIGHTS</div>
@@ -642,101 +743,39 @@
         <p>Plain-English commentary generated each auction day: which species are performing above or below the market, what's moved most, and how you compare to last week.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-num">05 &mdash; MARKET POSITION</div>
-        <h4>Market position indicator</h4>
-        <p>Each species row shows a visual bar placing your price within the national min&ndash;max range. Instantly see where you sit in the market without scanning a table.</p>
+        <div class="feature-num">05 &mdash; PRICE RANGE</div>
+        <h4>Your position in the national range</h4>
+        <p>Each species row shows a visual bar placing your price within the national min&ndash;max range. Instantly see where you sit without scanning a table.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">06 &mdash; BEST PERFORMERS</div>
         <h4>Best performers today</h4>
-        <p>Your top species by price and volume, highlighted automatically. Share with sellers or use internally to identify where your port has competitive edge.</p>
+        <p>Your top species by price and volume, highlighted automatically. Share with sellers or use internally to identify where your port has a clear edge.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- WHAT THIS MEANS FOR YOUR SELLERS -->
+<!-- WHAT THIS MEANS FOR YOUR PORT AND SELLERS -->
 <section class="benefits-section">
   <div class="section-inner">
     <div class="section-label">Why this matters to your bottom line</div>
     <h2>Your data works for you<br><em>every single day.</em></h2>
-    <p class="benefits-intro">Every port on Quayside is featured in the daily digest and the trade membership dashboard &mdash; putting your prices directly in front of the buyers, merchants, and processors who decide where to source.</p>
+    <p class="benefits-intro">Every port on Quayside gets daily visibility with buyers, merchants, and processors who are actively deciding where to source &mdash; while you gain the market intelligence to act on.</p>
     <div class="benefit-list fade-up">
       <div class="benefit-card">
-        <h3>Know your position<br>in the <em>UK market</em></h3>
-        <p>For every species you sell, see exactly where your price sits against every other reporting port &mdash; today and over time. <strong>Understand how you're trending, not just what you sold.</strong> That's market intelligence you can act on.</p>
+        <h3>Know where you<br>stand in the <em>market</em></h3>
+        <p>For every species you sell, see where your price sits in the national range &mdash; today and over time. <strong>Understand how you're trending, not just what you sold.</strong> That's market intelligence you can act on, and share with your sellers.</p>
       </div>
       <div class="benefit-card">
-        <h3>In front of every<br><em>serious buyer</em></h3>
-        <p>Quayside trade members use the dashboard every day to decide where to source. <strong>Your prices are automatically visible to them &mdash; and in their inbox each afternoon via the daily digest.</strong> Exposure you don't have to do anything to earn.</p>
+        <h3>Buyers see when<br>you're <em>competitive</em></h3>
+        <p>Quayside trade members use the dashboard to decide where to source. <strong>Your prices are visible to a pool of serious buyers &mdash; in their dashboard throughout the day, and in their inbox each afternoon after the markets close.</strong> Daily visibility you don't have to do anything to earn.</p>
       </div>
       <div class="benefit-card">
-        <h3>Data your<br><em>sellers can use</em></h3>
-        <p>Show sellers where their catch ranks nationally. When your monkfish is achieving top prices in Scotland, that's a concrete retention argument. <strong>Hard numbers make hard conversations easier</strong> &mdash; and happy sellers land more with you.</p>
+        <h3>Good for the port.<br><em>Great for your vessels.</em></h3>
+        <p>Show sellers where their catch ranks nationally. When your monkfish is achieving top prices, that's a concrete retention argument. <strong>Vessels that know they're landing at a strong, visible market stay with you</strong> &mdash; and landing more is everything.</p>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- COMING SOON — DAILY DIGEST -->
-<section class="section" style="background:var(--ink);padding:80px 48px;border-bottom:1px solid #2a2820;text-align:center;">
-  <div class="section-inner">
-    <div style="display:inline-block;background:var(--catch);color:white;font-family:var(--font-mono);font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:8px 24px;border-radius:2px;margin-bottom:28px;animation:pulse-pill 2s ease-in-out infinite;">Launching April 2026</div>
-    <h2 style="font-family:var(--font-serif);font-size:clamp(32px,4vw,48px);font-weight:700;color:var(--paper);letter-spacing:-0.02em;line-height:1.1;margin-bottom:16px;">Your port, featured in the <em style="font-style:italic;color:var(--tide-light);">daily digest.</em></h2>
-    <p style="font-size:17px;line-height:1.7;color:var(--muted);max-width:540px;margin:0 auto 48px;">Sign up now and your port will be featured in the daily digest from the day it launches in April &mdash; and visible in the trade membership dashboard immediately. One place where serious buyers look every day. All you do is send your data.</p>
-    <div class="digest-preview-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#2a2820;border:1px solid #2a2820;text-align:left;">
-      <div style="background:#161410;padding:36px 32px;">
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;">
-          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:var(--up);font-family:var(--font-mono);font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Cross-port price comparisons &mdash; every trading day, as markets close</li>
-          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:var(--up);font-family:var(--font-mono);font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Your best prices highlighted &mdash; putting your port in front of buyers building market intelligence</li>
-          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:var(--up);font-family:var(--font-mono);font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Species-level breakdowns: which ports are cheapest, dearest, and moving most</li>
-        </ul>
-      </div>
-      <div style="background:#161410;padding:36px 32px;">
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;">
-          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:var(--up);font-family:var(--font-mono);font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Market trends and biggest movers, species by species across the whole UK</li>
-          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:var(--up);font-family:var(--font-mono);font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> National reach &mdash; your data visible to the whole UK trade, not just your region</li>
-          <li style="font-size:14px;color:#a8c8d8;display:flex;gap:10px;line-height:1.6;"><span style="color:var(--up);font-family:var(--font-mono);font-size:11px;padding-top:2px;flex-shrink:0;">&rarr;</span> Sent every trading day &mdash; price intelligence on finished markets, helping buyers make better decisions</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- HOW TO JOIN -->
-<section class="section" id="how-to-join">
-  <div class="section-inner">
-    <div class="section-label">How it works</div>
-    <ol class="steps-list fade-up">
-      <li>
-        <span class="step-num">01</span>
-        <div class="step-content">
-          <h3>Sign up &mdash; we verify you&rsquo;re the port</h3>
-          <p>Fill in a short form with your port name and contact details. We&rsquo;ll reach out within 24 hours to confirm you&rsquo;re a legitimate operator &mdash; a quick email exchange to make sure the right people are in control of your port&rsquo;s data.</p>
-          <p>Once confirmed, you&rsquo;re set up with a port account and ready to upload. No software to install, no IT involvement required.</p>
-          <span class="step-highlight">Free to join. Always.</span>
-          <a href="{{ url_for('port_submit') }}" class="btn-primary" style="margin-top:16px;padding:10px 24px;font-size:11px;display:inline-block;">Sign up &rarr;</a>
-        </div>
-      </li>
-      <li>
-        <span class="step-num">02</span>
-        <div class="step-content">
-          <h3>Upload your prices &mdash; any format</h3>
-          <p>After the auction, forward your daily price sheet to <strong>prices@quayside.fish</strong> or upload directly via your port page. XLS, PDF, CSV &mdash; whatever you already produce. We extract, normalise, and prepare your dashboard data automatically.</p>
-          <p>Your history builds with every upload. The longer you&rsquo;re on Quayside, the richer your trend data and market comparisons become.</p>
-          <span class="step-highlight">Takes under two minutes once you&rsquo;re set up.</span>
-        </div>
-      </li>
-      <li>
-        <span class="step-num">03</span>
-        <div class="step-content">
-          <h3>Review, confirm &mdash; your data goes live</h3>
-          <p>After each upload, log in to see your prices in their simplest form. Check the data is correct &mdash; one click to confirm, one click to edit if anything needs fixing. Once you confirm, your full dashboard opens and your prices are published to subscribers.</p>
-          <p>You always have the final say before anything goes live. We learn from every correction and improve automatically over time.</p>
-          <a href="{{ url_for('port_dashboard', slug='demo') }}" class="btn-secondary" style="margin-top:8px;padding:10px 20px;font-size:11px;">See example dashboard &rarr;</a>
-        </div>
-      </li>
-    </ol>
   </div>
 </section>
 
@@ -746,16 +785,16 @@
     <div class="section-label" style="color:#3a3428;">Good to know</div>
     <div class="talk-grid fade-up">
       <div class="talk-card">
-        <h3>It costs you nothing.<br><em style="font-style:italic;color:var(--tide-light);">Ever.</em></h3>
-        <p>Quayside is funded by trade subscribers &mdash; buyers, merchants and processors who pay for the aggregated view. <strong>Ports never pay.</strong> The dashboard, the benchmarks, the marketing exposure &mdash; all free, permanently.</p>
+        <h3>It costs<br>you <em style="font-style:italic;color:var(--tide-light);">nothing.</em></h3>
+        <p>Quayside is funded by trade subscribers &mdash; buyers, merchants and processors who pay for the aggregated view. <strong>Ports don't pay.</strong> The dashboard, the benchmarks, your own port email, the buyer visibility &mdash; all included.</p>
       </div>
       <div class="talk-card">
-        <h3>Other ports see<br><em style="font-style:italic;color:var(--tide-light);">ranges, not rates.</em></h3>
-        <p>Subscribers see market-wide benchmarks: min, average, max across all ports. <strong>Nobody sees your individual port's raw prices.</strong> When fewer than three ports report a species, no port is named at all.</p>
+        <h3>Market transparency is good<br>for <em style="font-style:italic;color:var(--tide-light);">everyone.</em></h3>
+        <p>The biggest ports in the UK already publish their prices. When potential buyers and your sellers can see the market is healthy and competitive, <strong>that's a positive for the whole industry.</strong> Other ports see the national range &mdash; min, average, max &mdash; not your individual rates. Fewer than three ports reporting a species? No port is named.</p>
       </div>
       <div class="talk-card">
-        <h3>If we get something<br><em style="font-style:italic;color:var(--tide-light);">wrong, you fix it.</em></h3>
-        <p>Every daily data pull gets a confirmation step before it goes live. <strong>One click to approve, one click to edit.</strong> You stay in control. We learn from every correction and improve automatically.</p>
+        <h3>You control what<br>goes <em style="font-style:italic;color:var(--tide-light);">public.</em></h3>
+        <p>You share your prices with us. We extract them, then share back exactly what we've read &mdash; for your eyes only &mdash; before anything is published. <strong>One click to confirm, one click to edit.</strong> Complete control over your public information. Nothing goes live without your say-so.</p>
       </div>
     </div>
   </div>
@@ -764,11 +803,11 @@
 <!-- FINAL CTA -->
 <div class="final-cta">
   <h2>Sign up. It costs nothing.</h2>
-  <p style="color:var(--muted);margin-bottom:32px;">Fill in a short form and we&rsquo;ll verify you&rsquo;re the port, get you set up, and you&rsquo;ll be live from day one &mdash; dashboard, digest, trade membership visibility, all included.</p>
+  <p style="color:var(--muted);margin-bottom:32px;">Fill in a short form and we&rsquo;ll verify you&rsquo;re the port, get you set up, and you&rsquo;ll be live from day one &mdash; dashboard, your own port email, and daily visibility with buyers, all included.</p>
   <a href="{{ url_for('port_submit') }}" class="btn-primary" style="font-size:13px;padding:16px 40px;letter-spacing:0.12em;">Sign up free &rarr;</a>
   <div class="cta-or-divider">or</div>
   <p style="color:var(--muted);font-size:14px;">Email us directly at <a href="mailto:hello@quayside.fish" style="color:var(--muted);">hello@quayside.fish</a></p>
-  <p class="sub-text" style="margin-top:24px;">Free for port operators, permanently.</p>
+  <p class="sub-text" style="margin-top:24px;">Free for port operators.</p>
 </div>
 
 <!-- FOOTER -->
