@@ -575,7 +575,7 @@ def build_landing_data(date: str) -> dict:
     key_species_rows = []
 
     # Build best-price-per-species lookup from all today's prices (single source of truth)
-    best_by_species: dict[str, tuple[str, str, float]] = {}  # species → (port, port_code, price)
+    best_by_species: dict[str, tuple[str, str, float, float | None, int | None]] = {}
     for item in data["prices_by_species"]:
         sp = item["species"]
         if sp not in key_species_set or not item["rows"]:
@@ -586,12 +586,14 @@ def build_landing_data(date: str) -> dict:
             port_name,
             PORT_CODES.get(port_name, port_name[:3].upper()),
             best_row["price_avg"],
+            best_row.get("weight_kg"),
+            best_row.get("boxes"),
         )
 
     for sp in KEY_SPECIES:
         if sp not in best_by_species:
             continue
-        port_name, port_code, price = best_by_species[sp]
+        port_name, port_code, price, weight_kg, boxes = best_by_species[sp]
         prev = prev_port_species.get((port_name, sp))
         direction, pct_str = "flat", "—"
         if prev and prev > 0:
@@ -605,6 +607,8 @@ def build_landing_data(date: str) -> dict:
             "price": price,
             "direction": direction,
             "pct_str": pct_str,
+            "weight_kg": weight_kg,
+            "boxes": boxes,
         })
         if len(key_species_rows) >= 6:
             break

@@ -1148,7 +1148,7 @@
       <div class="price-row">
         <div>
           <div class="price-species">{{ row.species }}</div>
-          <div class="price-port">{{ row.port }}</div>
+          <div class="price-port">{{ row.port }}{% if row.weight_kg %} &middot; {{ "{:,.0f}".format(row.weight_kg) }}kg{% elif row.boxes %} &middot; {{ "{:,}".format(row.boxes) }} boxes{% endif %}</div>
         </div>
         <div class="price-val">&pound;{{ "%.2f"|format(row.price) }}</div>
         <div class="price-change {{ row.direction }}">

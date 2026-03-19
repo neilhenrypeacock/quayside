@@ -242,7 +242,7 @@ def trade_ports():
         },
     }
 
-    active_ports = get_all_ports(status="active")
+    active_ports = [p for p in get_all_ports(status="active") if p.get("data_method") != "demo"]
     outreach_ports = [
         p for p in get_all_ports() if p.get("status") == "outreach"
     ]

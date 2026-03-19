@@ -102,12 +102,16 @@ def port_dashboard(slug: str):
     today_data = build_today_data(port_prices, market, last_week_prices)
 
     history = get_port_prices_history(port["name"], days=90)
-    _history_start = (
-        datetime.strptime(date, "%Y-%m-%d") - timedelta(days=90)
-    ).strftime("%Y-%m-%d")
+    history_days = len({h[0] for h in history})
+    # Constrain market averages to actual data span, not an arbitrary 90-day window
+    if history:
+        _history_start = min(h[0] for h in history)
+    else:
+        _history_start = (
+            datetime.strptime(date, "%Y-%m-%d") - timedelta(days=90)
+        ).strftime("%Y-%m-%d")
     market_avgs_range = get_market_averages_for_range(_history_start, date)
     trend_data = build_trend_data(history, market_avgs_range)
-    history_days = len({h[0] for h in history})
 
     best_performers = build_best_performers(port["name"], date, days=30)
     all_insights = build_insights(port["name"], date, today_data, history)
@@ -649,7 +653,7 @@ def download_template(slug: str):
 @port_bp.route("/port/<slug>/submit")
 def port_submit(slug: str | None = None):
     """Price submission form — no login required."""
-    ports = get_all_ports(status="active")
+    ports = [p for p in get_all_ports(status="active") if p.get("data_method") != "demo"]
     today = datetime.now().strftime("%Y-%m-%d")
     species_list = get_all_canonical_names()
     selected_port = None

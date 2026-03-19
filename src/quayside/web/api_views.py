@@ -54,8 +54,8 @@ def api_ingest():
     except ValueError:
         return jsonify({"error": "date must be YYYY-MM-DD format."}), 400
 
-    # Validate port exists
-    all_port_names = {p["name"] for p in get_all_ports()}
+    # Validate port exists (exclude demo port)
+    all_port_names = {p["name"] for p in get_all_ports() if p.get("data_method") != "demo"}
     if port_name not in all_port_names:
         return jsonify({"error": f"Unknown port: {port_name}"}), 400
 

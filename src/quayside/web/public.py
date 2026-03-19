@@ -41,7 +41,7 @@ def landing():
 @public_bp.route("/overview")
 def index():
     """Staging hub — links to all screens."""
-    ports = get_all_ports(status="active")
+    ports = [p for p in get_all_ports(status="active") if p.get("data_method") != "demo"]
     actual_today = datetime.now().strftime("%Y-%m-%d")
     latest = get_latest_rich_date()
     is_fallback = bool(latest and latest != actual_today)

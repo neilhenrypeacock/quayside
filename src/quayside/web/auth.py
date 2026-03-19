@@ -83,7 +83,7 @@ def login():
 def register():
     if current_user.is_authenticated:
         return redirect(_post_login_url(current_user))
-    ports = get_all_ports(status="active")
+    ports = [p for p in get_all_ports(status="active") if p.get("data_method") != "demo"]
     if request.method == "POST":
         email = request.form.get("email", "").strip()
         password = request.form.get("password", "")
