@@ -1074,6 +1074,9 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     margin-top: 16px;
     padding-top: 12px;
     border-top: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 .sidebar-footer-link {
     font-family: var(--font-mono);
@@ -1081,6 +1084,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     color: var(--muted);
     text-decoration: none;
     letter-spacing: 0.05em;
+    display: block;
 }
 .sidebar-footer-link:hover { color: var(--tide); }
 
@@ -1534,6 +1538,141 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     box-shadow: 0 3px 12px rgba(0,0,0,0.28);
     pointer-events: none;
 }
+
+/* ── Port selector bar ── */
+.port-selector-bar {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    background: var(--salt);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+.port-selector-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+}
+.port-selector-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    align-items: center;
+}
+.port-selector-checks label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    color: var(--ink);
+    white-space: nowrap;
+}
+.port-selector-checks input[type=checkbox] {
+    accent-color: var(--tide);
+    cursor: pointer;
+}
+.port-selector-apply {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 5px 12px;
+    background: var(--tide);
+    color: var(--paper);
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.port-selector-apply:hover { opacity: 0.85; }
+.port-selector-note {
+    font-size: 9px;
+    color: var(--catch);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.port-selector-methodology {
+    font-size: 9px;
+    color: var(--tide);
+    text-decoration: none;
+    white-space: nowrap;
+    margin-left: auto;
+}
+.port-selector-methodology:hover { text-decoration: underline; }
+
+/* ── Volume sub-text in matrix cells ── */
+.cell-volume {
+    display: block;
+    font-size: 9px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    margin-top: 1px;
+    letter-spacing: 0.02em;
+}
+
+/* ── Scrabster range display ── */
+.price-range {
+    white-space: nowrap;
+}
+
+/* ── Grade breakdown rows ── */
+.grade-expand-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px; height: 14px;
+    border: 1px solid var(--rule);
+    background: none;
+    color: var(--muted);
+    font-size: 9px;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 2px;
+    margin-left: 4px;
+    flex-shrink: 0;
+    transition: border-color 0.1s, color 0.1s;
+    vertical-align: middle;
+    line-height: 1;
+    font-family: var(--font-mono);
+}
+.grade-expand-btn:hover { border-color: var(--tide); color: var(--tide); }
+.grade-expand-btn.open { color: var(--tide); border-color: var(--tide); }
+.grade-expand-row { background: var(--salt); }
+.grade-expand-row > td { padding: 0; }
+.grade-expand-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--rule);
+}
+.grade-port-block { min-width: 160px; }
+.grade-port-name {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+.grade-table {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    border-collapse: collapse;
+    width: 100%;
+}
+.grade-table td {
+    padding: 2px 6px 2px 0;
+    color: var(--ink);
+    white-space: nowrap;
+}
+.grade-table td:first-child { color: var(--muted); min-width: 40px; }
+.grade-table td.grade-vol { color: var(--muted); font-size: 9px; }
 </style>
 {% endblock %}
 
@@ -1564,6 +1703,7 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
     </div>
     <div class="sidebar-footer">
         <a href="/trade/ports" class="sidebar-footer-link">Port Directory &rarr;</a>
+        <a href="/methodology" class="sidebar-footer-link" target="_blank">Methodology &rarr;</a>
     </div>
 </aside>
 
@@ -1598,6 +1738,34 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         </select>
     </div>
 </div>
+
+<!-- ── Port selector for market average ── -->
+<form method="GET" action="/trade/{{ date }}" id="port-selector-form">
+<div class="port-selector-bar">
+    <span class="port-selector-label">Ports in market average</span>
+    <div class="port-selector-checks">
+        {% for port in all_selectable_ports %}
+        <label>
+            <input type="checkbox" name="ports_cb" value="{{ port }}"
+                   {% if port in selected_ports_set %}checked{% endif %}
+                   onchange="updatePortSelectorHidden()">
+            {{ port_codes.get(port, port[:3]) }} {{ port }}
+        </label>
+        {% endfor %}
+    </div>
+    <input type="hidden" name="ports" id="port-selector-hidden" value="{{ selected_ports_set | join(',') }}">
+    <button type="submit" class="port-selector-apply">Apply</button>
+    {% if scrabster_in_selection %}
+    <span class="port-selector-note">&#9432; Includes Scrabster estimate</span>
+    {% endif %}
+    <a href="/methodology" class="port-selector-methodology" target="_blank">How we calculate &#8594;</a>
+</div>
+{% if not all_ports %}
+<div style="background:var(--salt);border:1px solid var(--rule);border-radius:3px;padding:14px 18px;margin-bottom:20px;font-family:var(--font-mono);font-size:12px;color:var(--muted);">
+    Select at least one port above to view market data.
+</div>
+{% endif %}
+</form>
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <!-- SECTION 1: YOUR DASHBOARD                                            -->
@@ -1939,7 +2107,9 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             <tr><td colspan="{{ all_ports|length + 6 }}" style="padding:0;background:var(--rule);height:2px;"></td></tr>
         </tbody>
         <tbody id="matrix-tbody">
+        {% set col_count = all_ports|length + 6 %}
         {% for row in matrix %}
+        {% set has_grades = row.species in grade_data and grade_data[row.species] %}
         <tr class="matrix-row"
             data-category="{{ row.category }}"
             data-spread="{{ row.spread_pct or 0 }}"
@@ -1954,6 +2124,11 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
                         title="Watch this species">&#9733;</button>
                 <span class="species-name">{{ row.species }}</span>
                 <span class="cat-badge">{{ row.category }}</span>
+                {% if has_grades %}
+                <button class="grade-expand-btn" title="Show grade breakdown"
+                        data-species="{{ row.species | e }}"
+                        onclick="event.stopPropagation();toggleGradeRow(this)">&#9656;</button>
+                {% endif %}
             </td>
             {% for port in all_ports %}
             {% set price = row.ports.get(port) %}
@@ -1961,12 +2136,23 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
                 {% set is_best = (port == row.best_buy_port) %}
                 {% set is_above = (row.market_avg and price > row.market_avg * 1.05) %}
                 {% set is_below = (row.market_avg and price < row.market_avg * 0.95 and not is_best) %}
+                {% set prange = port_ranges.get(row.species, {}).get(port, {}) %}
+                {% set pvol = port_volumes.get(row.species, {}).get(port, {}) %}
                 <td class="matrix-cell port-cell
                     {{ 'cell-best' if is_best }}
                     {{ 'cell-below' if is_below }}
                     {{ 'cell-above' if is_above }}"
                     data-port="{{ port }}">
+                    {% if port == 'Scrabster' and prange.low is not none and prange.high is not none %}
+                    <span class="price-range">&pound;{{ "%.2f"|format(prange.low) }}&ndash;{{ "%.2f"|format(prange.high) }}</span>
+                    {% else %}
                     &pound;{{ "%.2f"|format(price) }}
+                    {% endif %}
+                    {% if pvol.weight_kg is not none and pvol.weight_kg > 0 %}
+                    <span class="cell-volume">{{ pvol.weight_kg | int }}kg</span>
+                    {% elif pvol.boxes is not none and pvol.boxes > 0 %}
+                    <span class="cell-volume">{{ pvol.boxes }} boxes</span>
+                    {% endif %}
                 </td>
             {% else %}
                 <td class="matrix-cell cell-empty port-cell" data-port="{{ port }}">&mdash;</td>
@@ -1997,8 +2183,40 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
                 {% if row.spread_pct is not none %}{{ "%.0f"|format(row.spread_pct) }}%{% else %}&mdash;{% endif %}
             </td>
         </tr>
+        {% if has_grades %}
+        <tr class="grade-expand-row" data-grade-for="{{ row.species | e }}" style="display:none;">
+            <td colspan="{{ col_count }}">
+                <div class="grade-expand-inner">
+                {% for port, grades in grade_data[row.species].items() %}
+                <div class="grade-port-block">
+                    <div class="grade-port-name">{{ port_codes.get(port, port[:3]) }} {{ port }}</div>
+                    <table class="grade-table">
+                        {% for g in grades %}
+                        <tr>
+                            <td>{{ g.grade or '—' }}</td>
+                            <td>
+                                {% if g.low is not none and g.high is not none and g.low != g.high %}
+                                &pound;{{ "%.2f"|format(g.low) }}&ndash;{{ "%.2f"|format(g.high) }}
+                                {% else %}
+                                &pound;{{ "%.2f"|format(g.avg) }}
+                                {% endif %}
+                            </td>
+                            <td class="grade-vol">
+                                {% if g.weight_kg is not none and g.weight_kg > 0 %}{{ g.weight_kg | int }}kg
+                                {% elif g.boxes is not none and g.boxes > 0 %}{{ g.boxes }} boxes
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                {% endfor %}
+                </div>
+            </td>
+        </tr>
+        {% endif %}
         {% else %}
-        <tr><td colspan="{{ all_ports|length + 6 }}" style="text-align:center;padding:28px;color:var(--muted);font-family:var(--font-mono);font-size:13px;">
+        <tr><td colspan="{{ col_count }}" style="text-align:center;padding:28px;color:var(--muted);font-family:var(--font-mono);font-size:13px;">
             No price data available for {{ date }}
         </td></tr>
         {% endfor %}
@@ -2121,9 +2339,9 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
         Download price data as CSV. Filter by date range and species.
     </div>
     <div class="tools-grid">
-        <!-- Export -->
+        <!-- Export by species -->
         <div class="tool-card">
-            <div class="tool-card-title">Export Data</div>
+            <div class="tool-card-title">Export by Species</div>
             <div class="export-row">
                 <span class="export-label">From</span>
                 <input type="date" id="exp-from" value="{{ ninety_days_ago }}">
@@ -2144,7 +2362,33 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             <button onclick="downloadExport()" class="btn btn-primary" style="font-size:10px;padding:8px 18px;margin-top:8px;">
                 &#8595; Download CSV
             </button>
-            <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-top:6px;">All ports included. 90-day default.</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-top:6px;">All ports &middot; 90-day default. Includes all price fields.</div>
+        </div>
+
+        <!-- Export by port -->
+        <div class="tool-card">
+            <div class="tool-card-title">Export by Port</div>
+            <div class="export-row">
+                <span class="export-label">From</span>
+                <input type="date" id="exp-port-from" value="{{ ninety_days_ago }}">
+            </div>
+            <div class="export-row">
+                <span class="export-label">To</span>
+                <input type="date" id="exp-port-to" value="{{ date }}">
+            </div>
+            <div class="export-row">
+                <span class="export-label">Port</span>
+                <select class="export-species-select" id="exp-port">
+                    <option value="">All ports</option>
+                    {% for port in all_selectable_ports %}
+                    <option value="{{ port }}">{{ port }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button onclick="downloadPortExport()" class="btn btn-primary" style="font-size:10px;padding:8px 18px;margin-top:8px;">
+                &#8595; Download CSV
+            </button>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-top:6px;">All species for selected port &middot; 90-day default.</div>
         </div>
 
     </div>
@@ -2223,7 +2467,11 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
 // ── Data ──────────────────────────────────────────────────────────────────
 const CHART_DATA = {{ chart_data | tojson }};
 const ALL_PORTS  = {{ all_ports | tojson }};
+const ALL_SELECTABLE_PORTS = {{ all_selectable_ports | tojson }};
 const PORT_CODES = {{ port_codes | tojson }};
+const GRADE_DATA = {{ grade_data | tojson }};
+const PORT_VOLUMES = {{ port_volumes | tojson }};
+const PORT_RANGES = {{ port_ranges | tojson }};
 const CATEGORY_PULSE = {{ category_pulse | tojson }};
 const PORT_COLORS = {
     {% for port in all_ports %}
@@ -2299,7 +2547,11 @@ let myPorts = new Set(JSON.parse(localStorage.getItem('quayside_my_ports') || '[
 
 // ── Navigation ───────────────────────────────────────────────────────────
 function navigateDate(d) {
-    window.location.href = '/trade/' + d;
+    const portsHidden = document.getElementById('port-selector-hidden');
+    const portsVal = portsHidden ? portsHidden.value : '';
+    let url = '/trade/' + d;
+    if (portsVal) url += '?ports=' + encodeURIComponent(portsVal);
+    window.location.href = url;
 }
 
 // ── Tab navigation ────────────────────────────────────────────────────────
@@ -3385,13 +3637,42 @@ function appendChatMsg(role, text) {
     container.scrollTop = container.scrollHeight;
 }
 
+// ── Port selector hidden input ────────────────────────────────────────────
+function updatePortSelectorHidden() {
+    const checked = [...document.querySelectorAll('[name=ports_cb]:checked')].map(cb => cb.value);
+    document.getElementById('port-selector-hidden').value = checked.join(',');
+}
+
+// ── Grade breakdown toggle ────────────────────────────────────────────────
+function toggleGradeRow(btn) {
+    const species = btn.dataset.species;
+    const row = document.querySelector('.grade-expand-row[data-grade-for="' + CSS.escape(species) + '"]');
+    if (!row) return;
+    const isOpen = row.style.display !== 'none';
+    row.style.display = isOpen ? 'none' : '';
+    btn.classList.toggle('open', !isOpen);
+    btn.textContent = isOpen ? '\u25B6' : '\u25BC';
+}
+
 // ── CSV Export ────────────────────────────────────────────────────────────
 function downloadExport() {
     const from = document.getElementById('exp-from').value;
     const to   = document.getElementById('exp-to').value;
     const species = document.getElementById('exp-species').value;
+    const portsVal = document.getElementById('port-selector-hidden')
+        ? document.getElementById('port-selector-hidden').value : '';
     let url = '/trade/export?date_from=' + from + '&date_to=' + to;
     if (species) url += '&species=' + encodeURIComponent(species);
+    if (portsVal) url += '&ports=' + encodeURIComponent(portsVal);
+    window.location.href = url;
+}
+
+function downloadPortExport() {
+    const from = document.getElementById('exp-port-from').value;
+    const to   = document.getElementById('exp-port-to').value;
+    const port = document.getElementById('exp-port').value;
+    let url = '/trade/export?date_from=' + from + '&date_to=' + to;
+    if (port) url += '&port=' + encodeURIComponent(port);
     window.location.href = url;
 }
 

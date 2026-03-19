@@ -1956,6 +1956,15 @@ def create_app() -> Flask:
         if not date:
             return "No data available", 404
 
+        # Port selector: read ?ports= query param (comma-separated port names).
+        # None (param absent) = default to all ports.
+        # Empty list (param present but empty, e.g. all deselected) = no ports selected.
+        raw_ports_param = request.args.get("ports", None)
+        if raw_ports_param is None:
+            selected_ports = None  # default: all ports
+        else:
+            selected_ports = [p.strip() for p in raw_ports_param.split(",") if p.strip()]
+
         is_fallback = (date != actual_today)
         scrape_info = get_last_scrape_info()
         scrape_info_display = _build_scrape_info_display(scrape_info)
@@ -1967,7 +1976,7 @@ def create_app() -> Flask:
         else:
             freshness_status = "offline"
 
-        data = build_trade_data(date)
+        data = build_trade_data(date, selected_ports=selected_ports)
         data["is_fallback"] = is_fallback
         data["actual_today"] = actual_today
         data["freshness_status"] = freshness_status
@@ -2005,6 +2014,14 @@ def create_app() -> Flask:
         date_from = request.args.get("date_from", "")
         date_to = request.args.get("date_to", "")
         species_filter = request.args.get("species", "").strip().lower()
+        port_filter = request.args.get("port", "").strip()
+        # ports= is the port-selector state (comma-separated)
+        ports_param = request.args.get("ports", "").strip()
+        ports_filter_set: set[str] | None = None
+        if port_filter:
+            ports_filter_set = {port_filter}
+        elif ports_param:
+            ports_filter_set = {p.strip() for p in ports_param.split(",") if p.strip()}
 
         if not date_to:
             date_to = datetime.now().strftime("%Y-%m-%d")
@@ -2022,12 +2039,23 @@ def create_app() -> Flask:
             canonical = normalise_species(species)
             if species_filter and canonical.lower() != species_filter:
                 continue
+            if ports_filter_set and port not in ports_filter_set:
+                continue
             writer.writerow([date_val, port, species, canonical, grade,
                              f"{low:.2f}" if low is not None else "",
                              f"{high:.2f}" if high is not None else "",
                              f"{avg:.2f}" if avg is not None else ""])
 
-        filename = f"quayside_trade_{date_from}_{date_to}.csv"
+        # Build a readable filename
+        if port_filter:
+            name_slug = port_filter.lower().replace(" ", "_")
+            filename = f"quayside_{name_slug}_{date_from}_{date_to}.csv"
+        elif species_filter:
+            name_slug = species_filter.replace(" ", "_")
+            filename = f"quayside_{name_slug}_{date_from}_{date_to}.csv"
+        else:
+            filename = f"quayside_trade_{date_from}_{date_to}.csv"
+
         return Response(
             buf.getvalue(),
             mimetype="text/csv",
@@ -2086,6 +2114,11 @@ def create_app() -> Flask:
         )
         reply = message.content[0].text if message.content else "No response."
         return jsonify({"reply": reply})
+
+    @app.route("/methodology")
+    def methodology():
+        """Data methodology page — explains how prices are calculated."""
+        return render_template("methodology.html")
 
     @app.route("/trade/ports")
     def trade_ports():

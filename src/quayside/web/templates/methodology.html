@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}How We Calculate Prices — Quayside{% endblock %}
+
+{% block head %}
+<style>
+.methodology-wrap {
+    max-width: 680px;
+    margin: 48px auto 80px;
+    padding: 0 24px;
+}
+.methodology-wrap h1 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+}
+.methodology-wrap .subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 40px;
+    display: block;
+}
+.methodology-wrap h2 {
+    font-family: var(--font-serif);
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-top: 40px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 8px;
+}
+.methodology-wrap h3 {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--tide);
+    margin-top: 24px;
+    margin-bottom: 6px;
+}
+.methodology-wrap p {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.72;
+    color: var(--ink);
+    margin-bottom: 14px;
+}
+.methodology-wrap ul {
+    margin: 0 0 14px 0;
+    padding-left: 22px;
+}
+.methodology-wrap li {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.72;
+    color: var(--ink);
+    margin-bottom: 4px;
+}
+.methodology-wrap .example-box {
+    background: var(--salt);
+    border-left: 3px solid var(--tide);
+    padding: 14px 18px;
+    margin: 18px 0;
+    border-radius: 0 3px 3px 0;
+}
+.methodology-wrap .example-box p {
+    margin-bottom: 0;
+    font-size: 14px;
+}
+.methodology-wrap .example-box p + p { margin-top: 6px; }
+.methodology-wrap .footer-note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+}
+.methodology-wrap strong { font-weight: 600; color: var(--ink); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="methodology-wrap">
+
+<h1>How Quayside calculates prices</h1>
+<span class="subtitle">Last updated: March 2026</span>
+
+<p>Quayside aggregates daily fish auction data from UK ports. Each port publishes data in a different format with different levels of detail. This page explains how we handle those differences.</p>
+
+<h2>Market average</h2>
+
+<p>The market average for a species is a <strong>simple mean</strong> of the average prices reported across all ports that sold that species on a given day.</p>
+
+<div class="example-box">
+<p>For example, if Haddock sold at three ports today:</p>
+<p>
+Peterhead: £2.84/kg<br>
+Lerwick: £2.61/kg<br>
+Brixham: £2.55/kg
+</p>
+<p>The market average is (£2.84 + £2.61 + £2.55) / 3 = <strong>£2.67/kg</strong></p>
+</div>
+
+<p><strong>What this means:</strong> Each port carries equal weight in the average, regardless of how much fish was sold. Peterhead — which typically handles significantly more volume than smaller ports — has the same influence on the market average as a port that sold a fraction of the quantity. We do this because not all ports publish volume data, making a true volume-weighted average impossible across all ports.</p>
+
+<p><strong>Trade dashboard users</strong> can choose which ports feed into the market average using the port selector. This lets you focus on the ports most relevant to your business.</p>
+
+<h2>How each port's data works</h2>
+
+<h3>Peterhead</h3>
+<p>Publishes low, high, and average prices per species and grade (A1–A5). This is our most granular price data. Peterhead does not publish volume or weight sold.</p>
+
+<h3>Brixham</h3>
+<p>Publishes daily average prices with weight sold (in kg) per species and grade. Brixham also publishes a rolling weekly average and DEFRA species codes. Low and high auction prices are not published.</p>
+
+<h3>Newlyn</h3>
+<p>Publishes daily average prices with weight sold (in kg) per species and grade. Newlyn includes size band descriptions (e.g. "801g+") that indicate the size of fish sold. Low and high auction prices are not published.</p>
+
+<h3>Lerwick</h3>
+<p>Publishes daily average and maximum prices with volume sold (in kg) per species and grade. Minimum prices are not published.</p>
+
+<h3>Scrabster</h3>
+<p>Publishes price ranges — the lowest and highest prices achieved at auction — along with the number of boxes sold per species. <strong>Scrabster does not publish an average price.</strong> Where Scrabster appears in market average calculations, we use the midpoint of the range as an estimate. This is labelled as an estimate wherever it appears. In the digest and dashboards, Scrabster's prices are shown as ranges (e.g. £1.20–£2.80) rather than single values.</p>
+
+<h2>Volume data</h2>
+
+<p>Volume sold (weight in kg or number of boxes) is shown alongside prices wherever a port publishes it. Currently:</p>
+<ul>
+    <li><strong>Brixham, Newlyn, Lerwick:</strong> Weight in kg</li>
+    <li><strong>Scrabster:</strong> Box counts</li>
+    <li><strong>Peterhead:</strong> Not available</li>
+</ul>
+<p>Where volume is not available, the price is shown without a volume qualifier.</p>
+
+<h2>Grade data</h2>
+
+<p>UK fish auctions grade fish by quality. Grading systems vary by port:</p>
+<ul>
+    <li><strong>Peterhead:</strong> A1 (highest) through A5 (lowest), with sub-grades</li>
+    <li><strong>Brixham, Newlyn:</strong> Numeric 1 (highest) through 5+ (lowest)</li>
+    <li><strong>Lerwick:</strong> Numeric 0 through 6</li>
+    <li><strong>Scrabster:</strong> No grade breakdown — all fish reported as a single entry</li>
+</ul>
+<p>Cross-port grade comparison is not straightforward because grading standards differ between ports and are applied by different assessors. An A1 at Peterhead and a Grade 1 at Brixham are broadly equivalent (top quality) but are not formally standardised.</p>
+
+<h2>Species names</h2>
+
+<p>Quayside normalises species names across ports so that the same fish can be compared cross-port. For example, "Monks" (Peterhead), "Monk" (Brixham), and "Monk Or Anglers" (Newlyn) all refer to Monkfish and are reported under the single name "Monkfish."</p>
+
+<p>A full species mapping is maintained and updated as new naming variants appear. Where a species name from a port cannot be confidently matched, it appears under the port's original name and is excluded from cross-port comparisons.</p>
+
+<h2>Day-over-day and trend changes</h2>
+
+<p>Percentage changes (▲▼) compare today's market average with the same metric from previous trading days. These use the same calculation method and port selection as the current day's average, applied to historical data.</p>
+
+<h2>Cross-port spread</h2>
+
+<p>The spread percentage is calculated as <strong>(max price &minus; min price) / min price &times; 100</strong> across all selected ports for a given species on a given day. A spread above 20% typically indicates a meaningful arbitrage opportunity.</p>
+
+<h2>Data freshness</h2>
+
+<p>Quayside scrapes port data each weekday morning. Auction data is typically published by ports between 6am and 10am. The digest is sent after all ports have reported. If a port does not publish data on a given day (e.g. no auction held), it is excluded from that day's calculations.</p>
+
+<h2>Questions or feedback</h2>
+
+<p>If you have questions about our methodology or spot something that doesn't look right, use the feedback button on the trade dashboard. We take data accuracy seriously and welcome scrutiny from industry professionals.</p>
+
+<p class="footer-note">
+    &larr; <a href="/trade" style="color:var(--tide);">Back to Trade Dashboard</a>
+    &nbsp;&middot;&nbsp;
+    <a href="/" style="color:var(--muted);">Quayside Home</a>
+</p>
+
+</div>
+{% endblock %}

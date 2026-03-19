@@ -394,12 +394,96 @@ def _best_price_per_port(rows: list[tuple]) -> dict[str, dict[str, float]]:
     return dict(out)
 
 
-def build_trade_data(date: str) -> dict:
-    """Assemble all data for the Trade Dashboard for the given date."""
+def _build_port_detail(rows: list[tuple]) -> tuple[dict, dict, dict]:
+    """Build port_ranges, port_volumes, grade_data from price rows.
+
+    Returns:
+        port_ranges: {canonical: {port: {low, high, avg}}}  (best-avg row's low/high)
+        port_volumes: {canonical: {port: {weight_kg, boxes}}}  (summed across grades)
+        grade_data: {canonical: {port: [{grade, avg, low, high, weight_kg, boxes}]}}
+                    Scrabster excluded (ALL-grade only, no breakdown useful).
+    """
+    best_avg_tracker: dict[str, dict[str, float]] = defaultdict(dict)
+    port_ranges: dict[str, dict] = defaultdict(dict)
+    port_volumes: dict[str, dict] = defaultdict(dict)
+    grade_data: dict[str, dict] = defaultdict(dict)
+
+    for _date, port, raw_sp, grade, low, high, avg, weight_kg, boxes in rows:
+        if avg is None:
+            continue
+        canonical = normalise_species(raw_sp)
+
+        # Track best-avg row for port_ranges
+        curr_best = best_avg_tracker[canonical].get(port)
+        if curr_best is None or avg > curr_best:
+            best_avg_tracker[canonical][port] = avg
+            port_ranges[canonical][port] = {
+                "low": round(low, 2) if low is not None else None,
+                "high": round(high, 2) if high is not None else None,
+                "avg": round(avg, 2),
+            }
+
+        # Volume: sum across grades per species/port
+        if port not in port_volumes[canonical]:
+            port_volumes[canonical][port] = {"weight_kg": None, "boxes": None}
+        if weight_kg is not None:
+            cur = port_volumes[canonical][port]["weight_kg"] or 0.0
+            port_volumes[canonical][port]["weight_kg"] = round(cur + weight_kg, 1)
+        if boxes is not None:
+            cur = port_volumes[canonical][port]["boxes"] or 0
+            port_volumes[canonical][port]["boxes"] = cur + int(boxes)
+
+        # Grade breakdown — exclude Scrabster (only has ALL grade, no breakdown)
+        if port != "Scrabster":
+            if port not in grade_data[canonical]:
+                grade_data[canonical][port] = []
+            grade_data[canonical][port].append({
+                "grade": grade or "",
+                "avg": round(avg, 2),
+                "low": round(low, 2) if low is not None else None,
+                "high": round(high, 2) if high is not None else None,
+                "weight_kg": round(weight_kg, 1) if weight_kg is not None else None,
+                "boxes": int(boxes) if boxes is not None else None,
+            })
+
+    # Sort grades: highest avg first (highest quality / most expensive)
+    for canonical in grade_data:
+        for port in grade_data[canonical]:
+            grade_data[canonical][port].sort(key=lambda g: g["avg"] or 0, reverse=True)
+
+    # Only keep grade_data entries where there are multiple grades (single grade = no breakdown needed)
+    grade_data_filtered = {}
+    for canonical, ports in grade_data.items():
+        filtered_ports = {p: grades for p, grades in ports.items() if len(grades) > 1}
+        if filtered_ports:
+            grade_data_filtered[canonical] = filtered_ports
+
+    return dict(port_ranges), dict(port_volumes), grade_data_filtered
+
+
+def build_trade_data(date: str, selected_ports: list[str] | None = None) -> dict:
+    """Assemble all data for the Trade Dashboard for the given date.
+
+    selected_ports: list of port names to include in market average calculations.
+                    Defaults to all ports. Drives the server-side port selector.
+    """
     # ── Raw data ──────────────────────────────────────────────────────────────
-    rows = get_all_prices_for_date(date, exclude_demo=True)
+    all_rows = get_all_prices_for_date(date, exclude_demo=True)
+
+    # Apply port selection filter for market average calculations.
+    # None = no filter (all ports). [] = empty selection (produces empty data).
+    if selected_ports is not None:
+        sel_set = set(selected_ports)
+        rows = [r for r in all_rows if r[1] in sel_set]
+    else:
+        rows = all_rows
+
     prev_date = get_previous_date(date)
-    prev_rows = get_all_prices_for_date(prev_date, exclude_demo=True) if prev_date else []
+    prev_all_rows = get_all_prices_for_date(prev_date, exclude_demo=True) if prev_date else []
+    if selected_ports is not None:
+        prev_rows = [r for r in prev_all_rows if r[1] in sel_set]
+    else:
+        prev_rows = prev_all_rows
 
     # 30-day rolling averages (raw species names)
     thirty_day_raw = get_30day_species_averages(date)
@@ -428,6 +512,22 @@ def build_trade_data(date: str) -> dict:
     port_code_map = _port_codes()
     active_ports = get_all_ports(status="active")
     active_port_names = [p["name"] for p in active_ports]
+    # Filter to non-demo ports for selector display
+    demo_names_set = {p["name"] for p in active_ports if p.get("data_method") == "demo"}
+    all_selectable_ports = sorted(
+        p["name"] for p in active_ports if p.get("data_method") != "demo"
+    )
+
+    # Resolved set of selected ports (for template checkbox state).
+    # None = all ports selected; [] = nothing selected.
+    if selected_ports is None:
+        selected_ports_set = set(all_selectable_ports)
+    else:
+        selected_ports_set = set(selected_ports)
+    scrabster_in_selection = "Scrabster" in selected_ports_set
+
+    # ── Per-port detail data (ranges, volumes, grade breakdown) ──────────────
+    port_ranges, port_volumes, grade_data = _build_port_detail(all_rows)
 
     # 7-day per-species rolling averages (canonical names, from rows_90d)
     _seven_accum: dict[str, list[float]] = defaultdict(list)
@@ -783,6 +883,12 @@ def build_trade_data(date: str) -> dict:
         "date_display_short": date_display_short,
         "recent_dates": recent_dates,
         "all_ports": all_ports_list,
+        "all_selectable_ports": all_selectable_ports,
+        "selected_ports_set": selected_ports_set,
+        "scrabster_in_selection": scrabster_in_selection,
+        "port_ranges": port_ranges,
+        "port_volumes": port_volumes,
+        "grade_data": grade_data,
         "port_codes": port_code_map,
         "categories": ["all", "demersal", "flatfish", "shellfish", "pelagic", "other"],
         "pulse": pulse,
