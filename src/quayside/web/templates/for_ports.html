@@ -568,12 +568,12 @@
 <section class="port-hero">
   <div class="port-hero-left">
     <div class="port-hero-eyebrow">For port &amp; auction operators</div>
-    <h1>After the market,<br>email us your<br>price sheet.<br><em>Everything else<br>is free.</em></h1>
+    <h1>Send us your<br>daily prices.<br><em>We do<br>everything else.</em></h1>
     <p class="port-hero-sub">
-      Forward your daily prices to <strong>prices@quayside.fish</strong> &mdash; or upload directly. We do the rest: a live market intelligence dashboard for your port, and your prices featured in front of UK fish buyers every day.
+      Forward your price sheet after the auction &mdash; any format &mdash; and get a live market intelligence dashboard for free. See how you're trending, understand your position against the UK market, and put your prices in front of every serious buyer through the daily digest and trade membership.
     </p>
     <div style="display:flex;gap:16px;flex-wrap:wrap;">
-      <a href="mailto:prices@quayside.fish" class="btn-primary">Get started &rarr;</a>
+      <a href="{{ url_for('port_submit') }}" class="btn-primary">Sign up &rarr;</a>
       <a href="{{ url_for('port_dashboard', slug='demo') }}" class="btn-secondary">See live demo</a>
     </div>
   </div>
@@ -608,7 +608,7 @@
   <div class="section-inner">
     <div class="section-label">Your dashboard, live from day one</div>
     <p style="font-size:17px;line-height:1.7;color:#4a4438;max-width:600px;margin-bottom:40px;">
-      The moment your first prices land with us, your port gets a live market intelligence dashboard. Here&rsquo;s what it looks like &mdash; explore the demo dashboard to see every feature in action.
+      The moment your first prices land, your port gets a live dashboard. See how you're trending over time, where you sit in the national market for each species, and what's moving. The longer you're on Quayside, the richer it gets.
     </p>
     <div class="dashboard-screenshot fade-up">
       <a href="{{ url_for('port_dashboard', slug='demo') }}" target="_blank">
@@ -659,20 +659,20 @@
 <section class="benefits-section">
   <div class="section-inner">
     <div class="section-label">Why this matters to your bottom line</div>
-    <h2>Visibility that brings<br><em>buyers to you.</em></h2>
-    <p class="benefits-intro">Being on the daily digest isn't just a nice-to-have. It puts your prices in front of the buyers, merchants, and processors who decide where to source &mdash; every single morning.</p>
+    <h2>Your data works for you<br><em>every single day.</em></h2>
+    <p class="benefits-intro">Every port on Quayside is featured in the daily digest and the trade membership dashboard &mdash; putting your prices directly in front of the buyers, merchants, and processors who decide where to source.</p>
     <div class="benefit-list fade-up">
       <div class="benefit-card">
-        <h3>Buyers see you<br>when you're <em>competitive</em></h3>
-        <p>When your prices are among the strongest in the UK for a species, the daily digest surfaces it to subscribers that morning. <strong>You don't have to do anything &mdash; we flag it for you.</strong> That's exposure to buyers who might never have looked your way.</p>
+        <h3>Know your position<br>in the <em>UK market</em></h3>
+        <p>For every species you sell, see exactly where your price sits against every other reporting port &mdash; today and over time. <strong>Understand how you're trending, not just what you sold.</strong> That's market intelligence you can act on.</p>
       </div>
       <div class="benefit-card">
-        <h3>A bigger pool<br>of <em>potential bidders</em></h3>
-        <p>Subscribers include fish merchants, processors, and buyers from across the UK who use the digest to decide where to source on any given day. <strong>Being on it puts your port in front of people who'd never have found you through traditional channels.</strong></p>
+        <h3>In front of every<br><em>serious buyer</em></h3>
+        <p>Quayside trade members use the dashboard every day to decide where to source. <strong>Your prices are automatically visible to them &mdash; and in their inbox each afternoon via the daily digest.</strong> Exposure you don't have to do anything to earn.</p>
       </div>
       <div class="benefit-card">
         <h3>Data your<br><em>sellers can use</em></h3>
-        <p>Show sellers where their catch ranks in the national market. When your monkfish is achieving top prices in Scotland, that's a retention argument. <strong>Hard numbers make hard conversations easier</strong> &mdash; and happy sellers land more with you.</p>
+        <p>Show sellers where their catch ranks nationally. When your monkfish is achieving top prices in Scotland, that's a concrete retention argument. <strong>Hard numbers make hard conversations easier</strong> &mdash; and happy sellers land more with you.</p>
       </div>
     </div>
   </div>
@@ -683,7 +683,7 @@
   <div class="section-inner">
     <div style="display:inline-block;background:var(--catch);color:white;font-family:var(--font-mono);font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:8px 24px;border-radius:2px;margin-bottom:28px;animation:pulse-pill 2s ease-in-out infinite;">Launching April 2026</div>
     <h2 style="font-family:var(--font-serif);font-size:clamp(32px,4vw,48px);font-weight:700;color:var(--paper);letter-spacing:-0.02em;line-height:1.1;margin-bottom:16px;">Your port, featured in the <em style="font-style:italic;color:var(--tide-light);">daily digest.</em></h2>
-    <p style="font-size:17px;line-height:1.7;color:var(--muted);max-width:540px;margin:0 auto 48px;">Join now for your free dashboard &mdash; and be featured in the daily digest from day one when it launches in April. Subscribers get a daily briefing on finished markets: cross-port price comparisons, market movers, and species-level trends to help them understand where the market is heading.</p>
+    <p style="font-size:17px;line-height:1.7;color:var(--muted);max-width:540px;margin:0 auto 48px;">Sign up now and your port will be featured in the daily digest from the day it launches in April &mdash; and visible in the trade membership dashboard immediately. One place where serious buyers look every day. All you do is send your data.</p>
     <div class="digest-preview-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#2a2820;border:1px solid #2a2820;text-align:left;">
       <div style="background:#161410;padding:36px 32px;">
         <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;">
@@ -715,6 +715,7 @@
           <p>Fill in a short form with your port name and contact details. We&rsquo;ll reach out within 24 hours to confirm you&rsquo;re a legitimate operator &mdash; a quick email exchange to make sure the right people are in control of your port&rsquo;s data.</p>
           <p>Once confirmed, you&rsquo;re set up with a port account and ready to upload. No software to install, no IT involvement required.</p>
           <span class="step-highlight">Free to join. Always.</span>
+          <a href="{{ url_for('port_submit') }}" class="btn-primary" style="margin-top:16px;padding:10px 24px;font-size:11px;display:inline-block;">Sign up &rarr;</a>
         </div>
       </li>
       <li>
@@ -762,10 +763,12 @@
 
 <!-- FINAL CTA -->
 <div class="final-cta">
-  <h2>Join now. It costs nothing.</h2>
-  <p style="color:var(--muted);margin-bottom:32px;">Port onboarding opens soon. Email us your port name and we&rsquo;ll get you verified and set up from day one.</p>
-  <div class="email-highlight">hello@quayside.fish</div>
-  <p class="sub-text">Free for port operators, permanently.</p>
+  <h2>Sign up. It costs nothing.</h2>
+  <p style="color:var(--muted);margin-bottom:32px;">Fill in a short form and we&rsquo;ll verify you&rsquo;re the port, get you set up, and you&rsquo;ll be live from day one &mdash; dashboard, digest, trade membership visibility, all included.</p>
+  <a href="{{ url_for('port_submit') }}" class="btn-primary" style="font-size:13px;padding:16px 40px;letter-spacing:0.12em;">Sign up free &rarr;</a>
+  <div class="cta-or-divider">or</div>
+  <p style="color:var(--muted);font-size:14px;">Email us directly at <a href="mailto:hello@quayside.fish" style="color:var(--muted);">hello@quayside.fish</a></p>
+  <p class="sub-text" style="margin-top:24px;">Free for port operators, permanently.</p>
 </div>
 
 <!-- FOOTER -->

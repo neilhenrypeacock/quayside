@@ -133,11 +133,14 @@ def create_app() -> Flask:
         date = get_latest_rich_date()  # use multi-port date to populate key species
         ld = build_landing_data(date) if date else None
         today_str = _date.today().strftime("%Y-%m-%d")
-        if ld and date == today_str and ld.get("port_count", 0) >= 4:
+        is_today = bool(ld and date == today_str)
+        ports_today = ld.get("port_count", 0) if is_today else 0
+        if is_today and ports_today >= 4:
             data_label = "Today's"
         else:
             data_label = "Yesterday's"
-        return render_template("landing.html", ld=ld, data_label=data_label)
+        return render_template("landing.html", ld=ld, data_label=data_label,
+                               is_today=is_today, ports_today=ports_today)
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -266,15 +269,28 @@ def create_app() -> Flask:
         data = build_report_data(date)
         digest_template = _digest_env.get_template("digest.html")
         digest_html = digest_template.render(**data)
-        # Wrap in a simple page with nav
-        return render_template("digest_wrapper.html", digest_html=digest_html, date=date, generated_at=data.get("generated_at"))
+        return render_template("digest_wrapper.html", digest_html=digest_html, date=date, generated_at=data.get("generated_at"), page_title="Yesterday's Digest", auto_refresh_interval=10)
 
     @app.route("/digest/yesterday")
     def digest_yesterday():
-        """Redirect to yesterday's digest."""
-        from datetime import date as _date, timedelta
-        yesterday = (_date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
-        return redirect(url_for("digest_page", date=yesterday))
+        """Show the most recent completed trading day digest."""
+        date = get_latest_rich_date()
+        if not date:
+            return render_template("landing.html")
+        data = build_report_data(date)
+        digest_template = _digest_env.get_template("digest.html")
+        digest_html = digest_template.render(**data)
+        return render_template("digest_wrapper.html", digest_html=digest_html, date=date, generated_at=data.get("generated_at"), page_title="Yesterday's Digest", auto_refresh_interval=10)
+
+    @app.route("/digest/today")
+    def digest_today():
+        """Show today's digest, updating as ports report throughout the day."""
+        from datetime import date as _date
+        today = _date.today().strftime("%Y-%m-%d")
+        data = build_report_data(today)
+        digest_template = _digest_env.get_template("digest.html")
+        digest_html = digest_template.render(**data)
+        return render_template("digest_wrapper.html", digest_html=digest_html, date=today, generated_at=data.get("generated_at"), page_title="Today's Digest", auto_refresh_interval=5)
 
     @app.route("/digest/weekly")
     @app.route("/digest/weekly/<date>")

@@ -1040,6 +1040,35 @@
   .audience-card-buyers .audience-cta { background: white; color: var(--tide); }
   .audience-card-ports .audience-cta { background: white; color: var(--catch); }
 
+  /* PLAN COLOUR VARIANTS — mirror audience card palette */
+  .plan-digest {
+    background: var(--foam);
+    border: 1px solid var(--rule);
+  }
+  .plan-digest .plan-name,
+  .plan-digest .plan-amount { color: var(--ink); }
+  .plan-digest .plan-period { color: var(--muted); }
+  .plan-digest .plan-features li { color: #5a5448; }
+  .plan-digest .plan-cta {
+    border-color: var(--rule);
+    color: var(--muted);
+  }
+  .plan-ports {
+    background: var(--catch);
+  }
+  .plan-ports .plan-name,
+  .plan-ports .plan-amount { color: white; }
+  .plan-ports .plan-period { color: rgba(255,255,255,0.7); }
+  .plan-ports .plan-features li { color: rgba(255,255,255,0.85); }
+  .plan-ports .plan-features li::before { color: rgba(255,255,255,0.5); }
+  .plan-ports:hover { background: #b83818; }
+  .plan-cta-ports {
+    background: white;
+    color: var(--catch);
+    border-color: white;
+  }
+  .plan-cta-ports:hover { background: var(--foam); border-color: var(--foam); color: var(--catch); }
+
   /* SCROLL ANIMATIONS */
   .fade-up {
     opacity: 0;
@@ -1097,7 +1126,13 @@
     <div class="mock-card">
       <div class="mock-card-header">
         <span class="mock-card-title">{{ data_label or "Latest" }} best prices</span>
-        <span class="mock-tag live">&#9679; Live</span>
+        {% if is_today and ports_today >= 2 %}
+        <span class="mock-tag live">&#9679; {{ ports_today }} of 5 ports today</span>
+        {% elif is_today %}
+        <span class="mock-tag" style="color:#c8941a;background:rgba(200,148,26,0.15);">Updating</span>
+        {% else %}
+        <span class="mock-tag" style="color:#7a7060;background:rgba(122,112,96,0.12);">Yesterday</span>
+        {% endif %}
       </div>
       {% for row in ld.key_species_rows %}
       <div class="price-row">
@@ -1156,43 +1191,43 @@
   <div class="audience-grid">
     <a href="#signup-form" class="audience-card audience-card-everyone fade-up">
       <div class="audience-label">For everyone</div>
-      <div class="audience-pill">Free forever</div>
+      <div class="audience-pill">Launching April 2026</div>
       <div class="audience-product">The Daily Digest</div>
-      <h3>UK fish prices, delivered daily.</h3>
-      <p>One email, every weekday. Cross-port comparisons, key species tracked, biggest movers flagged. No more checking five websites before breakfast.</p>
+      <h3>The industry snapshot, every weekday.</h3>
+      <p>One email with the topline view of the whole UK market &mdash; after the auctions close. Biggest movers flagged. Key species tracked. Everything in one place, free.</p>
       <ul>
         <li>27+ species across 5 ports today, growing weekly</li>
-        <li>Price trends and biggest movers flagged daily</li>
+        <li>Biggest movers and price shifts flagged daily</li>
         <li>Free &mdash; no card, no contract</li>
       </ul>
-      <span class="audience-cta">Sign up free &rarr;</span>
+      <span class="audience-cta">Join waitlist &rarr;</span>
     </a>
     <a href="{{ url_for('for_traders') }}" class="audience-card audience-card-buyers fade-up">
       <div class="audience-label">For buyers, merchants &amp; processors</div>
       <div class="audience-pill">Launching April 2026</div>
       <div class="audience-product">Trade Membership</div>
-      <h3>The full picture. The full market.</h3>
-      <p>Everything in the digest, plus a full multi-port dashboard with 90-day history, species breakdown, and AI chat. Make better buying decisions every day.</p>
+      <h3>All-time market history. Every port. Every species.</h3>
+      <p>A live dashboard that's been building since February 2026 and only grows. Favourite your species and ports. See exactly what the UK market is doing and where the value is.</p>
       <ul>
-        <li>Full multi-port trade dashboard</li>
-        <li>90-day price history &amp; trends</li>
+        <li>All-time price history &mdash; growing every day</li>
+        <li>Favourite species &amp; ports for your custom view</li>
+        <li>Cross-port intelligence at a glance</li>
         <li>AI chat &mdash; ask the data anything</li>
-        <li>CSV export for procurement</li>
       </ul>
-      <span class="audience-cta">Learn more &rarr;</span>
+      <span class="audience-cta">Join waitlist &rarr;</span>
     </a>
     <a href="{{ url_for('for_ports') }}" class="audience-card audience-card-ports fade-up">
       <div class="audience-label">For port &amp; auction operators</div>
       <div class="audience-pill">Free for ports</div>
       <div class="audience-product">The Port Dashboard</div>
-      <h3>Your port. In front of every buyer.</h3>
-      <p>A free price intelligence dashboard for your port &mdash; full price history, cross-port benchmarks, and daily exposure to a growing audience of UK fish buyers.</p>
+      <h3>Know your market position. Get in front of buyers.</h3>
+      <p>Send your daily data and we do the rest. Your port gets a live dashboard showing how you're trending, how you rank against the UK market &mdash; and your prices featured in the daily digest and trade membership, putting you in front of every serious buyer.</p>
       <ul>
-        <li>Full price history with trends and benchmarks</li>
-        <li>Your market in front of buyers every weekday</li>
-        <li>No cost, no contract, no setup work on your end</li>
+        <li>Full price history, trends &amp; market benchmarks</li>
+        <li>Featured in the daily digest &amp; trade dashboard</li>
+        <li>Just send your data &mdash; we handle everything else</li>
       </ul>
-      <span class="audience-cta">Get listed free &rarr;</span>
+      <span class="audience-cta">Sign up &rarr;</span>
     </a>
   </div>
 </section>
@@ -1203,26 +1238,26 @@
     <div class="section-label">The problem</div>
     <div class="problem-grid">
       <div class="problem-left fade-up">
-        <h2>The UK fish market runs on <em>incomplete information.</em></h2>
-        <p>Every day, fish merchants across the UK make buying decisions worth thousands of pounds &mdash; often without knowing what the same species sold for at a port 200 miles away an hour earlier.</p>
-        <p>The data exists. It's just scattered across five different websites, in four different formats, updated at different times.</p>
+        <h2>The data exists. It's just <em>fragmented.</em></h2>
+        <p>Every day, auctions close across the UK and price data is published &mdash; but in five different places, four different formats, with different species names and no way to compare them without doing it manually.</p>
+        <p>The result: a market that's impossible to read at a glance, even after the day's trading is done.</p>
       </div>
       <ul class="pain-list">
         <li class="pain-item">
           <span class="pain-num">01</span>
-          <span class="pain-text"><strong>Five websites, every day.</strong> Peterhead, Lerwick, Brixham, Newlyn, Scrabster &mdash; each with different formats, different update times, different species names.</span>
+          <span class="pain-text"><strong>Fragmented and inconsistent.</strong> Peterhead, Lerwick, Brixham, Newlyn, Scrabster &mdash; each publishes separately, in different formats, under different species names. Comparison is manual.</span>
         </li>
         <li class="pain-item">
           <span class="pain-num">02</span>
-          <span class="pain-text"><strong>No cross-port comparison.</strong> You know what haddock costs at Peterhead. You don't know that Lerwick is 15% cheaper today unless you check both &mdash; which most merchants don't have time to do.</span>
+          <span class="pain-text"><strong>No cross-port view.</strong> Haddock at Peterhead and haddock at Lerwick are the same fish &mdash; but connecting those data points takes time most people don't have. Quayside does it automatically.</span>
         </li>
         <li class="pain-item">
           <span class="pain-num">03</span>
-          <span class="pain-text"><strong>No history, no trends.</strong> Is this price high or low for this time of year? For this species? There's no way to know without building your own spreadsheet over months.</span>
+          <span class="pain-text"><strong>No history, no context.</strong> Is today's price high or low for this species? For this time of year? Without months of your own spreadsheets, there's no way to know.</span>
         </li>
         <li class="pain-item">
           <span class="pain-num">04</span>
-          <span class="pain-text"><strong>No equivalent product exists.</strong> This is not a solved problem. Quayside is the first UK-wide fish price aggregator.</span>
+          <span class="pain-text"><strong>This is not a solved problem.</strong> Quayside is the first UK-wide fish price aggregator. One place to see the whole market, every day, after the auctions close.</span>
         </li>
       </ul>
     </div>
@@ -1236,18 +1271,18 @@
     <div class="how-grid">
       <div class="how-step fade-up">
         <div class="how-num">01</div>
-        <div class="how-title">Data scraped daily</div>
-        <div class="how-body">Every day, Quayside pulls price data from UK ports automatically &mdash; HTML tables, PDFs, Excel downloads. Normalised into a single schema. 27 species standardised across ports today, growing as we add more. GBP/EUR rate included.</div>
+        <div class="how-title">Ports publish their prices</div>
+        <div class="how-body">After each auction closes, ports deliver their daily price data &mdash; we receive it, normalise species names, standardise formats, and publish it online. 27+ species across 5 ports today, all in a single consistent view.</div>
       </div>
       <div class="how-step fade-up">
         <div class="how-num">02</div>
-        <div class="how-title">Digest hits your inbox</div>
-        <div class="how-body">Launching April 2026. A clean daily email with the prices that matter to you, delivered every weekday. Data arrives from ports at staggered times &mdash; Quayside publishes as it arrives, building a full picture of daily market performance. Top movers. Cross-port comparisons. Anything unusual flagged.</div>
+        <div class="how-title">Published online &amp; in your inbox</div>
+        <div class="how-body">Launching April 2026. Quayside publishes prices as they arrive throughout the day &mdash; building a full picture as each market reports. Your daily digest lands at 3pm: top movers, cross-port comparisons, and anything unusual, flagged.</div>
       </div>
       <div class="how-step fade-up">
         <div class="how-num">03</div>
-        <div class="how-title">Trade Membership</div>
-        <div class="how-body">Trade members get the full dashboard &mdash; 90-day price history, species and port filters, CSV export. Plus AI chat built in. Ask questions in plain English and get answers from the data.</div>
+        <div class="how-title">Trade Membership &mdash; all-time history</div>
+        <div class="how-body">The trade dashboard has been building since February 2026 and only grows. Filter by species or port, favourite the markets that matter to you, export to CSV, and ask the data questions in plain English. The longer it runs, the more valuable it gets.</div>
       </div>
     </div>
   </div>
@@ -1298,22 +1333,22 @@
   </div>
   <div class="pricing-grid">
     <!-- Digest — Free -->
-    <div class="plan">
+    <div class="plan plan-digest">
       <div class="plan-badge">Launching April 2026</div>
-      <div class="plan-name">Digest</div>
-      <div class="plan-audience">For buyers &amp; traders</div>
+      <div class="plan-name">Daily Digest</div>
+      <div class="plan-audience">For everyone</div>
       <div class="plan-price">
         <div class="plan-amount">&pound;0</div>
         <div class="plan-period">free forever</div>
       </div>
       <ul class="plan-features">
-        <li>Daily email digest</li>
+        <li>Daily email &mdash; the industry snapshot</li>
         <li>Cross-port price comparison</li>
         <li>27+ species, all grades</li>
-        <li>Biggest movers &amp; trends</li>
+        <li>Biggest movers &amp; trends flagged</li>
         <li>GBP/EUR exchange rate</li>
       </ul>
-      <a href="#signup-form" class="plan-cta">Sign up free</a>
+      <a href="#signup-form" class="plan-cta">Join waitlist</a>
     </div>
     <!-- Trade Membership — FEATURED -->
     <div class="plan featured">
@@ -1325,17 +1360,17 @@
         <div class="plan-period">per month</div>
       </div>
       <ul class="plan-features">
-        <li>Full multi-port trade dashboard</li>
-        <li>90-day price history &amp; trends</li>
+        <li>All-time dashboard &mdash; growing since Feb 2026</li>
+        <li>Favourite species &amp; ports</li>
         <li>Species &amp; grade breakdown</li>
         <li>CSV export for procurement</li>
         <li>Price alerts by email</li>
         <li>AI chat &mdash; ask the data anything</li>
       </ul>
-      <a href="#" class="plan-cta">Coming soon</a>
+      <a href="{{ url_for('for_traders') }}" class="plan-cta">Join waitlist</a>
     </div>
     <!-- Port Dashboard — Free for ports -->
-    <div class="plan">
+    <div class="plan plan-ports">
       <div class="plan-badge">Free for ports</div>
       <div class="plan-name">Port Dashboard</div>
       <div class="plan-audience">Port operators &middot; Auctioneers</div>
@@ -1345,12 +1380,12 @@
       </div>
       <ul class="plan-features">
         <li>Your own public port dashboard</li>
-        <li>Upload prices via spreadsheet</li>
+        <li>Understand your market position &amp; trends</li>
         <li>Benchmark against UK market</li>
-        <li>Species &amp; grade breakdown</li>
-        <li>Grow reach with buyer network</li>
+        <li>Featured in digest &amp; trade dashboard</li>
+        <li>Just send your data &mdash; we do the rest</li>
       </ul>
-      <a href="{{ url_for('for_ports') }}" class="plan-cta">Get listed</a>
+      <a href="{{ url_for('for_ports') }}" class="plan-cta plan-cta-ports">Sign up</a>
     </div>
     <!-- Custom / Enterprise -->
     <div class="plan">
