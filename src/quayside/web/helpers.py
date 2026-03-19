@@ -7,10 +7,14 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 
 from quayside.db import (
+    get_all_prices_for_date,
     get_connection,
     get_market_averages_for_date,
     get_market_averages_for_range,
     get_port_prices_history,
+    get_previous_date,
+    get_prices_for_date_range,
+    get_trading_dates_recent,
 )
 from quayside.models import PriceRecord
 from quayside.species import get_species_category, normalise_species
@@ -897,3 +901,430 @@ def form_float(val: str | None) -> float | None:
         return round(float(cleaned), 2)
     except (ValueError, TypeError):
         return None
+
+
+# ---------------------------------------------------------------------------
+# Phase 0: New shared infrastructure for dashboard redesign
+# ---------------------------------------------------------------------------
+
+
+def build_competitive_market(port_name: str, date: str) -> list[dict]:
+    """Per-species competitive position using only ports that share each species.
+
+    For each species at the given port, finds other ports selling that same
+    species today and calculates a like-for-like market average. This is fairer
+    than the full-market average because it only compares against ports in the
+    same fishery for each species.
+
+    "Top-grade average" = MAX(price_avg) across grades per port per species,
+    consistent with get_market_averages_for_date().
+    """
+    all_rows = get_all_prices_for_date(date)
+
+    # Group by (canonical_species, port) -> best grade data + all grades
+    # Also track per-port data capabilities
+    species_port_best: dict[str, dict[str, float]] = defaultdict(dict)
+    species_port_grades: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
+    port_data: dict[str, dict[str, dict]] = defaultdict(lambda: defaultdict(dict))
+
+    for row in all_rows:
+        _, port, raw_species, grade, low, high, avg, weight_kg, boxes = row
+        canonical = normalise_species(raw_species)
+        if canonical is None:
+            continue
+
+        grade_info = {
+            "grade": grade,
+            "price_low": low,
+            "price_high": high,
+            "price_avg": avg,
+            "weight_kg": weight_kg,
+            "boxes": boxes,
+        }
+        species_port_grades[canonical][port].append(grade_info)
+
+        # Track best (highest avg) per port per species
+        if avg and (canonical not in species_port_best or
+                    port not in species_port_best[canonical] or
+                    avg > species_port_best[canonical][port]):
+            species_port_best[canonical][port] = avg
+
+        # Track data capabilities per port per species
+        key = port_data[canonical][port]
+        if weight_kg and weight_kg > 0:
+            key["has_volume"] = True
+        if low is not None:
+            key["has_ranges"] = True
+        if boxes is not None and boxes > 0:
+            key["has_boxes"] = True
+
+    # Build port code lookup
+    from quayside.db import get_all_ports
+    all_ports = get_all_ports()
+    port_code_map = {p["name"]: p.get("code", "") for p in all_ports if p.get("data_method") != "demo"}
+
+    result = []
+    for species, port_prices in species_port_best.items():
+        if port_name not in port_prices:
+            continue  # This species isn't at our port
+
+        port_avg = port_prices[port_name]
+        if not port_avg:
+            continue
+
+        # Comparison ports: everyone else with this species
+        comparison_ports = []
+        other_prices = []
+        for other_port, other_avg in port_prices.items():
+            if other_port == port_name:
+                continue
+            other_prices.append(other_avg)
+            # Summarise grades for comparison port
+            other_grades = species_port_grades[species].get(other_port, [])
+            grades_summary = ", ".join(
+                sorted({g["grade"] for g in other_grades if g["grade"]})
+            )
+            total_weight = sum(g.get("weight_kg") or 0 for g in other_grades)
+            comparison_ports.append({
+                "port_name": other_port,
+                "port_code": port_code_map.get(other_port, ""),
+                "price_avg": round(other_avg, 2),
+                "weight_kg": round(total_weight, 1) if total_weight else None,
+                "grades_summary": grades_summary,
+            })
+
+        is_only_port = len(other_prices) == 0
+        if is_only_port:
+            market_avg = None
+            vs_market_pct = None
+            is_best_uk = True
+        else:
+            market_avg = round(sum(other_prices) / len(other_prices), 2)
+            vs_market_pct = round(((port_avg - market_avg) / market_avg) * 100, 1)
+            is_best_uk = all(port_avg >= p for p in other_prices)
+
+        # Port's own grade details
+        port_grades = []
+        for g in sorted(species_port_grades[species].get(port_name, []),
+                        key=lambda x: x.get("price_avg") or 0, reverse=True):
+            port_grades.append({
+                "grade": g["grade"],
+                "price_low": round(g["price_low"], 2) if g["price_low"] is not None else None,
+                "price_high": round(g["price_high"], 2) if g["price_high"] is not None else None,
+                "price_avg": round(g["price_avg"], 2) if g["price_avg"] is not None else None,
+                "weight_kg": round(g["weight_kg"], 1) if g.get("weight_kg") else None,
+                "boxes": g.get("boxes"),
+            })
+
+        # Data capability flags for this port's data on this species
+        port_caps = port_data[species].get(port_name, {})
+
+        result.append({
+            "species": species,
+            "category": get_species_category(species),
+            "port_avg": round(port_avg, 2),
+            "port_grades": port_grades,
+            "market_avg": market_avg,
+            "vs_market_pct": vs_market_pct,
+            "comparison_ports": sorted(comparison_ports, key=lambda x: x["price_avg"], reverse=True),
+            "is_best_uk": is_best_uk,
+            "is_only_port": is_only_port,
+            "port_has_volume": port_caps.get("has_volume", False),
+            "port_has_ranges": port_caps.get("has_ranges", False),
+            "port_has_boxes": port_caps.get("has_boxes", False),
+        })
+
+    # Sort: comparable species by vs_market_pct desc, then only-port species
+    comparable = [r for r in result if not r["is_only_port"]]
+    only_port = [r for r in result if r["is_only_port"]]
+    comparable.sort(key=lambda x: x["vs_market_pct"] or 0, reverse=True)
+    only_port.sort(key=lambda x: x["port_avg"], reverse=True)
+
+    return comparable + only_port
+
+
+def build_competitive_summary(competitive_data: list[dict]) -> dict:
+    """Summary stats from competitive market data.
+
+    Pure computation on the output of build_competitive_market().
+    """
+    comparable = [d for d in competitive_data if not d["is_only_port"]]
+    best_uk = [d for d in competitive_data if d["is_best_uk"]]
+    above = [d for d in comparable if (d["vs_market_pct"] or 0) > 0]
+    below = [d for d in comparable if (d["vs_market_pct"] or 0) < 0]
+    only_port = [d for d in competitive_data if d["is_only_port"]]
+
+    # Like-for-like position: average vs_market_pct across comparable species
+    if comparable:
+        like_for_like_pct = round(
+            sum(d["vs_market_pct"] for d in comparable) / len(comparable), 1
+        )
+    else:
+        like_for_like_pct = None
+
+    return {
+        "best_uk_count": len(best_uk),
+        "best_uk_species": [d["species"] for d in best_uk],
+        "above_avg_count": len(above),
+        "above_avg_species": [d["species"] for d in above],
+        "below_avg_count": len(below),
+        "below_avg_species": [d["species"] for d in below],
+        "only_port_count": len(only_port),
+        "comparable_count": len(comparable),
+        "like_for_like_position_pct": like_for_like_pct,
+    }
+
+
+def build_smart_alerts(
+    port_name: str,
+    date: str,
+    alert_type: str = "port",
+) -> list[dict]:
+    """Generate max 4 priority-sorted alert cards for a port dashboard.
+
+    Alert types (port mode):
+    1. Species >15% below competitive market today (severity: warning)
+    2. Species where this port is best UK price 10+ of last 20 sessions (severity: strength)
+    3. Species with >20% price swing vs yesterday (severity: spike)
+    4. Species count dropped significantly vs rolling average (severity: watch)
+
+    Returns list of {type, severity, headline, detail, species, port}.
+    """
+    alerts: list[tuple[int, dict]] = []  # (priority, alert_dict)
+
+    # ---- Alert 1: Species significantly below competitive market ----
+    all_rows = get_all_prices_for_date(date)
+    # Build per-species, per-port best prices (same logic as build_competitive_market)
+    species_port_best: dict[str, dict[str, float]] = defaultdict(dict)
+    for row in all_rows:
+        _, port, raw_species, _grade, _low, _high, avg, _wt, _bx = row
+        canonical = normalise_species(raw_species)
+        if canonical is None:
+            continue
+        if avg and (canonical not in species_port_best or
+                    port not in species_port_best[canonical] or
+                    avg > species_port_best[canonical][port]):
+            species_port_best[canonical][port] = avg
+
+    below_market_species = []
+    for species, port_prices in species_port_best.items():
+        if port_name not in port_prices:
+            continue
+        port_avg = port_prices[port_name]
+        others = [v for k, v in port_prices.items() if k != port_name]
+        if not others:
+            continue
+        market_avg = sum(others) / len(others)
+        if market_avg > 0:
+            vs_pct = ((port_avg - market_avg) / market_avg) * 100
+            if vs_pct < -15:
+                below_market_species.append((species, round(vs_pct, 1)))
+
+    if below_market_species:
+        below_market_species.sort(key=lambda x: x[1])
+        worst = below_market_species[0]
+        alerts.append((1, {
+            "type": "below_market",
+            "severity": "warning",
+            "headline": f"{worst[0]} is {abs(worst[1])}% below your competitive market",
+            "detail": f"Your top-grade average is significantly below other ports selling {worst[0]} today. Check grade mix or timing.",
+            "species": worst[0],
+            "port": port_name,
+        }))
+
+    # ---- Alert 2: Best UK price streak (10+ of last 20 sessions) ----
+    recent_dates = get_trading_dates_recent(20)
+    if len(recent_dates) >= 5:
+        oldest = recent_dates[-1]
+        range_rows = get_prices_for_date_range(oldest, date)
+
+        # Group by (date, species, port) -> best avg
+        hist_best: dict[str, dict[str, dict[str, float]]] = defaultdict(lambda: defaultdict(dict))
+        for r_date, r_port, r_species, _grade, _low, _high, r_avg in range_rows:
+            canonical = normalise_species(r_species)
+            if canonical is None or not r_avg:
+                continue
+            if (canonical not in hist_best[r_date] or
+                    r_port not in hist_best[r_date][canonical] or
+                    r_avg > hist_best[r_date][canonical][r_port]):
+                hist_best[r_date][canonical][r_port] = r_avg
+
+        # Count how many sessions this port was best UK for each species
+        species_best_count: dict[str, int] = defaultdict(int)
+        species_session_count: dict[str, int] = defaultdict(int)
+        for d in recent_dates:
+            for species, port_prices in hist_best.get(d, {}).items():
+                if port_name not in port_prices:
+                    continue
+                species_session_count[species] += 1
+                our_price = port_prices[port_name]
+                if all(our_price >= v for v in port_prices.values()):
+                    species_best_count[species] += 1
+
+        best_streakers = [
+            (sp, cnt, species_session_count[sp])
+            for sp, cnt in species_best_count.items()
+            if cnt >= 10 and species_session_count[sp] >= 15
+        ]
+        if best_streakers:
+            best_streakers.sort(key=lambda x: x[1], reverse=True)
+            top = best_streakers[0]
+            alerts.append((2, {
+                "type": "best_uk_streak",
+                "severity": "strength",
+                "headline": f"Best UK price for {top[0]} — {top[1]} of last {top[2]} sessions",
+                "detail": f"You've consistently offered the best top-grade price for {top[0]}. A strength to promote to vessel skippers.",
+                "species": top[0],
+                "port": port_name,
+            }))
+
+    # ---- Alert 3: Price swing >20% vs yesterday ----
+    prev_date = get_previous_date(date)
+    if prev_date:
+        prev_rows = get_all_prices_for_date(prev_date)
+        prev_best: dict[str, dict[str, float]] = defaultdict(dict)
+        for row in prev_rows:
+            _, port, raw_species, _grade, _low, _high, avg, _wt, _bx = row
+            canonical = normalise_species(raw_species)
+            if canonical is None or not avg:
+                continue
+            if (canonical not in prev_best or
+                    port not in prev_best[canonical] or
+                    avg > prev_best[canonical][port]):
+                prev_best[canonical][port] = avg
+
+        swing_species = []
+        for species, port_prices in species_port_best.items():
+            if port_name not in port_prices:
+                continue
+            today_price = port_prices[port_name]
+            yesterday_price = prev_best.get(species, {}).get(port_name)
+            if yesterday_price and yesterday_price > 0:
+                swing_pct = ((today_price - yesterday_price) / yesterday_price) * 100
+                if abs(swing_pct) > 20:
+                    swing_species.append((species, round(swing_pct, 1)))
+
+        if swing_species:
+            swing_species.sort(key=lambda x: abs(x[1]), reverse=True)
+            top_swing = swing_species[0]
+            direction = "up" if top_swing[1] > 0 else "down"
+            alerts.append((3, {
+                "type": "price_swing",
+                "severity": "spike",
+                "headline": f"{top_swing[0]} swung {abs(top_swing[1])}% {direction} vs yesterday",
+                "detail": f"Unusual daily movement. {'Strong demand or tight supply.' if direction == 'up' else 'Check if grade mix changed or supply increased.'}",
+                "species": top_swing[0],
+                "port": port_name,
+            }))
+
+    # ---- Alert 4: Species count drop vs rolling average ----
+    if len(recent_dates) >= 5:
+        # Count species per date at this port from the range data we already have
+        port_species_by_date: dict[str, set[str]] = defaultdict(set)
+        for r_date, r_port, r_species, _grade, _low, _high, r_avg in range_rows:
+            if r_port == port_name and r_avg:
+                canonical = normalise_species(r_species)
+                if canonical:
+                    port_species_by_date[r_date].add(canonical)
+
+        today_count = len(port_species_by_date.get(date, set()))
+        historical_counts = [
+            len(port_species_by_date.get(d, set()))
+            for d in recent_dates[1:] if d in port_species_by_date
+        ]
+        if historical_counts:
+            avg_count = sum(historical_counts) / len(historical_counts)
+            if avg_count > 0 and today_count < avg_count * 0.7:
+                alerts.append((4, {
+                    "type": "species_drop",
+                    "severity": "watch",
+                    "headline": f"Only {today_count} species today vs {avg_count:.0f} average",
+                    "detail": "Species count is significantly below your recent average. May indicate fewer landings or vessels.",
+                    "species": None,
+                    "port": port_name,
+                }))
+
+    # Sort by priority, cap at 4
+    alerts.sort(key=lambda x: x[0])
+    result = [a[1] for a in alerts[:4]]
+
+    # If no alerts, return a calm message
+    if not result:
+        result = [{
+            "type": "calm",
+            "severity": "calm",
+            "headline": "Your auction tracked normally today",
+            "detail": "No unusual price movements, species count is stable, and your market position is within normal range.",
+            "species": None,
+            "port": port_name,
+        }]
+
+    return result
+
+
+def build_missing_species(port_name: str, date: str) -> list[dict]:
+    """Species trading at other ports today but not at this port.
+
+    Filtered by port similarity (shares at least 2 species) and minimum
+    price threshold (>£2/kg) to exclude low-value bycatch.
+
+    Returns list of {species, category, best_price, best_port, total_volume, port_count}.
+    """
+    all_rows = get_all_prices_for_date(date)
+
+    # Group by canonical species -> {port: best_avg, total_weight}
+    species_ports: dict[str, dict[str, float]] = defaultdict(dict)
+    species_volume: dict[str, float] = defaultdict(float)
+
+    for row in all_rows:
+        _, port, raw_species, _grade, _low, _high, avg, weight_kg, _boxes = row
+        canonical = normalise_species(raw_species)
+        if canonical is None:
+            continue
+
+        if avg and (canonical not in species_ports or
+                    port not in species_ports[canonical] or
+                    avg > species_ports[canonical][port]):
+            species_ports[canonical][port] = avg
+        if weight_kg:
+            species_volume[canonical] += weight_kg
+
+    # This port's species set
+    our_species = {sp for sp, ports in species_ports.items() if port_name in ports}
+
+    # Find species NOT at our port
+    missing = []
+    for species, port_prices in species_ports.items():
+        if species in our_species:
+            continue
+
+        # Filter: port similarity — at least one comparison port must share 2+ species with us
+        comparison_ports = set(port_prices.keys())
+        has_similar_port = False
+        for other_port in comparison_ports:
+            other_species = {sp for sp, pp in species_ports.items() if other_port in pp}
+            shared = our_species & other_species
+            if len(shared) >= 2:
+                has_similar_port = True
+                break
+        if not has_similar_port:
+            continue
+
+        # Price threshold
+        best_port = max(port_prices, key=port_prices.get)
+        best_price = port_prices[best_port]
+        if best_price < 2.0:
+            continue
+
+        missing.append({
+            "species": species,
+            "category": get_species_category(species),
+            "best_price": round(best_price, 2),
+            "best_port": best_port,
+            "total_volume": round(species_volume.get(species, 0), 1) or None,
+            "port_count": len(port_prices),
+        })
+
+    # Sort by best price descending, cap at 10
+    missing.sort(key=lambda x: x["best_price"], reverse=True)
+    return missing[:10]

@@ -143,10 +143,28 @@ def trade_export():
     )
 
 
-def trade_chat():
-    """Chatbot endpoint — calls Claude with fish market context."""
+def _call_chat_api(system_prompt: str, user_message: str) -> tuple[str, int]:
+    """Shared chat handler — calls Claude Haiku and returns (reply_text, status_code)."""
     import anthropic
 
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return "Chatbot unavailable — ANTHROPIC_API_KEY not set.", 200
+
+    client = anthropic.Anthropic(api_key=api_key)
+    message = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=400,
+        system=system_prompt,
+        messages=[{"role": "user", "content": user_message}],
+    )
+    reply = message.content[0].text if message.content else "No response."
+    return reply, 200
+
+
+@trade_bp.route("/trade/chat", methods=["POST"])
+def trade_chat():
+    """Chatbot endpoint — calls Claude with fish market context."""
     if not _check_trade_access():
         return jsonify({"error": "Access denied"}), 403
 
@@ -156,10 +174,6 @@ def trade_chat():
 
     if not user_message:
         return jsonify({"error": "No message"}), 400
-
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if not api_key:
-        return jsonify({"reply": "Chatbot unavailable — ANTHROPIC_API_KEY not set."}), 200
 
     system_prompt = (
         "You are a knowledgeable fish market analyst assistant for Quayside, "
@@ -186,15 +200,8 @@ def trade_chat():
             )
             system_prompt += f"\n\nToday's top prices: {price_lines}."
 
-    client = anthropic.Anthropic(api_key=api_key)
-    message = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=400,
-        system=system_prompt,
-        messages=[{"role": "user", "content": user_message}],
-    )
-    reply = message.content[0].text if message.content else "No response."
-    return jsonify({"reply": reply})
+    reply, status = _call_chat_api(system_prompt, user_message)
+    return jsonify({"reply": reply}), status
 
 
 @trade_bp.route("/trade/ports")

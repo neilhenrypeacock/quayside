@@ -7,7 +7,7 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from flask import Blueprint, Response, flash, redirect, render_template, request, send_file, url_for
+from flask import Blueprint, Response, flash, jsonify, redirect, render_template, request, send_file, url_for
 from werkzeug.utils import secure_filename
 
 from quayside.confirm import generate_confirm_token, get_upload_for_token
@@ -40,9 +40,13 @@ from quayside.species import get_all_canonical_names, normalise_species
 from quayside.web.helpers import (
     build_best_performers,
     build_category_stats,
+    build_competitive_market,
+    build_competitive_summary,
     build_insights,
+    build_missing_species,
     build_performance_overview,
     build_scrape_info_display,
+    build_smart_alerts,
     build_today_data,
     build_trend_data,
     format_data_freshness,
@@ -212,6 +216,28 @@ def port_dashboard(slug: str):
     perf = build_performance_overview(port["name"], date, history, market)
     category_stats = build_category_stats(today_data, last_week_prices, market, history)
 
+    # Phase 1: Competitive position, smart alerts, missing species
+    competitive = build_competitive_market(port["name"], date)
+    competitive_summary = build_competitive_summary(competitive)
+    smart_alerts = build_smart_alerts(port["name"], date, "port")
+    missing_species = build_missing_species(port["name"], date)
+
+    # Fluid data fields — detect what data this port provides
+    port_capabilities = {
+        "has_volume": any(
+            (item.get("weight_kg") and item["weight_kg"] > 0)
+            for item in today_data
+        ),
+        "has_ranges": any(
+            item.get("price_low") is not None
+            for item in today_data
+        ),
+        "has_boxes": any(
+            (item.get("boxes") and item["boxes"] > 0)
+            for item in today_data
+        ),
+    }
+
     response = current_app.make_response(render_template(
         "dashboard.html",
         port=port,
@@ -246,6 +272,18 @@ def port_dashboard(slug: str):
         scrape_info=scrape_info_display,
         has_volume=has_volume,
         volume_type=volume_type,
+        competitive=competitive,
+        competitive_summary=competitive_summary,
+        smart_alerts=smart_alerts,
+        missing_species=missing_species,
+        port_capabilities=port_capabilities,
+        chat_endpoint=f"/port/{slug}/chat",
+        chat_pills=[
+            "How does our haddock compare to other ports this week?",
+            "Which species are we consistently beating market on?",
+            "What's our best performing day of the week?",
+            "Show me our cod trend over the last 30 days",
+        ],
     ))
 
     if request.args.get("token"):
@@ -666,3 +704,42 @@ def port_submit(slug: str | None = None):
         species_list=species_list, selected_port=selected_port,
         port_slug=slug,
     )
+
+
+@port_bp.route("/port/<slug>/chat", methods=["POST"])
+def port_chat(slug: str):
+    """Port-scoped chatbot endpoint — calls Claude with this port's context."""
+    from quayside.web.trade_views import _call_chat_api
+
+    port = get_port(slug)
+    if not port:
+        return jsonify({"error": "Port not found"}), 404
+
+    data = request.get_json(silent=True) or {}
+    user_message = (data.get("message") or "").strip()
+    if not user_message:
+        return jsonify({"error": "No message"}), 400
+
+    context = data.get("context") or {}
+    species_count = context.get("species_count", 0)
+    date = context.get("date", datetime.now().strftime("%Y-%m-%d"))
+
+    system_prompt = (
+        f"You are Quayside's AI market analyst for {port['name']}. "
+        f"Answer questions about this port's prices, trends, and competitive position. "
+        f"You have access to price data for {port['name']} and can compare against other UK ports. "
+        f"Today's date: {date}. This port sold {species_count} species today. "
+        f"Prices are in £/kg. Keep answers concise — 2-3 sentences max unless asked for detail. "
+        f"Use proper fish names (e.g. Monkfish not Monks). "
+    )
+
+    prices_ctx = context.get("top_prices", [])
+    if prices_ctx:
+        price_lines = "; ".join(
+            f"{p.get('species')} £{p.get('price_avg', 0):.2f}/kg"
+            for p in prices_ctx[:10]
+        )
+        system_prompt += f"\n\nToday's prices at {port['name']}: {price_lines}."
+
+    reply, status = _call_chat_api(system_prompt, user_message)
+    return jsonify({"reply": reply}), status

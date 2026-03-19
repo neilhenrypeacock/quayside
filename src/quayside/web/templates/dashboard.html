@@ -410,6 +410,310 @@
         .port-content { padding: 20px 16px; }
     }
 
+    /* ═══ Sidebar tabs ═══ */
+    .sidebar-tabs {
+        display: flex;
+        gap: 0;
+        background: var(--rule);
+        border-radius: 2px;
+        margin-bottom: 16px;
+        padding: 0;
+    }
+    .sidebar-tab {
+        flex: 1;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: var(--foam);
+        color: var(--muted);
+        border: none;
+        padding: 8px 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .sidebar-tab:first-child { border-radius: 2px 0 0 2px; }
+    .sidebar-tab:last-child { border-radius: 0 2px 2px 0; }
+    .sidebar-tab.active {
+        background: var(--tide);
+        color: var(--foam);
+    }
+    .sidebar-tab:hover:not(.active) {
+        background: var(--salt);
+    }
+
+    /* ═══ Competitive scoreboard ═══ */
+    .competitive-card {
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    .competitive-summary-row {
+        display: flex;
+        gap: 1px;
+        background: var(--rule);
+        border-radius: 2px;
+        margin-bottom: 20px;
+    }
+    .competitive-summary-stat {
+        flex: 1;
+        background: var(--foam);
+        padding: 14px 16px;
+        text-align: center;
+    }
+    .competitive-summary-stat:first-child { border-radius: 2px 0 0 2px; }
+    .competitive-summary-stat:last-child { border-radius: 0 2px 2px 0; }
+    .competitive-stat-value {
+        font-family: var(--font-mono);
+        font-size: 22px;
+        font-weight: 500;
+        line-height: 1.1;
+    }
+    .competitive-stat-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+    .competitive-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .competitive-table th {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-align: left;
+        padding: 8px;
+        border-bottom: 2px solid var(--tide);
+    }
+    .competitive-table td {
+        padding: 8px;
+        border-bottom: 1px solid var(--salt);
+        font-size: 13px;
+    }
+    .competitive-table .price {
+        font-family: var(--font-mono);
+        font-weight: 500;
+        text-align: right;
+    }
+    .competitive-row:hover { background: rgba(26,58,74,0.02); }
+    .competitive-row.open { background: rgba(26,58,74,0.03); }
+    .species-name {
+        font-family: var(--font-serif);
+        font-style: italic;
+        color: var(--ink);
+    }
+    .comp-ports-list {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.03em;
+    }
+
+    /* Competitive bar */
+    .comp-bar-track {
+        position: relative;
+        height: 8px;
+        background: var(--salt);
+        border-radius: 2px;
+    }
+    .comp-bar-fill {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        border-radius: 2px;
+    }
+    .comp-bar-above { background: var(--up); }
+    .comp-bar-below { background: var(--down); }
+    .comp-bar-centre {
+        position: absolute;
+        left: 50%;
+        top: -2px;
+        width: 2px;
+        height: 12px;
+        background: var(--muted);
+        transform: translateX(-1px);
+    }
+
+    /* Competitive expand row */
+    .competitive-expand-row td {
+        padding: 0;
+        border-bottom: 2px solid var(--rule);
+    }
+    .comp-expand-content {
+        display: flex;
+        gap: 24px;
+        padding: 16px 8px;
+    }
+    .comp-expand-grades { flex: 1; }
+    .comp-expand-others { flex: 1; }
+    .comp-expand-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+    }
+    .comp-grade-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+    .comp-grade-table th {
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-align: left;
+        padding: 4px 6px;
+        border-bottom: 1px solid var(--rule);
+    }
+    .comp-grade-table td {
+        padding: 4px 6px;
+        border-bottom: 1px solid var(--salt);
+    }
+    .comp-others-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .comp-port-card {
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 10px 12px;
+        min-width: 120px;
+        flex: 1;
+    }
+    .comp-port-name {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--tide);
+        margin-bottom: 4px;
+    }
+    .comp-port-price {
+        font-family: var(--font-mono);
+        font-size: 15px;
+        font-weight: 500;
+        margin-bottom: 2px;
+    }
+    .comp-port-meta {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+    }
+    .comp-port-vs {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 500;
+        margin-top: 4px;
+    }
+    .comp-grade-note {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 10px;
+        font-style: italic;
+        line-height: 1.4;
+    }
+    .comp-only-port-section {
+        margin-top: 16px;
+    }
+    .comp-only-port-toggle {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 8px 0;
+    }
+    .comp-only-port-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 0;
+    }
+    .comp-only-port-item {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 4px 10px;
+        background: var(--salt);
+        border-radius: 2px;
+        color: var(--muted);
+    }
+    .comp-only-port-item .species-name {
+        color: var(--ink);
+        font-size: 12px;
+    }
+
+    /* ═══ Smart alerts ═══ */
+    .alerts-section {
+        margin-bottom: 24px;
+    }
+    .alert-cards-row {
+        display: flex;
+        gap: 14px;
+    }
+    .alert-card {
+        flex: 1;
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-left-width: 4px;
+        padding: 16px 18px;
+        border-radius: 2px;
+    }
+    .alert-card--strength { border-left-color: var(--tide); }
+    .alert-card--warning { border-left-color: var(--catch); }
+    .alert-card--spike { border-left-color: #c8941a; }
+    .alert-card--watch { border-left-color: var(--muted); }
+    .alert-card--calm { border-left-color: var(--rule); }
+    .alert-card-title {
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.15em;
+        color: var(--muted);
+        margin-bottom: 6px;
+    }
+    .alert-card-body {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--ink);
+    }
+    .alert-card-body em {
+        font-family: var(--font-serif);
+        font-size: 14px;
+        color: var(--tide);
+    }
+    @media (max-width: 768px) {
+        .alert-cards-row { flex-direction: column; }
+        .competitive-summary-row { flex-wrap: wrap; }
+        .competitive-summary-stat { min-width: 45%; }
+        .comp-expand-content { flex-direction: column; }
+    }
+
+    /* ═══ Missing species ═══ */
+    .missing-species-section {
+        margin-bottom: 24px;
+    }
+    .missing-species-card {
+        background: var(--foam);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 16px;
+        margin-top: 8px;
+    }
+
     /* ═══ Hero summary strip ═══ */
     .hero-strip {
         display: flex;
@@ -1342,19 +1646,31 @@
 <!-- ══ SIDEBAR NAV ═══════════════════════════════════════════════════════ -->
 <aside class="port-sidebar">
     <div class="sidebar-logo">{{ port.name }}</div>
-    <ul class="sidebar-nav">
+    <div class="sidebar-tabs">
+        <button class="sidebar-tab active" data-tab="today">Today</button>
+        <button class="sidebar-tab" data-tab="trends">Trends</button>
+        <button class="sidebar-tab" data-tab="tools">Tools</button>
+    </div>
+    <ul class="sidebar-nav" data-tab-group="today">
         <li><a href="#section-overview" class="active">Overview</a></li>
+        <li><a href="#section-competitive">Competitive Position</a></li>
+        <li><a href="#section-alerts">Smart Alerts</a></li>
+        <li><a href="#section-prices">Prices</a></li>
+        <li><a href="#section-missing">Other UK Species</a></li>
+    </ul>
+    <ul class="sidebar-nav" data-tab-group="trends" style="display:none;">
         <li><a href="#section-performance">Performance</a></li>
-        <li><a href="#section-ranking">Ranking</a></li>
-        <li><a href="#section-insights">Insights</a></li>
-        <li><a href="#section-position">Market Position</a></li>
         <li><a href="#section-chart">Price Trends</a></li>
         <li><a href="#section-best">Best Performers</a></li>
+        <li><a href="#section-insights">Insights</a></li>
+        <li><a href="#section-position">Market Position</a></li>
+    </ul>
+    <ul class="sidebar-nav" data-tab-group="tools" style="display:none;">
+        <li><a href="#section-ranking">Ranking</a></li>
         <li><a href="#section-compare">Compare</a></li>
-        <li><a href="#section-chat">Ask Quayside</a></li>
-        <li><a href="#section-prices">Prices</a></li>
         <li><a href="#section-customize">Customize</a></li>
         <li><a href="{{ url_for('ports.port_upload', slug=port.slug) }}" class="sidebar-upload-link">Upload &amp; Edit</a></li>
+        <li><a href="{{ url_for('ports.export_port_data', slug=port.slug) }}">Export CSV</a></li>
     </ul>
 </aside>
 
@@ -1474,6 +1790,153 @@
         {% endif %}
         <div class="hero-label">vs UK market avg <span class="info-tip">ⓘ<span class="info-tip-text">Market average is a simple mean across all ports reporting this species today. Ports are weighted equally regardless of volume. Scrabster's contribution is a midpoint estimate (not a true average).</span></span></div>
         <div class="hero-description">Today's avg above (+) or below (−) the UK-wide average across all ports</div>
+    </div>
+    {% if competitive_summary and competitive_summary.like_for_like_position_pct is not none %}
+    <div class="hero-stat">
+        <div class="hero-value {{ 'hero-value-up' if competitive_summary.like_for_like_position_pct >= 0 else 'hero-value-down' }}">{{ "+" if competitive_summary.like_for_like_position_pct >= 0 }}{{ "%.1f"|format(competitive_summary.like_for_like_position_pct) }}%</div>
+        <div class="hero-label">vs your market <span class="info-tip">ⓘ<span class="info-tip-text">Compared against {{ competitive_summary.comparable_count }} species also sold at other ports today. Species where you're the only port reporting are excluded from this calculation.</span></span></div>
+        <div class="hero-description">Like-for-like position against ports selling the same species</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ═══ ZONE 2: COMPETITIVE POSITION SCOREBOARD ═══ -->
+{% if competitive %}
+<div class="section-heading" id="section-competitive" style="scroll-margin-top:80px;">Competitive Position <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Market average is calculated only from ports selling the same species as you today. Species where you're the only port reporting are excluded.</span></span></div>
+<div class="competitive-card">
+    <div class="competitive-summary-row">
+        <div class="competitive-summary-stat">
+            <div class="competitive-stat-value" style="color:var(--tide);">{{ competitive_summary.best_uk_count }}</div>
+            <div class="competitive-stat-label">Best UK price</div>
+        </div>
+        <div class="competitive-summary-stat">
+            <div class="competitive-stat-value" style="color:var(--up);">{{ competitive_summary.above_avg_count }}</div>
+            <div class="competitive-stat-label">Above market</div>
+        </div>
+        <div class="competitive-summary-stat">
+            <div class="competitive-stat-value" style="color:var(--down);">{{ competitive_summary.below_avg_count }}</div>
+            <div class="competitive-stat-label">Below market</div>
+        </div>
+        <div class="competitive-summary-stat">
+            <div class="competitive-stat-value" style="color:var(--muted);">{{ competitive_summary.only_port_count }}</div>
+            <div class="competitive-stat-label">Only port</div>
+        </div>
+    </div>
+
+    {% set comparable = competitive | selectattr('is_only_port', 'false') | list %}
+    {% if comparable %}
+    <table class="competitive-table">
+        <thead>
+            <tr>
+                <th>Species</th>
+                <th style="width:180px;">Market position</th>
+                <th class="price">Your avg</th>
+                <th class="price">vs market</th>
+                <th>Comparison ports</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in competitive if not item.is_only_port %}
+            <tr class="competitive-row" data-species="{{ item.species }}">
+                <td>
+                    <span class="species-name">{{ item.species }}</span>
+                    {% if item.is_best_uk %}<span class="badge badge-best">BEST UK</span>{% endif %}
+                </td>
+                <td>
+                    <div class="comp-bar-track">
+                        {% if item.vs_market_pct is not none %}
+                        {% set bar_width = [item.vs_market_pct|abs, 50]|min %}
+                        {% if item.vs_market_pct >= 0 %}
+                        <div class="comp-bar-fill comp-bar-above" style="width:{{ bar_width }}%;left:50%;"></div>
+                        {% else %}
+                        <div class="comp-bar-fill comp-bar-below" style="width:{{ bar_width }}%;right:50%;"></div>
+                        {% endif %}
+                        <div class="comp-bar-centre"></div>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="price">&pound;{{ "%.2f"|format(item.port_avg) }}</td>
+                <td class="price">
+                    {% if item.vs_market_pct is not none %}
+                    <span class="{{ 'change-up' if item.vs_market_pct >= 0 else 'change-down' }}">{{ "+" if item.vs_market_pct >= 0 }}{{ "%.1f"|format(item.vs_market_pct) }}%</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="comp-ports-list">vs {{ item.comparison_ports | map(attribute='port_code') | join(', ') }}</span>
+                </td>
+            </tr>
+            <tr class="competitive-expand-row" data-expand-for="{{ item.species }}" style="display:none;">
+                <td colspan="5">
+                    <div class="comp-expand-content">
+                        <div class="comp-expand-grades">
+                            <div class="comp-expand-label">Your grades</div>
+                            <table class="comp-grade-table">
+                                <thead><tr><th>Grade</th><th class="price">Avg</th>{% if item.port_has_ranges %}<th class="price">Low</th><th class="price">High</th>{% endif %}{% if item.port_has_volume %}<th class="price">Weight</th>{% endif %}{% if item.port_has_boxes %}<th class="price">Boxes</th>{% endif %}</tr></thead>
+                                <tbody>
+                                {% for g in item.port_grades %}
+                                <tr>
+                                    <td>{{ g.grade }}</td>
+                                    <td class="price">{% if g.price_avg %}&pound;{{ "%.2f"|format(g.price_avg) }}{% else %}&mdash;{% endif %}</td>
+                                    {% if item.port_has_ranges %}<td class="price">{% if g.price_low %}&pound;{{ "%.2f"|format(g.price_low) }}{% else %}&mdash;{% endif %}</td><td class="price">{% if g.price_high %}&pound;{{ "%.2f"|format(g.price_high) }}{% else %}&mdash;{% endif %}</td>{% endif %}
+                                    {% if item.port_has_volume %}<td class="price">{% if g.weight_kg %}{{ "%.0f"|format(g.weight_kg) }}kg{% else %}&mdash;{% endif %}</td>{% endif %}
+                                    {% if item.port_has_boxes %}<td class="price">{% if g.boxes %}{{ g.boxes }}{% else %}&mdash;{% endif %}</td>{% endif %}
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="comp-expand-others">
+                            <div class="comp-expand-label">Other ports</div>
+                            <div class="comp-others-grid">
+                            {% for cp in item.comparison_ports %}
+                                <div class="comp-port-card">
+                                    <div class="comp-port-name">{{ cp.port_code }} <span style="font-family:var(--font-sans);font-weight:300;text-transform:none;letter-spacing:0;">{{ cp.port_name }}</span></div>
+                                    <div class="comp-port-price">&pound;{{ "%.2f"|format(cp.price_avg) }}/kg</div>
+                                    {% if cp.weight_kg %}<div class="comp-port-meta">{{ "%.0f"|format(cp.weight_kg) }}kg</div>{% endif %}
+                                    {% if cp.grades_summary %}<div class="comp-port-meta">{{ cp.grades_summary }}</div>{% endif %}
+                                    {% set diff = item.port_avg - cp.price_avg %}
+                                    <div class="comp-port-vs {{ 'change-up' if diff >= 0 else 'change-down' }}">You're &pound;{{ "%.2f"|format(diff|abs) }} {{ 'above' if diff >= 0 else 'below' }}</div>
+                                </div>
+                            {% endfor %}
+                            </div>
+                            <div class="comp-grade-note">Grade systems differ across ports. Direct grade comparison isn't possible, but top-grade averages are broadly comparable.</div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% set only_port_items = competitive | selectattr('is_only_port') | list %}
+    {% if only_port_items %}
+    <details class="comp-only-port-section">
+        <summary class="comp-only-port-toggle">Species with no UK comparison today ({{ only_port_items|length }})</summary>
+        <div class="comp-only-port-list">
+        {% for item in only_port_items %}
+            <span class="comp-only-port-item"><span class="species-name">{{ item.species }}</span> &pound;{{ "%.2f"|format(item.port_avg) }}</span>
+        {% endfor %}
+        </div>
+    </details>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- ═══ ZONE 3: SMART ALERTS ═══ -->
+<div class="section-heading" id="section-alerts" style="scroll-margin-top:80px;">Smart Alerts</div>
+<div class="alerts-section">
+    <div class="alert-cards-row">
+    {% for alert in smart_alerts %}
+        <div class="alert-card alert-card--{{ alert.severity }}">
+            <div class="alert-card-title">{{ alert.type | replace('_', ' ') | upper }}</div>
+            <div class="alert-card-body">
+                <strong>{{ alert.headline }}</strong>
+                {% if alert.species %}<br><em>{{ alert.species }}</em>{% endif %}
+                <br><span style="color:var(--muted);">{{ alert.detail }}</span>
+            </div>
+        </div>
+    {% endfor %}
     </div>
 </div>
 
@@ -1816,6 +2279,37 @@
 {% include 'prices_partial.html' %}
 </div>
 
+<!-- ═══ ZONE 4b: SPECIES TRADING ELSEWHERE ═══ -->
+{% if missing_species %}
+<details class="missing-species-section" id="section-missing" style="scroll-margin-top:80px;">
+    <summary class="section-heading" style="cursor:pointer;user-select:none;">Species at other UK ports today ({{ missing_species|length }}) &#9662;</summary>
+    <div class="missing-species-card">
+        <table class="competitive-table">
+            <thead>
+                <tr>
+                    <th>Species</th>
+                    <th class="price">Best price</th>
+                    <th>Port</th>
+                    {% if missing_species[0].total_volume %}<th class="price">Total volume</th>{% endif %}
+                    <th class="price">Ports</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in missing_species %}
+                <tr>
+                    <td><span class="species-name">{{ item.species }}</span></td>
+                    <td class="price">&pound;{{ "%.2f"|format(item.best_price) }}</td>
+                    <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">{{ item.best_port }}</td>
+                    {% if missing_species[0].total_volume %}<td class="price">{% if item.total_volume %}{{ "%.0f"|format(item.total_volume) }}kg{% else %}&mdash;{% endif %}</td>{% endif %}
+                    <td class="price" style="color:var(--muted);">{{ item.port_count }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</details>
+{% endif %}
+
 <!-- ═══ SECTION: Customize Your Dashboard ═══ -->
 <div class="section-heading">Customize</div>
 <div id="section-customize" class="customize-card">
@@ -1861,6 +2355,20 @@
 
 </main><!-- /.port-content -->
 </div><!-- /.port-page -->
+
+<!-- ══ FLOATING CHAT BAR ══════════════════════════════════════════════════ -->
+<script>
+window.CHAT_CONTEXT = {
+    date: {{ date|tojson }},
+    species_count: {{ total_species }},
+    top_prices: [
+        {% for item in today_data[:10] %}
+        { species: {{ item.species|tojson }}, price_avg: {{ item.price_avg or 0 }} }{{ "," if not loop.last }}
+        {% endfor %}
+    ]
+};
+</script>
+{% include '_chat_float.html' %}
 
 {% endblock %}
 
@@ -2612,6 +3120,32 @@ document.addEventListener('click', function(e) {
         tip.classList.toggle('open');
         e.stopPropagation();
     }
+});
+
+// ── Sidebar tab switching ─────────────────────────────────────────────────
+document.querySelectorAll('.sidebar-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        var group = this.dataset.tab;
+        document.querySelectorAll('.sidebar-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        document.querySelectorAll('[data-tab-group]').forEach(function(ul) {
+            ul.style.display = ul.dataset.tabGroup === group ? '' : 'none';
+        });
+    });
+});
+
+// ── Competitive row expand/collapse ───────────────────────────────────────
+document.querySelectorAll('.competitive-row').forEach(function(row) {
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', function() {
+        var species = this.dataset.species;
+        var expand = document.querySelector('.competitive-expand-row[data-expand-for="' + CSS.escape(species) + '"]');
+        if (expand) {
+            var isOpen = expand.style.display !== 'none';
+            expand.style.display = isOpen ? 'none' : '';
+            this.classList.toggle('open', !isOpen);
+        }
+    });
 });
 </script>
 {% endblock %}

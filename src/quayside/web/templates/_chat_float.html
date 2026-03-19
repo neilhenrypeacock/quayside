@@ -1,0 +1,125 @@
+{# Floating chat bar — shared between trade and port dashboards.
+
+   Required template variables:
+     chat_endpoint  — URL string, e.g. "/trade/chat" or "/port/peterhead/chat"
+     chat_pills     — list of suggestion strings (2-4 items)
+
+   The parent template must set window.CHAT_CONTEXT before this script runs.
+   Example:
+     window.CHAT_CONTEXT = { date: "2026-03-19", species_count: 18, top_prices: [...] };
+#}
+
+<!-- Floating chat bar -->
+<div class="chat-float-bar" id="chat-float-bar">
+    <div class="chat-float-toggle" onclick="toggleChatBar()">
+        <span class="chat-float-label">Ask Quayside</span>
+    </div>
+    <div class="chat-float-input-wrap">
+        <input type="text" class="chat-float-input" id="chat-input"
+               placeholder="Ask about prices, trends, opportunities&hellip;"
+               onkeydown="if(event.key==='Enter')sendChat()"
+               onfocus="expandChatBar()">
+        <button class="chat-float-send" id="chat-send-btn" onclick="sendChat()">Send</button>
+    </div>
+    <div class="chat-float-pills" id="chat-float-pills"></div>
+
+    <!-- Expanded panel -->
+    <div class="chat-float-panel" id="chat-float-panel" style="display:none;">
+        <div class="chat-float-messages" id="chat-messages">
+            <div class="chat-msg system-msg" style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:8px 0;">Ask me anything about today's fish prices, trends, or market opportunities.</div>
+        </div>
+        <div class="chat-thinking" id="chat-thinking" style="display:none;">Thinking&hellip;</div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var CHAT_ENDPOINT = {{ chat_endpoint|tojson }};
+    var CHAT_PILLS = {{ chat_pills|tojson }};
+
+    function expandChatBar() {
+        var bar = document.getElementById('chat-float-bar');
+        var panel = document.getElementById('chat-float-panel');
+        if (bar) bar.classList.add('expanded');
+        if (panel) panel.style.display = '';
+    }
+    function collapseChatBar() {
+        var bar = document.getElementById('chat-float-bar');
+        var panel = document.getElementById('chat-float-panel');
+        if (bar) bar.classList.remove('expanded');
+        if (panel) panel.style.display = 'none';
+    }
+    function toggleChatBar() {
+        var bar = document.getElementById('chat-float-bar');
+        if (bar && bar.classList.contains('expanded')) collapseChatBar();
+        else expandChatBar();
+    }
+
+    function appendChatMsg(role, text) {
+        var container = document.getElementById('chat-messages');
+        var div = document.createElement('div');
+        div.className = 'chat-msg ' + role;
+        div.textContent = text;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function sendChatPill(text) {
+        document.getElementById('chat-input').value = text;
+        expandChatBar();
+        sendChat();
+    }
+
+    function initChatPills() {
+        var pillsEl = document.getElementById('chat-float-pills');
+        if (!pillsEl || !CHAT_PILLS.length) return;
+        pillsEl.innerHTML = CHAT_PILLS.map(function(p) {
+            var esc = p.replace(/'/g, "\\'");
+            return '<button class="chat-float-pill" onclick="window._chatSendPill(\'' + esc + '\')">' + p + '</button>';
+        }).join('');
+    }
+
+    async function sendChat() {
+        var input = document.getElementById('chat-input');
+        var msg = input.value.trim();
+        if (!msg) return;
+
+        expandChatBar();
+        appendChatMsg('user', msg);
+        input.value = '';
+        document.getElementById('chat-send-btn').disabled = true;
+        document.getElementById('chat-thinking').style.display = 'block';
+
+        var context = window.CHAT_CONTEXT || {};
+
+        try {
+            var resp = await fetch(CHAT_ENDPOINT, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ message: msg, context: context }),
+            });
+            var data = await resp.json();
+            appendChatMsg('assistant', data.reply || data.error || 'No response.');
+        } catch(e) {
+            appendChatMsg('assistant', 'Network error \u2014 please try again.');
+        }
+
+        document.getElementById('chat-send-btn').disabled = false;
+        document.getElementById('chat-thinking').style.display = 'none';
+    }
+
+    // Expose to global scope for onclick handlers
+    window.toggleChatBar = toggleChatBar;
+    window.expandChatBar = expandChatBar;
+    window.collapseChatBar = collapseChatBar;
+    window.sendChat = sendChat;
+    window._chatSendPill = sendChatPill;
+
+    // Init pills on load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initChatPills);
+    } else {
+        initChatPills();
+    }
+})();
+</script>
