@@ -11,18 +11,12 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, render_template, request, send_file
 
 from quayside.db import get_quality_issues, get_quality_summary
-from quayside.web.auth import require_admin
-
 ops_bp = Blueprint("ops", __name__)
 
 
 @ops_bp.route("/ops")
 def ops_dashboard():
     """Internal ops dashboard — scraper health, port status, data coverage."""
-    denied = require_admin()
-    if denied:
-        return denied
-
     conn = __import__("quayside.db", fromlist=["get_connection"]).get_connection()
     conn.row_factory = sqlite3.Row
     all_ports = [dict(r) for r in conn.execute("SELECT * FROM ports ORDER BY region, name").fetchall()]
@@ -514,9 +508,6 @@ def ops_dashboard():
 @ops_bp.route("/ops/run-pipeline", methods=["POST"])
 def ops_run_pipeline():
     """Trigger the full scrape -> store -> report pipeline and return JSON result."""
-    denied = require_admin()
-    if denied:
-        return denied
     import subprocess
     import sys
 
@@ -543,9 +534,6 @@ def ops_run_pipeline():
 @ops_bp.route("/ops/run-quality-check", methods=["POST"])
 def ops_run_quality_check():
     """Run quality checks now and return JSON summary."""
-    denied = require_admin()
-    if denied:
-        return denied
     from quayside.quality import run_quality_checks
 
     summary = run_quality_checks()
@@ -555,9 +543,6 @@ def ops_run_quality_check():
 @ops_bp.route("/ops/quality/clear/<int:issue_id>", methods=["POST"])
 def ops_clear_quality_issue(issue_id):
     """Mark a quality issue as cleared (acknowledged)."""
-    denied = require_admin()
-    if denied:
-        return denied
     from quayside.db import clear_quality_issue
 
     clear_quality_issue(issue_id)
@@ -567,9 +552,6 @@ def ops_clear_quality_issue(issue_id):
 @ops_bp.route("/ops/quality-report")
 def ops_quality_report():
     """Comprehensive quality report — port dashboards, digest preview, ops health."""
-    denied = require_admin()
-    if denied:
-        return denied
     from quayside.quality import build_comprehensive_report
 
     date_param = request.args.get("date") or _date_type.today().isoformat()
@@ -580,9 +562,6 @@ def ops_quality_report():
 @ops_bp.route("/ops/quality-report/download")
 def ops_quality_report_download():
     """Download the comprehensive quality report as a Markdown file."""
-    denied = require_admin()
-    if denied:
-        return denied
     from quayside.quality import build_comprehensive_report
 
     date_param = request.args.get("date") or _date_type.today().isoformat()
