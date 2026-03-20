@@ -328,6 +328,13 @@ def _migrate(conn: sqlite3.Connection) -> None:
         """)
     except Exception:
         pass
+    # Add onboarding_completed_at column to users table
+    existing_users = {row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+    if existing_users and "onboarding_completed_at" not in existing_users:
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN onboarding_completed_at TEXT")
+        except Exception:
+            pass
     conn.commit()
 
 
@@ -371,6 +378,27 @@ def create_user(email: str, password_hash: str, role: str, port_slug: str | None
     conn.commit()
     conn.close()
     return user_id
+
+
+def mark_onboarding_complete(user_id: int) -> None:
+    """Set onboarding_completed_at for the given user."""
+    conn = get_connection()
+    conn.execute(
+        "UPDATE users SET onboarding_completed_at = datetime('now') WHERE id = ?",
+        (user_id,),
+    )
+    conn.commit()
+    conn.close()
+
+
+def has_completed_onboarding(user_id: int) -> bool:
+    """Return True if the user has completed onboarding."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT onboarding_completed_at FROM users WHERE id = ?", (user_id,)
+    ).fetchone()
+    conn.close()
+    return bool(row and row[0])
 
 
 def log_scrape_attempt(

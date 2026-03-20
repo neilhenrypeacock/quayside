@@ -12,7 +12,7 @@ from flask_login import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from quayside.db import create_user, get_all_ports, get_user_by_email, get_user_by_id
+from quayside.db import create_user, get_all_ports, get_user_by_email, get_user_by_id, has_completed_onboarding
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -40,6 +40,8 @@ def setup_login_manager(app):
 
 def _post_login_url(user) -> str:
     if user.role == "port" and user.port_slug:
+        if not has_completed_onboarding(user.id):
+            return url_for("ports.port_onboarding", slug=user.port_slug)
         return url_for("ports.port_dashboard", slug=user.port_slug)
     if user.role == "admin":
         return url_for("ops.ops_dashboard")

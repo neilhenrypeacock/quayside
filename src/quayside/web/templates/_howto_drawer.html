@@ -1,0 +1,274 @@
+<!-- How-to Guide Drawer — slide-in from right -->
+<style>
+    .howto-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10,18,24,0.4);
+        z-index: 199;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .howto-overlay.open { opacity: 1; pointer-events: auto; }
+    .howto-drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 400px;
+        max-width: 100vw;
+        background: var(--foam);
+        border-left: 1px solid var(--rule);
+        z-index: 200;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+    .howto-drawer.open { transform: translateX(0); }
+    .howto-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid var(--rule);
+        flex-shrink: 0;
+    }
+    .howto-title {
+        font-family: var(--font-serif);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--tide);
+    }
+    .howto-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 4px 8px;
+        line-height: 1;
+    }
+    .howto-close:hover { color: var(--ink); }
+    .howto-replay {
+        display: block;
+        margin: 16px 24px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 10px 16px;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        color: var(--tide);
+        text-decoration: none;
+        background: #fff;
+        transition: background 0.2s;
+    }
+    .howto-replay:hover { background: var(--salt); }
+    .howto-sections {
+        padding: 8px 24px 32px;
+        flex: 1;
+    }
+    .howto-section {
+        border-bottom: 1px solid var(--rule);
+    }
+    .howto-section summary {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--tide);
+        padding: 14px 0;
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .howto-section summary::-webkit-details-marker { display: none; }
+    .howto-section summary::after {
+        content: '+';
+        font-size: 16px;
+        color: var(--muted);
+        transition: transform 0.2s;
+    }
+    .howto-section[open] summary::after {
+        content: '\2212';
+    }
+    .howto-section-body {
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--ink-body);
+        padding-bottom: 16px;
+    }
+    .howto-section-body strong {
+        color: var(--ink);
+    }
+    .howto-tip {
+        background: var(--paper);
+        border-left: 3px solid var(--catch);
+        padding: 10px 14px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--ink-body);
+        margin-top: 10px;
+        border-radius: 2px;
+    }
+    @media (max-width: 600px) {
+        .howto-drawer { width: 100vw; }
+    }
+</style>
+
+<div class="howto-overlay" id="howtoOverlay" onclick="closeHowToDrawer()"></div>
+<div class="howto-drawer" id="howtoDrawer">
+    <div class="howto-header">
+        <div class="howto-title">How It Works</div>
+        <button class="howto-close" onclick="closeHowToDrawer()" aria-label="Close">&times;</button>
+    </div>
+
+    <a href="{{ url_for('ports.port_dashboard', slug=port.slug, tour=1) }}" class="howto-replay">
+        &#8634; Replay guided tour
+    </a>
+
+    <div class="howto-sections">
+        <details class="howto-section">
+            <summary>Upload your price sheet</summary>
+            <div class="howto-section-body">
+                <p>There are three ways to send us your daily prices:</p>
+                <p>
+                    <strong>1. Upload a file</strong> &mdash; go to
+                    <a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Add Prices</a>
+                    and upload your price sheet directly. We accept XLS, XLSX, CSV, and PDF formats.
+                </p>
+                <p>
+                    <strong>2. Email it in</strong> &mdash; download the XLSX template from the upload page,
+                    fill it in, and email it to <strong>prices@quayside.fish</strong>.
+                </p>
+                <p>
+                    <strong>3. Fill in the form</strong> &mdash; use the
+                    <a href="{{ url_for('ports.port_submit', slug=port.slug) }}">manual submission form</a>
+                    to type prices in directly. No file needed.
+                </p>
+                <div class="howto-tip">
+                    Emailing <strong>prices@quayside.fish</strong> is the fastest method &mdash;
+                    we process incoming emails automatically.
+                </div>
+            </div>
+        </details>
+
+        <details class="howto-section">
+            <summary>Confirm the extracted data</summary>
+            <div class="howto-section-body">
+                <p>
+                    After you upload or email a price sheet, we extract the data and send you
+                    a confirmation link. The confirm page shows a table of every species, grade,
+                    and price we extracted.
+                </p>
+                <p>
+                    Click <strong>Looks good</strong> to publish immediately, or
+                    <strong>Fix something</strong> to edit any values before publishing.
+                </p>
+                <div class="howto-tip">
+                    If we don't hear back within 2 hours, the data is auto-published as-is.
+                </div>
+            </div>
+        </details>
+
+        <details class="howto-section">
+            <summary>Reading Competitive Position</summary>
+            <div class="howto-section-body">
+                <p>
+                    The scoreboard at the top shows how many species you have the
+                    <strong>best UK price</strong> for, how many are <strong>above market</strong>,
+                    and how many are <strong>below market</strong>.
+                </p>
+                <p>
+                    In the per-species bar chart, the red marker shows the UK average across
+                    all ports. Your bar shows where you land. A <strong>Best UK</strong> badge
+                    means you have the highest price in the country for that species today.
+                </p>
+                <div class="howto-tip">
+                    Click any species row to expand it and see which specific ports
+                    you're ahead of or behind.
+                </div>
+            </div>
+        </details>
+
+        <details class="howto-section">
+            <summary>Smart Alerts</summary>
+            <div class="howto-section-body">
+                <p>
+                    Smart Alerts automatically flag four types of event:
+                </p>
+                <p>
+                    <strong>Price Spike</strong> &mdash; a species price moved significantly
+                    vs recent history.<br>
+                    <strong>New Species</strong> &mdash; a species appeared that wasn't in
+                    yesterday's data.<br>
+                    <strong>Species Gap</strong> &mdash; a species you normally sell is missing
+                    from today's data.<br>
+                    <strong>Market Position</strong> &mdash; you've moved above or below the
+                    UK average for a key species.
+                </p>
+                <div class="howto-tip">
+                    Check alerts each morning before the auction. No action needed &mdash;
+                    they're informational only.
+                </div>
+            </div>
+        </details>
+
+        <details class="howto-section">
+            <summary>Insights</summary>
+            <div class="howto-section-body">
+                <p>
+                    The Insights section provides plain-English market commentary about
+                    your port's performance. It covers what's performing well, where you
+                    stand vs other ports, and what's changed recently.
+                </p>
+                <p>
+                    Use the tabs to switch between <strong>Today</strong>,
+                    <strong>This Week</strong>, and <strong>This Month</strong> for
+                    different time horizons.
+                </p>
+            </div>
+        </details>
+
+        <details class="howto-section">
+            <summary>Sharing &amp; exporting your data</summary>
+            <div class="howto-section-body">
+                <p>
+                    <strong>Export CSV</strong> &mdash; download up to 365 days of your port's
+                    price history as a CSV file. Find this in the Tools section of the sidebar.
+                </p>
+                <p>
+                    <strong>Share your data</strong> &mdash; coming soon. You'll be able to
+                    download a branded PDF of your day's prices to share with buyers,
+                    with a link for them to access the full trade dashboard.
+                </p>
+            </div>
+        </details>
+    </div>
+</div>
+
+<script>
+function openHowToDrawer() {
+    document.getElementById('howtoDrawer').classList.add('open');
+    document.getElementById('howtoOverlay').classList.add('open');
+}
+function closeHowToDrawer() {
+    document.getElementById('howtoDrawer').classList.remove('open');
+    document.getElementById('howtoOverlay').classList.remove('open');
+}
+/* Auto-open if ?howto=1 in URL */
+(function() {
+    if (new URLSearchParams(window.location.search).get('howto') === '1') {
+        openHowToDrawer();
+        var url = new URL(window.location);
+        url.searchParams.delete('howto');
+        history.replaceState(null, '', url);
+    }
+})();
+</script>

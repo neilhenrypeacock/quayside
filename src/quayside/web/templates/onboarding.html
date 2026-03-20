@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+{% block title %}Welcome — {{ port.name }} — Quayside{% endblock %}
+
+{% block bodyclass %}body-onboarding{% endblock %}
+
+{% block head %}
+<style>
+    /* ── Hide base.html chrome on onboarding ── */
+    .body-onboarding .nav,
+    .body-onboarding .ticker-wrap,
+    .body-onboarding .stat-strip { display: none !important; }
+    .body-onboarding { background: var(--zone-mid); }
+
+    /* ── Shared panel styles ── */
+    .onb-panel {
+        position: fixed;
+        inset: 0;
+        z-index: 600;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--zone-mid);
+        overflow: hidden;
+        transition: opacity 0.5s ease;
+    }
+    .onb-panel.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* ── Animated grid background ── */
+    .onb-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(122,176,200,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(122,176,200,0.06) 1px, transparent 1px);
+        background-size: 60px 60px;
+        animation: gridDrift 20s linear infinite;
+    }
+    @keyframes gridDrift {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(60px, 60px); }
+    }
+
+    /* ── Radial glow ── */
+    .onb-glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 600px 400px at 50% 45%, rgba(122,176,200,0.10) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    /* ── Scrolling tickers ── */
+    .onb-tickers {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+    .onb-ticker-row {
+        position: absolute;
+        white-space: nowrap;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        color: var(--tide-light);
+        opacity: 0.11;
+    }
+    .onb-ticker-row:nth-child(1) { top: 18%; animation: tickerScroll 45s linear infinite; }
+    .onb-ticker-row:nth-child(2) { top: 50%; animation: tickerScroll 55s linear infinite reverse; }
+    .onb-ticker-row:nth-child(3) { top: 82%; animation: tickerScroll 40s linear infinite; }
+    @keyframes tickerScroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    /* ── Panel A content ── */
+    .onb-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        max-width: 560px;
+        padding: 0 24px;
+    }
+    .onb-logotype {
+        font-family: var(--font-serif);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 24px;
+    }
+    .onb-logotype span { color: var(--catch); }
+    .onb-eyebrow {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--tide-light);
+        opacity: 0.7;
+        margin-bottom: 20px;
+    }
+    .onb-headline {
+        font-family: var(--font-serif);
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--paper);
+        line-height: 1.2;
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
+    }
+    .onb-headline em {
+        font-style: italic;
+        color: var(--catch);
+    }
+    .onb-subline {
+        font-family: var(--font-sans);
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--tide-light);
+        opacity: 0.8;
+        margin-bottom: 36px;
+        max-width: 460px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* ── Stat tiles ── */
+    .onb-stats {
+        display: flex;
+        gap: 0;
+        border: 1px solid rgba(122,176,200,0.18);
+        border-radius: 2px;
+        margin-bottom: 40px;
+    }
+    .onb-stat {
+        flex: 1;
+        padding: 18px 16px;
+        text-align: center;
+    }
+    .onb-stat + .onb-stat {
+        border-left: 1px solid rgba(122,176,200,0.18);
+    }
+    .onb-stat-value {
+        font-family: var(--font-mono);
+        font-size: 22px;
+        font-weight: 500;
+        color: var(--paper);
+        letter-spacing: -0.02em;
+    }
+    .onb-stat-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--tide-light);
+        opacity: 0.6;
+        margin-top: 6px;
+    }
+
+    /* ── CTA button ── */
+    .onb-cta {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        background: var(--catch);
+        color: #fff;
+        padding: 14px 36px;
+        border: none;
+        border-radius: 2px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+    .onb-cta:hover { background: #b5381a; }
+
+    /* ── Secondary ghost link ── */
+    .onb-ghost {
+        display: block;
+        margin-top: 18px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--tide-light);
+        opacity: 0.6;
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+    .onb-ghost:hover { opacity: 1; }
+
+    /* ── Panel B: port-specific intro ── */
+    .onb-tag {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--tide-light);
+        opacity: 0.7;
+        margin-bottom: 16px;
+    }
+    .onb-benefits {
+        text-align: left;
+        max-width: 480px;
+        margin: 0 auto 36px;
+    }
+    .onb-benefit {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding: 14px 0;
+    }
+    .onb-benefit + .onb-benefit {
+        border-top: 1px solid rgba(122,176,200,0.12);
+    }
+    .onb-benefit-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+        width: 32px;
+        text-align: center;
+        line-height: 1.4;
+    }
+    .onb-benefit-text {
+        font-family: var(--font-sans);
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--tide-light);
+        opacity: 0.85;
+    }
+
+    /* ── Staggered fade-up animations ── */
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up {
+        opacity: 0;
+        animation: fadeUp 0.6s ease forwards;
+    }
+    .fade-up-1 { animation-delay: 0.1s; }
+    .fade-up-2 { animation-delay: 0.3s; }
+    .fade-up-3 { animation-delay: 0.5s; }
+    .fade-up-4 { animation-delay: 0.7s; }
+    .fade-up-5 { animation-delay: 0.9s; }
+    .fade-up-6 { animation-delay: 1.1s; }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+        .onb-headline { font-size: 26px; }
+        .onb-stats { flex-direction: column; }
+        .onb-stat + .onb-stat { border-left: none; border-top: 1px solid rgba(122,176,200,0.18); }
+        .onb-stat-value { font-size: 18px; }
+        .onb-benefits { padding: 0 8px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══ PANEL A — Brand introduction ══════════════════════════════════════ -->
+<div class="onb-panel" id="panelA">
+
+    <!-- Animated grid background -->
+    <div class="onb-grid"></div>
+    <div class="onb-glow"></div>
+
+    <!-- Scrolling price tickers (atmospheric, not readable) -->
+    <div class="onb-tickers">
+        <div class="onb-ticker-row">
+            HADDOCK &middot; PTH &middot; &pound;2.40/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            COD &middot; BRX &middot; &pound;6.80/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            MONKFISH &middot; NLN &middot; &pound;9.20/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            MEGRIM &middot; LWK &middot; &pound;8.50/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            PLAICE &middot; PTH &middot; &pound;1.90/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            SQUID &middot; BRX &middot; &pound;5.60/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            LEMON SOLE &middot; SCR &middot; &pound;7.10/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            HAKE &middot; NLN &middot; &pound;4.30/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            HADDOCK &middot; PTH &middot; &pound;2.40/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            COD &middot; BRX &middot; &pound;6.80/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            MONKFISH &middot; NLN &middot; &pound;9.20/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            MEGRIM &middot; LWK &middot; &pound;8.50/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            PLAICE &middot; PTH &middot; &pound;1.90/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            SQUID &middot; BRX &middot; &pound;5.60/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            LEMON SOLE &middot; SCR &middot; &pound;7.10/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            HAKE &middot; NLN &middot; &pound;4.30/kg &nbsp;&nbsp;&nbsp;&nbsp;
+        </div>
+        <div class="onb-ticker-row">
+            TURBOT &middot; BRX &middot; &pound;12.40/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            WHITING &middot; PTH &middot; &pound;1.60/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            DOVER SOLE &middot; NLN &middot; &pound;14.00/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            SAITHE &middot; LWK &middot; &pound;1.80/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            CRAB &middot; SCR &middot; &pound;3.90/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            LING &middot; PTH &middot; &pound;2.20/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            JOHN DORY &middot; BRX &middot; &pound;11.50/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            POLLACK &middot; NLN &middot; &pound;3.40/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            TURBOT &middot; BRX &middot; &pound;12.40/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            WHITING &middot; PTH &middot; &pound;1.60/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            DOVER SOLE &middot; NLN &middot; &pound;14.00/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            SAITHE &middot; LWK &middot; &pound;1.80/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            CRAB &middot; SCR &middot; &pound;3.90/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            LING &middot; PTH &middot; &pound;2.20/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            JOHN DORY &middot; BRX &middot; &pound;11.50/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            POLLACK &middot; NLN &middot; &pound;3.40/kg &nbsp;&nbsp;&nbsp;&nbsp;
+        </div>
+        <div class="onb-ticker-row">
+            HALIBUT &middot; LWK &middot; &pound;23.00/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            WITCH &middot; PTH &middot; &pound;3.10/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            LOBSTER &middot; SCR &middot; &pound;18.50/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            SKATE &middot; BRX &middot; &pound;2.80/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            MACKEREL &middot; NLN &middot; &pound;1.40/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            CATFISH &middot; PTH &middot; &pound;2.60/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            RED MULLET &middot; BRX &middot; &pound;9.80/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            LANGOUSTINE &middot; PTH &middot; &pound;6.40/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            HALIBUT &middot; LWK &middot; &pound;23.00/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            WITCH &middot; PTH &middot; &pound;3.10/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            LOBSTER &middot; SCR &middot; &pound;18.50/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            SKATE &middot; BRX &middot; &pound;2.80/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            MACKEREL &middot; NLN &middot; &pound;1.40/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            CATFISH &middot; PTH &middot; &pound;2.60/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            RED MULLET &middot; BRX &middot; &pound;9.80/kg &nbsp;&nbsp;&nbsp;&nbsp;
+            LANGOUSTINE &middot; PTH &middot; &pound;6.40/kg &nbsp;&nbsp;&nbsp;&nbsp;
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="onb-content">
+        <div class="onb-logotype fade-up fade-up-1" style="color:var(--paper);">Quay<span>side</span></div>
+        <div class="onb-eyebrow fade-up fade-up-2">UK Fish Market Intelligence</div>
+        <h1 class="onb-headline fade-up fade-up-3">Your new home for <em>port data</em></h1>
+        <p class="onb-subline fade-up fade-up-4">
+            Every price, every species, every port &mdash; aggregated daily
+            and delivered to the people who need it.
+        </p>
+        <div class="onb-stats fade-up fade-up-5">
+            <div class="onb-stat">
+                <div class="onb-stat-value">6</div>
+                <div class="onb-stat-label">UK Ports</div>
+            </div>
+            <div class="onb-stat">
+                <div class="onb-stat-value">100+</div>
+                <div class="onb-stat-label">Species</div>
+            </div>
+            <div class="onb-stat">
+                <div class="onb-stat-value">Daily</div>
+                <div class="onb-stat-label">Updates</div>
+            </div>
+        </div>
+        <button class="onb-cta fade-up fade-up-6" onclick="showPanelB()">Get started &rarr;</button>
+    </div>
+</div>
+
+<!-- ══ PANEL B — Port-specific introduction ══════════════════════════════ -->
+<div class="onb-panel hidden" id="panelB">
+
+    <div class="onb-grid"></div>
+    <div class="onb-glow"></div>
+
+    <div class="onb-content">
+        <div class="onb-tag fade-up fade-up-1">{{ port.name }} &middot; Port Operator</div>
+        <h1 class="onb-headline fade-up fade-up-2">Welcome to your dashboard</h1>
+        <p class="onb-subline fade-up fade-up-3">
+            Your port now has a live presence on the UK&rsquo;s only daily fish price
+            aggregator. Here&rsquo;s what happens next.
+        </p>
+
+        <div class="onb-benefits fade-up fade-up-4">
+            <div class="onb-benefit">
+                <div class="onb-benefit-icon">&#x1F4CA;</div>
+                <div class="onb-benefit-text">
+                    See how your prices compare to every other UK port &mdash;
+                    by species, by grade, every day.
+                </div>
+            </div>
+            <div class="onb-benefit">
+                <div class="onb-benefit-icon">&#x1F514;</div>
+                <div class="onb-benefit-text">
+                    Smart alerts flag anything unusual in your data before your
+                    buyers see it.
+                </div>
+            </div>
+            <div class="onb-benefit">
+                <div class="onb-benefit-icon">&#x1F4E4;</div>
+                <div class="onb-benefit-text">
+                    Upload your price sheet in any format &mdash; XLS, PDF,
+                    spreadsheet. We extract the data, you confirm it, then it
+                    goes live.
+                </div>
+            </div>
+        </div>
+
+        <a href="{{ url_for('ports.port_upload', slug=port.slug) }}"
+           class="onb-cta fade-up fade-up-5">Upload my prices first &rarr;</a>
+        <a href="{{ url_for('ports.port_dashboard', slug=port.slug, tour=1) }}"
+           class="onb-ghost fade-up fade-up-6"
+           onclick="return skipOnboarding(event)">Skip and go straight to my dashboard &rarr;</a>
+    </div>
+</div>
+
+<script>
+function showPanelB() {
+    var a = document.getElementById('panelA');
+    var b = document.getElementById('panelB');
+    a.classList.add('hidden');
+    setTimeout(function() {
+        a.style.display = 'none';
+        b.classList.remove('hidden');
+        /* Re-trigger fade-up animations on panel B */
+        b.querySelectorAll('.fade-up').forEach(function(el) {
+            el.style.animation = 'none';
+            el.offsetHeight; /* force reflow */
+            el.style.animation = '';
+        });
+    }, 500);
+}
+
+/* Skip onboarding — mark complete then redirect */
+function skipOnboarding(e) {
+    {% if current_user.is_authenticated and current_user.role == 'port' %}
+    e.preventDefault();
+    var dest = e.target.href;
+    var csrf = document.querySelector('meta[name="csrf-token"]');
+    fetch('{{ url_for("ports.port_onboarding_complete", slug=port.slug) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf ? csrf.content : ''
+        }
+    }).finally(function() { window.location.href = dest; });
+    return false;
+    {% else %}
+    return true;
+    {% endif %}
+}
+
+/* If step=tour, skip straight to dashboard with tour */
+{% if step == 'tour' %}
+window.location.href = '{{ url_for("ports.port_dashboard", slug=port.slug, tour=1) }}';
+{% endif %}
+</script>
+
+{% endblock %}

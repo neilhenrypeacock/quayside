@@ -2,6 +2,7 @@
 {% block title %}{{ port.name }} — Quayside{% endblock %}
 
 {% block nav %}
+<a href="javascript:void(0)" onclick="openHowToDrawer()" class="nav-link">How-to</a>
 <a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Add Prices</a>
 {% endblock %}
 
@@ -1555,6 +1556,238 @@
     /* Info-tips on dark perf-card background */
     .perf-card .info-tip { color: rgba(255,255,255,0.5); }
     .perf-card .info-tip:hover { color: rgba(255,255,255,0.8); }
+
+    /* ── Guided Tour ─────────────────────────────────────────────────────── */
+    .tour-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(10,18,24,0.72);
+        z-index: 500;
+        transition: opacity 0.3s ease;
+    }
+    .tour-spotlight {
+        position: fixed;
+        border: 2px solid var(--catch);
+        border-radius: 2px;
+        z-index: 501;
+        box-shadow: 0 0 0 9999px rgba(10,18,24,0.72);
+        transition: top 0.38s cubic-bezier(0.4,0,0.2,1),
+                    left 0.38s cubic-bezier(0.4,0,0.2,1),
+                    width 0.38s cubic-bezier(0.4,0,0.2,1),
+                    height 0.38s cubic-bezier(0.4,0,0.2,1);
+        pointer-events: none;
+    }
+    .tour-tooltip {
+        position: fixed;
+        z-index: 510;
+        width: 380px;
+        max-width: calc(100vw - 32px);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        overflow: hidden;
+        font-family: var(--font-sans);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .tour-tooltip-header {
+        background: var(--zone-deep);
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .tour-tooltip-step {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--tide-light);
+    }
+    .tour-dots {
+        display: flex;
+        gap: 5px;
+    }
+    .tour-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(122,176,200,0.18);
+    }
+    .tour-dot.done { background: rgba(200,64,26,0.65); }
+    .tour-dot.current { background: var(--tide-light); }
+    .tour-tooltip-body {
+        background: var(--foam);
+        padding: 18px;
+    }
+    .tour-tooltip-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--catch);
+        margin-bottom: 6px;
+    }
+    .tour-tooltip-title {
+        font-family: var(--font-serif);
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--tide);
+        margin-bottom: 8px;
+    }
+    .tour-tooltip-text {
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--ink-body);
+        margin-bottom: 14px;
+    }
+    .tour-tooltip-action {
+        background: var(--paper);
+        border-left: 3px solid var(--catch);
+        padding: 10px 14px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--ink-body);
+        border-radius: 2px;
+    }
+    .tour-tooltip-footer {
+        background: var(--foam);
+        border-top: 1px solid var(--rule);
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .tour-skip {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px 0;
+    }
+    .tour-skip:hover { color: var(--ink); }
+    .tour-nav {
+        display: flex;
+        gap: 8px;
+    }
+    .tour-btn {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 8px 18px;
+        border-radius: 2px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .tour-btn-back {
+        background: var(--salt);
+        color: var(--ink);
+    }
+    .tour-btn-back:hover { background: var(--rule); }
+    .tour-btn-next {
+        background: var(--catch);
+        color: #fff;
+    }
+    .tour-btn-next:hover { background: #b5381a; }
+    .tour-tooltip-arrow {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: var(--zone-deep);
+        border: 1px solid var(--rule);
+        transform: rotate(45deg);
+        z-index: -1;
+    }
+    .tour-tooltip-arrow.top {
+        bottom: -7px;
+        border-top: none;
+        border-left: none;
+    }
+    .tour-tooltip-arrow.bottom {
+        top: -7px;
+        border-bottom: none;
+        border-right: none;
+    }
+
+    /* Tour complete modal */
+    .tour-complete {
+        position: fixed;
+        inset: 0;
+        z-index: 520;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10,18,24,0.82);
+    }
+    .tour-complete-card {
+        background: #fff;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 40px 36px;
+        max-width: 420px;
+        text-align: center;
+    }
+    .tour-complete-check {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--up);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 24px;
+        color: #fff;
+    }
+    .tour-complete-title {
+        font-family: var(--font-serif);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--tide);
+        margin-bottom: 12px;
+    }
+    .tour-complete-text {
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--ink-body);
+        margin-bottom: 28px;
+    }
+    .tour-complete-cta {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        background: var(--catch);
+        color: #fff;
+        padding: 14px 32px;
+        border: none;
+        border-radius: 2px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+    .tour-complete-cta:hover { background: #b5381a; }
+    .tour-complete-secondary {
+        display: block;
+        margin-top: 14px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+    .tour-complete-secondary:hover { color: var(--ink); }
+    @media (max-width: 600px) {
+        .tour-tooltip { width: calc(100vw - 24px); }
+        .tour-complete-card { margin: 16px; padding: 28px 20px; }
+    }
 </style>
 {% endblock %}
 
@@ -1564,7 +1797,7 @@
 
 <!-- Welcome banner (dismissible) -->
 <div class="welcome-banner" id="welcomeBanner" style="display:none;">
-    <span>New here? <a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Add your prices</a> or <a href="{{ url_for('public.for_ports') }}">learn how it works</a>.</span>
+    <span>New here? <a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Add your prices</a> or <a href="javascript:void(0)" onclick="openHowToDrawer()">learn how it works</a>.</span>
     <button onclick="dismissWelcome()" aria-label="Dismiss">&times;</button>
 </div>
 
@@ -1594,8 +1827,10 @@
     <ul class="sidebar-nav" data-tab-group="tools" style="display:none;">
         <li><a href="#section-compare">Compare</a></li>
         <li><a href="#section-customize">Customize</a></li>
+        <li><a href="javascript:void(0)" onclick="openHowToDrawer()">How It Works</a></li>
         <li><a href="{{ url_for('ports.port_upload', slug=port.slug) }}" class="sidebar-upload-link">Upload &amp; Edit</a></li>
         <li><a href="{{ url_for('ports.export_port_data', slug=port.slug) }}">Export CSV</a></li>
+        <li><a href="#" class="sidebar-share-link" onclick="event.preventDefault()" title="Coming soon">Share Your Data <span style="font-size:7px;letter-spacing:0.1em;background:rgba(200,64,26,0.12);color:var(--catch);padding:2px 5px;border-radius:2px;margin-left:4px;vertical-align:middle;">SOON</span></a></li>
     </ul>
 </aside>
 
@@ -1612,6 +1847,7 @@
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
+        <a href="#" onclick="event.preventDefault()" class="btn-export" style="opacity:0.5;cursor:default;" title="Coming soon">&#x2197; Share <span style="font-size:7px;letter-spacing:0.1em;background:rgba(200,64,26,0.15);color:var(--catch);padding:2px 5px;border-radius:2px;margin-left:2px;">SOON</span></a>
         <a href="{{ url_for('ports.export_port_data', slug=port.slug) }}" class="btn-export">&#x2913; Export all data</a>
         {% if freshness_status == 'live' %}
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
@@ -2267,9 +2503,15 @@ function dismissWelcome() {
     localStorage.setItem('quayside_welcome_dismissed_{{ port.slug }}', '1');
 }
 (function() {
+    {% if not onboarding_completed %}
+    // Authenticated port user who hasn't completed onboarding — always show
+    document.getElementById('welcomeBanner').style.display = 'flex';
+    {% else %}
+    // Fallback for unauthenticated visitors: use localStorage
     if (!localStorage.getItem('quayside_welcome_dismissed_{{ port.slug }}')) {
         document.getElementById('welcomeBanner').style.display = 'flex';
     }
+    {% endif %}
 })();
 
 // Grade expansion toggle
@@ -3053,4 +3295,288 @@ document.querySelectorAll('.competitive-row').forEach(function(row) {
     });
 });
 </script>
+
+{% include '_howto_drawer.html' %}
+
+{% if start_tour %}
+<!-- ══ GUIDED TOUR OVERLAY ════════════════════════════════════════════════ -->
+<div class="tour-spotlight" id="tourSpotlight" style="display:none;"></div>
+<div class="tour-tooltip" id="tourTooltip" style="display:none;">
+    <div class="tour-tooltip-header">
+        <span class="tour-tooltip-step" id="tourStepLabel"></span>
+        <div class="tour-dots" id="tourDots"></div>
+    </div>
+    <div class="tour-tooltip-arrow" id="tourArrow"></div>
+    <div class="tour-tooltip-body">
+        <div class="tour-tooltip-label" id="tourLabel"></div>
+        <div class="tour-tooltip-title" id="tourTitle"></div>
+        <div class="tour-tooltip-text" id="tourText"></div>
+        <div class="tour-tooltip-action" id="tourAction"></div>
+    </div>
+    <div class="tour-tooltip-footer">
+        <button class="tour-skip" onclick="tourComplete()">Skip tour</button>
+        <div class="tour-nav">
+            <button class="tour-btn tour-btn-back" id="tourBack" onclick="tourPrev()">&#8592; Back</button>
+            <button class="tour-btn tour-btn-next" id="tourNext" onclick="tourNext()">Next &rarr;</button>
+        </div>
+    </div>
+</div>
+
+<div class="tour-complete" id="tourCompleteModal" style="display:none;">
+    <div class="tour-complete-card">
+        <div class="tour-complete-check">&#10003;</div>
+        <div class="tour-complete-title">You're all set</div>
+        <div class="tour-complete-text">
+            That's your dashboard. Upload your price sheet each day using
+            <strong>Add Prices</strong> in the top nav &mdash; we'll extract it
+            and send it back for you to confirm before it goes live to buyers.
+        </div>
+        <button class="tour-complete-cta" onclick="tourFinish()">Go to my dashboard</button>
+        <button class="tour-complete-secondary" onclick="tourFinishWithGuide()">Open how-to guide</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    var STEPS = [
+        {
+            selector: '#section-overview',
+            label: 'OVERVIEW',
+            title: 'Your Port at a Glance',
+            body: 'Your port name, region, live status, and record count. The green dot means today\'s data is live.',
+            action: 'Add Prices is how you send us your price sheet \u2014 click it whenever you have a new day\u2019s data.'
+        },
+        {
+            selector: '.hero-strip',
+            label: 'DAILY STATS',
+            title: 'Today\u2019s Numbers',
+            body: 'Four key metrics: today\u2019s avg/kg, vs last same weekday, vs 30-day rolling avg, vs UK market.',
+            action: 'These update automatically every time you upload. Check them each morning.'
+        },
+        {
+            selector: '.empty-card',
+            label: 'YOUR FIRST UPLOAD',
+            title: 'Upload Your Price Sheet',
+            body: 'This is where you\u2019ll see a prompt to upload when no data exists for today.',
+            action: 'Upload in any format \u2014 XLS, XLSX, CSV, or PDF. We\u2019ll extract the data and send it back for you to approve.'
+        },
+        {
+            selector: '#section-competitive',
+            label: 'COMPETITIVE POSITION',
+            title: 'How You Compare',
+            body: 'Scoreboard showing best UK price count, above market, below market. Per-species bars show where you land vs the UK average.',
+            action: 'Click any species row to expand it and see which ports you\u2019re ahead of.'
+        },
+        {
+            selector: '#section-alerts',
+            label: 'SMART ALERTS',
+            title: 'Automated Alerts',
+            body: 'Flags price spikes, missing species, and data anomalies. Worth checking each morning before the auction.',
+            action: 'No action needed \u2014 informational only. If an alert looks wrong, it usually means the upload needs a small correction.'
+        },
+        {
+            selector: '#section-insights',
+            label: 'INSIGHTS',
+            title: 'Market Commentary',
+            body: 'Plain-English analysis: what\u2019s performing well, where you stand vs other ports, what changed since yesterday.',
+            action: 'Tabs switch between Today / This Week / This Month.'
+        },
+        {
+            selector: '#section-prices',
+            label: 'TODAY\u2019S PRICES',
+            title: 'Full Price Table',
+            body: 'Every species, grade, low/high/avg price per kg, and weight landed. This is exactly what buyers see.',
+            action: 'After uploading, this is where you confirm the extracted data looks right before it goes live.'
+        }
+    ];
+
+    /* Filter to steps whose target element exists on the page */
+    var activeSteps = STEPS.filter(function(s) {
+        return !!document.querySelector(s.selector);
+    });
+
+    var currentStep = 0;
+    var spotlight = document.getElementById('tourSpotlight');
+    var tooltip = document.getElementById('tourTooltip');
+    var arrow = document.getElementById('tourArrow');
+
+    function buildDots() {
+        var dotsEl = document.getElementById('tourDots');
+        dotsEl.innerHTML = '';
+        for (var i = 0; i < activeSteps.length; i++) {
+            var dot = document.createElement('span');
+            dot.className = 'tour-dot' + (i < currentStep ? ' done' : i === currentStep ? ' current' : '');
+            dotsEl.appendChild(dot);
+        }
+    }
+
+    function positionSpotlight(el) {
+        var r = el.getBoundingClientRect();
+        var pad = 8;
+        spotlight.style.top = (r.top - pad) + 'px';
+        spotlight.style.left = (r.left - pad) + 'px';
+        spotlight.style.width = (r.width + pad * 2) + 'px';
+        spotlight.style.height = (r.height + pad * 2) + 'px';
+    }
+
+    function positionTooltip(el) {
+        var r = el.getBoundingClientRect();
+        var tw = tooltip.offsetWidth;
+        var th = tooltip.offsetHeight;
+        var pad = 16;
+
+        /* Default: place below */
+        var top = r.bottom + pad;
+        var arrowPos = 'bottom'; /* arrow points up */
+
+        /* If not enough room below, place above */
+        if (top + th > window.innerHeight - 20) {
+            top = r.top - th - pad;
+            arrowPos = 'top'; /* arrow points down */
+        }
+
+        /* Clamp to viewport */
+        if (top < 8) top = 8;
+
+        var left = r.left + (r.width / 2) - (tw / 2);
+        if (left < 8) left = 8;
+        if (left + tw > window.innerWidth - 8) left = window.innerWidth - tw - 8;
+
+        tooltip.style.top = top + 'px';
+        tooltip.style.left = left + 'px';
+
+        /* Position arrow */
+        arrow.className = 'tour-tooltip-arrow ' + arrowPos;
+        var arrowLeft = (r.left + r.width / 2) - left - 6;
+        arrowLeft = Math.max(16, Math.min(arrowLeft, tw - 28));
+        arrow.style.left = arrowLeft + 'px';
+    }
+
+    function showStep(idx) {
+        currentStep = idx;
+        var step = activeSteps[idx];
+        var el = document.querySelector(step.selector);
+        if (!el) return;
+
+        /* Hide tooltip while scrolling */
+        tooltip.style.display = 'none';
+
+        /* Scroll into view */
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        /* Wait for scroll to settle, then position */
+        var settled = 0;
+        var lastY = window.scrollY;
+        function checkScroll() {
+            if (window.scrollY === lastY) {
+                settled++;
+            } else {
+                settled = 0;
+                lastY = window.scrollY;
+            }
+            if (settled < 3) {
+                requestAnimationFrame(checkScroll);
+                return;
+            }
+            /* Scroll is done — position everything */
+            positionSpotlight(el);
+            spotlight.style.display = '';
+
+            /* Update tooltip content */
+            document.getElementById('tourStepLabel').textContent = 'STEP ' + (idx + 1) + ' OF ' + activeSteps.length;
+            document.getElementById('tourLabel').textContent = step.label;
+            document.getElementById('tourTitle').textContent = step.title;
+            document.getElementById('tourText').textContent = step.body;
+            document.getElementById('tourAction').textContent = step.action;
+            buildDots();
+
+            /* Back button visibility */
+            document.getElementById('tourBack').style.display = idx === 0 ? 'none' : '';
+            /* Last step: change Next to Finish */
+            var nextBtn = document.getElementById('tourNext');
+            if (idx === activeSteps.length - 1) {
+                nextBtn.textContent = 'Finish';
+                nextBtn.onclick = tourComplete;
+            } else {
+                nextBtn.innerHTML = 'Next &rarr;';
+                nextBtn.onclick = tourNext;
+            }
+
+            tooltip.style.display = '';
+            positionTooltip(el);
+        }
+        /* Give scrollIntoView a frame to start */
+        requestAnimationFrame(function() {
+            lastY = window.scrollY;
+            requestAnimationFrame(checkScroll);
+        });
+    }
+
+    window.tourNext = function() {
+        if (currentStep < activeSteps.length - 1) showStep(currentStep + 1);
+    };
+    window.tourPrev = function() {
+        if (currentStep > 0) showStep(currentStep - 1);
+    };
+    window.tourComplete = function() {
+        spotlight.style.display = 'none';
+        tooltip.style.display = 'none';
+        document.getElementById('tourCompleteModal').style.display = '';
+    };
+    window.tourFinish = function() {
+        /* Mark onboarding complete */
+        var slug = '{{ port.slug }}';
+        fetch('/port/' + slug + '/onboarding/complete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            }
+        }).finally(function() {
+            document.getElementById('tourCompleteModal').style.display = 'none';
+            /* Clean tour param from URL */
+            var url = new URL(window.location);
+            url.searchParams.delete('tour');
+            history.replaceState(null, '', url);
+        });
+    };
+    window.tourFinishWithGuide = function() {
+        var slug = '{{ port.slug }}';
+        fetch('/port/' + slug + '/onboarding/complete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            }
+        }).finally(function() {
+            document.getElementById('tourCompleteModal').style.display = 'none';
+            /* Open how-to drawer if it exists, otherwise clean URL */
+            if (typeof openHowToDrawer === 'function') {
+                openHowToDrawer();
+            }
+            var url = new URL(window.location);
+            url.searchParams.delete('tour');
+            history.replaceState(null, '', url);
+        });
+    };
+
+    /* Handle resize */
+    window.addEventListener('resize', function() {
+        if (spotlight.style.display !== 'none') {
+            var el = document.querySelector(activeSteps[currentStep].selector);
+            if (el) {
+                positionSpotlight(el);
+                positionTooltip(el);
+            }
+        }
+    });
+
+    /* Start tour after a short delay to let the page settle */
+    if (activeSteps.length > 0) {
+        setTimeout(function() { showStep(0); }, 600);
+    }
+})();
+</script>
+{% endif %}
+
 {% endblock %}

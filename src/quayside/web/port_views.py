@@ -18,6 +18,7 @@ from flask import (
     send_file,
     url_for,
 )
+from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
 from quayside.confirm import generate_confirm_token, get_upload_for_token
@@ -28,6 +29,8 @@ from quayside.db import (
     get_last_scrape_info,
     get_latest_date,
     get_latest_port_date,
+    has_completed_onboarding,
+    mark_onboarding_complete,
     get_latest_scraped_at,
     get_market_averages_for_date,
     get_market_averages_for_range,
@@ -366,6 +369,12 @@ def port_dashboard(slug: str):
             "What's our best performing day of the week?",
             "Show me our cod trend over the last 30 days",
         ],
+        start_tour=bool(request.args.get("tour")),
+        onboarding_completed=(
+            has_completed_onboarding(current_user.id)
+            if current_user.is_authenticated and current_user.role == "port"
+            else True
+        ),
     ))
 
     if request.args.get("token"):
@@ -679,6 +688,11 @@ def approve_upload(token: str):
     port = get_port(upload["port_slug"]) if upload else None
 
     if port:
+        # If user is mid-onboarding, redirect to dashboard with tour
+        if (current_user.is_authenticated
+                and current_user.role == "port"
+                and not has_completed_onboarding(current_user.id)):
+            return redirect(url_for("ports.port_dashboard", slug=port["slug"], tour=1))
         return redirect(url_for("ports.port_dashboard", slug=port["slug"]))
     return "Confirmed — thank you!", 200
 
@@ -825,3 +839,27 @@ def port_chat(slug: str):
 
     reply, status = _call_chat_api(system_prompt, user_message)
     return jsonify({"reply": reply}), status
+
+
+# ── Onboarding ──────────────────────────────────────────────────────────────
+
+
+@port_bp.route("/port/<slug>/onboarding")
+def port_onboarding(slug):
+    """Welcome screens for new port operators."""
+    from flask import abort
+
+    port = get_port(slug)
+    if not port:
+        abort(404)
+    has_data = bool(get_latest_port_date(port["name"]))
+    step = request.args.get("step", "welcome")
+    return render_template("onboarding.html", port=port, has_data=has_data, step=step)
+
+
+@port_bp.route("/port/<slug>/onboarding/complete", methods=["POST"])
+@login_required
+def port_onboarding_complete(slug):
+    """Mark onboarding as completed for the current user."""
+    mark_onboarding_complete(current_user.id)
+    return jsonify({"ok": True})

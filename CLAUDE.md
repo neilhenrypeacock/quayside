@@ -13,63 +13,66 @@ pytest                        # run tests
 
 ## Architecture
 
+~12,800 lines of Python across 44 files.
+
 ```
 src/quayside/
-├── run.py              # Pipeline orchestrator — runs all scrapers, stores, exports, quality checks
-├── db.py               # SQLite connection, schema, upsert, queries (~1200 lines)
-├── models.py           # PriceRecord and LandingRecord dataclasses
-├── export.py           # Per-port CSV export
-├── email.py            # SMTP email delivery (env-var configured)
-├── report.py           # Daily HTML digest generator (Jinja2, ~640 lines)
-├── species.py          # Species name normalisation (raw → canonical) + category + noise filter (~314 lines)
-├── ports.py            # Port registry — seeds/queries the ports table (16 ports defined)
-├── ingest.py           # Email ingestion — polls IMAP mailbox for price sheet attachments
-├── confirm.py          # HITL confirmation logic — token generation, approval, auto-publish
-├── review.py           # Weekly/monthly review reports, sparkline SVG generation (~507 lines)
-├── quality.py          # 11 data-quality checks (outliers, stale data, price sanity, etc.)
-├── scheduler.py        # APScheduler background scheduler (runs inside web process)
-├── trade.py            # Trade dashboard data — species-first cross-port intelligence
-├── fx.py               # FX rate fetching from frankfurter.dev (for future multi-currency support)
-├── template.py         # Upload template generation (per-port XLSX templates with validation)
-├── http_cache.py       # ETag/Last-Modified/content-hash HTTP caching for intraday update runs
+├── run.py              # Pipeline orchestrator — scrape → store → export → quality (460 lines)
+├── db.py               # SQLite connection, schema, upsert, queries (1353 lines)
+├── models.py           # PriceRecord and LandingRecord dataclasses (32 lines)
+├── export.py           # Per-port CSV export (33 lines)
+├── email.py            # SMTP email delivery, env-var configured (83 lines)
+├── report.py           # Daily HTML digest generator, Jinja2 (762 lines)
+├── species.py          # Species name normalisation + category + noise filter (313 lines)
+├── ports.py            # Port registry — seeds/queries the ports table, 16 ports (76 lines)
+├── ingest.py           # Email ingestion — polls IMAP mailbox for price sheets (225 lines)
+├── confirm.py          # HITL confirmation — token generation, approval, auto-publish (190 lines)
+├── review.py           # Weekly/monthly review reports, sparkline SVGs (504 lines)
+├── quality.py          # 11 data-quality checks (outliers, stale data, price sanity) (1104 lines)
+├── scheduler.py        # APScheduler background scheduler, runs inside web process (143 lines)
+├── trade.py            # Trade dashboard data — species-first cross-port intelligence (907 lines)
+├── fx.py               # FX rate fetching from frankfurter.dev (70 lines)
+├── template.py         # Upload template generation (per-port XLSX with validation) (163 lines)
+├── http_cache.py       # ETag/Last-Modified/content-hash HTTP caching (126 lines)
+├── error_actions.py    # Error dashboard fix actions, plain-English explanations, markdown export (289 lines)
 ├── extractors/
-│   ├── __init__.py     # Router: dispatch file to correct extractor by extension
-│   ├── ai.py           # Claude API fallback extractor (claude-sonnet-4-6) for unknown formats
-│   ├── csv_ext.py      # CSV price sheet extractor (auto-dialect, header detection)
-│   ├── image.py        # Image extractor (PNG/JPG/HEIC — Claude Vision API)
-│   ├── pdf.py          # PDF extractor (pdfplumber + AI fallback)
-│   └── xls.py          # XLS/XLSX price sheet extractor (xlrd + openpyxl)
+│   ├── __init__.py     # Router: dispatch file to correct extractor by extension (38 lines)
+│   ├── ai.py           # Claude API fallback extractor (claude-sonnet-4-6) (130 lines)
+│   ├── csv_ext.py      # CSV price sheet extractor (auto-dialect, header detection) (87 lines)
+│   ├── image.py        # Image extractor (PNG/JPG/HEIC — Claude Vision API) (117 lines)
+│   ├── pdf.py          # PDF extractor (pdfplumber + AI fallback) (97 lines)
+│   └── xls.py          # XLS/XLSX price sheet extractor (xlrd + openpyxl) (165 lines)
 ├── scrapers/
-│   ├── swfpa.py        # SWFPA event page discovery + Peterhead XLS prices
-│   ├── brixham.py      # Brixham prices (PDF via pdfplumber, regex row parsing)
-│   ├── newlyn.py       # Newlyn prices (PDF via pdfplumber; CFPO fallback)
-│   ├── scrabster.py    # Scrabster prices (HTML table from scrabster.co.uk)
-│   ├── lerwick.py      # Lerwick/Shetland prices (XLSX from SSA web portal)
-│   ├── cfpo.py         # CFPO PDF scraper (Newlyn fallback source)
-│   └── fraserburgh.py  # Fraserburgh prices (dormant — SWFPA stopped publishing)
+│   ├── swfpa.py        # SWFPA event page discovery + Peterhead XLS prices (256 lines)
+│   ├── brixham.py      # Brixham prices (PDF via pdfplumber, regex row parsing) (174 lines)
+│   ├── newlyn.py       # Newlyn prices (PDF via pdfplumber; CFPO fallback) (201 lines)
+│   ├── scrabster.py    # Scrabster prices (HTML table from scrabster.co.uk) (147 lines)
+│   ├── lerwick.py      # Lerwick/Shetland prices (XLSX from SSA web portal) (179 lines)
+│   ├── cfpo.py         # CFPO PDF scraper (Newlyn fallback source) (77 lines)
+│   └── fraserburgh.py  # Fraserburgh prices (dormant — SWFPA stopped publishing) (161 lines)
 ├── templates/
-│   └── digest.html     # Email-safe digest template (standalone Jinja2)
+│   └── digest.html     # Email-safe digest template (standalone Jinja2, 1437 lines)
 └── web/
-    ├── app.py          # Flask app factory, CSRF, security headers, context processors, error handlers
-    ├── auth.py         # Authentication blueprint — login, register, logout, roles, magic links
-    ├── public.py       # Public pages blueprint — landing, overview, for-ports, for-traders, about, methodology
-    ├── port_views.py   # Port blueprint — dashboards, prices partial, upload, confirm, export, template, submit
-    ├── trade_views.py  # Trade blueprint — trade dashboard, export, AI chat, ports directory, compare
-    ├── ops_views.py    # Ops blueprint — ops dashboard, pipeline trigger, quality checks, quality report
-    ├── api_views.py    # API blueprint — /api/v1/ingest (POST), /api/v1/export/csv (GET)
-    ├── digest.py       # Digest blueprint — daily/weekly/monthly digest serving + email rendering
-    ├── helpers.py      # Data processing helpers (~900 lines) — market position, trends, insights, categories
+    ├── app.py          # Flask app factory, CSRF, security headers, context processors (157 lines)
+    ├── auth.py         # Authentication blueprint — login, register, logout, roles (120 lines)
+    ├── public.py       # Public pages — landing, overview, for-ports, for-traders, about (105 lines)
+    ├── port_views.py   # Port blueprint — dashboards, upload, confirm, export, chat (827 lines)
+    ├── trade_views.py  # Trade blueprint — trade dashboard, export, AI chat, compare (309 lines)
+    ├── ops_views.py    # Ops blueprint — ops dashboard, pipeline, quality, errors (832 lines)
+    ├── api_views.py    # API blueprint — /api/v1/ingest (POST), /api/v1/export/csv (GET) (200 lines)
+    ├── digest.py       # Digest blueprint — daily/weekly/monthly digest serving (86 lines)
+    ├── helpers.py      # Data processing engine — market position, trends, insights (1475 lines)
     ├── static/
-    │   ├── css/tokens.css    # CSS design tokens (see BRAND.md)
+    │   ├── css/tokens.css    # CSS design tokens (1070 lines)
     │   └── img/              # Marketing images (nets.jpg, pots.jpg, dashboard-preview.jpg)
-    └── templates/            # 24 Jinja2 templates (see Pages section below)
+    └── templates/            # 27 Jinja2 templates (~18,800 lines total)
 ```
 
 ## Data model
 
 Tables in `data/quayside.db`:
 
-- **prices**: date, port, species, grade, price_low, price_high, price_avg, weight_kg, boxes, defra_code, week_avg, size_band, upload_id
+- **prices**: date, port, species, grade, price_low, price_high, price_avg, weight_kg, boxes, defra_code, week_avg, size_band, upload_id, flagged
   - UNIQUE(date, port, species, grade)
 - **demo_prices**: identical schema to prices — stores Demo Port synthetic data separately
 - **landings**: date, port, vessel_name, vessel_code, species, boxes, boxes_msc
@@ -80,6 +83,7 @@ Tables in `data/quayside.db`:
 - **extraction_corrections**: corrections applied during AI extraction
 - **scrape_log**: per-port scrape attempt timestamps and outcomes
 - **quality_log**: issues logged by quality checks (unique index prevents duplicates)
+- **error_log**: errors from quality scans, surfaced at `/ops/errors`
 - **users**: email, password_hash, role (TRADE, PORT_OPERATOR, ADMIN)
 
 Upsert strategy: `INSERT OR REPLACE` — latest scrape wins for the same key. WAL pragma enabled for concurrency.
@@ -126,7 +130,7 @@ The Demo Port (`slug='demo'`, `data_method='demo'`) exists solely to showcase th
 - **Data goes to `data/`**: SQLite DB and uploaded files (`data/uploads/`). Also gitignored.
 - **Port registry**: `ports.py` is the single source of truth for port slugs, codes, regions, and statuses. Do not hardcode port codes elsewhere.
 - **Web app uses Flask blueprints**: Routes are split across 8 blueprint files in `web/`. `app.py` is the factory that registers them all.
-- **helpers.py is the data engine**: All complex data processing for port dashboards lives in `web/helpers.py` (~900 lines). Functions like `build_today_data()`, `build_trend_data()`, `build_insights()`, `build_category_stats()`.
+- **helpers.py is the data engine**: All complex data processing for port dashboards lives in `web/helpers.py` (~1475 lines). Functions like `build_today_data()`, `build_trend_data()`, `build_insights()`, `build_category_stats()`, `build_competitive_market()`, `build_smart_alerts()`, `build_stat_strip_data()`.
 
 ## Adding a new scraper
 
@@ -193,7 +197,7 @@ Two scheduling mechanisms run in production:
 - Statistical: outlier prices (MAD), low record counts, stale data, daily avg spikes, seeded data detection, live-site smoke test
 - Data accuracy: NULL/unknown fields, unmapped species, price sanity (<=0, >£200/kg, low>high), date sanity, price swings vs 30-day mean
 
-Results are stored in `quality_log` table and surfaced at `/ops/quality-report`.
+Results are stored in `quality_log` table and surfaced at `/ops/quality-report`. Error dashboard at `/ops/errors` provides plain-English explanations and one-click fixes via `error_actions.py`.
 
 ## Local development server
 
@@ -230,6 +234,7 @@ Routes are served across 8 blueprint files registered in `src/quayside/web/app.p
 | `/port/<slug>/upload` | port | Upload form — file upload, form entry, or template download |
 | `/port/<slug>/export` | port | Download CSV of port price data (365-day history) |
 | `/port/<slug>/template` | port | Download XLSX upload template for a port |
+| `/port/<slug>/chat` | port | Port-scoped AI chatbot (POST, Claude Haiku) |
 | `/port/submit` or `/port/<slug>/submit` | port | Port signup/contact form (no auth required) |
 | `/confirm/<token>` | port | HITL confirmation page — review extracted price data |
 | `/confirm/<token>/approve` | port | Approve confirmed upload (POST) |
@@ -238,9 +243,15 @@ Routes are served across 8 blueprint files registered in `src/quayside/web/app.p
 | `/ops/run-pipeline` | ops | Trigger pipeline manually (POST, 5-min timeout) |
 | `/ops/run-quality-check` | ops | Trigger quality checks manually (POST) |
 | `/ops/quality/clear/<id>` | ops | Clear a quality issue (POST) |
+| `/ops/quality/clear-all` | ops | Clear all open quality issues (POST) |
 | `/ops/quality-report` | ops | Quality report page |
 | `/ops/quality-report/download` | ops | Download quality report as markdown |
-| `/trade` · `/trade/<date>` | trade | Trade dashboard — species-first cross-port matrix (auth required) |
+| `/ops/errors` | ops | Error dashboard with plain-English explanations + fix actions |
+| `/ops/errors/scan` | ops | Trigger quality scan now (POST) |
+| `/ops/errors/fix/<id>` | ops | Apply auto-fix to single error (POST) |
+| `/ops/errors/fix-all` | ops | Fix all auto-fixable errors (POST) |
+| `/ops/errors/download` | ops | Download error report as markdown |
+| `/trade` · `/trade/<date>` | trade | Trade dashboard — species-first cross-port matrix (token-gated) |
 | `/trade/export` | trade | Export trade data as CSV (90-day default) |
 | `/trade/ports` | trade | Port contacts directory with auction times |
 | `/trade/feedback` | trade | Trade dashboard feedback (POST) |
@@ -249,34 +260,61 @@ Routes are served across 8 blueprint files registered in `src/quayside/web/app.p
 | `/api/v1/ingest` | api | API endpoint for price data ingestion (POST, API key auth) |
 | `/api/v1/export/csv` | api | API endpoint for bulk CSV export (GET, filter by port/date/species) |
 
-### Templates (24 files in `web/templates/`)
+### Templates (27 files in `web/templates/` + 1 in `templates/`)
 
-| Template | Used by |
-|---|---|
-| `base.html` | All pages — master layout with nav, ticker, footer |
-| `landing.html` | `/` — full marketing homepage |
-| `index.html` | `/overview` — staging hub with card grid |
-| `about.html` | `/about` |
-| `for_ports.html` | `/for-ports` |
-| `for_traders.html` | `/for-traders` |
-| `methodology.html` | `/methodology` |
-| `login.html` | `/login` |
-| `register.html` | `/register` |
-| `dashboard.html` | `/port/<slug>` — main port dashboard |
-| `prices_partial.html` | `/port/<slug>/prices` — AJAX prices table |
-| `upload_form.html` | `/port/<slug>/upload` |
-| `confirm.html` | `/confirm/<token>` |
-| `edit.html` | `/confirm/<token>/edit` |
-| `submit.html` | `/port/submit` |
-| `digest_wrapper.html` | `/digest` — wraps email digest template |
-| `weekly.html` | `/digest/weekly` |
-| `monthly.html` | `/digest/monthly` |
-| `trade.html` | `/trade` — species matrix, sidebar nav |
-| `trade_gate.html` | Trade paywall (£95/month) |
-| `trade_ports.html` | `/trade/ports` |
-| `ops.html` | `/ops` |
-| `quality_report.html` | `/ops/quality-report` |
-| `error.html` | 404/500 error pages |
+| Template | Lines | Used by |
+|---|---|---|
+| `base.html` | 148 | All pages — master layout with nav, ticker, stat strip |
+| `landing.html` | 1494 | `/` — full marketing homepage |
+| `index.html` | 239 | `/overview` — staging hub with card grid |
+| `about.html` | 722 | `/about` |
+| `for_ports.html` | 867 | `/for-ports` |
+| `for_traders.html` | 2022 | `/for-traders` |
+| `methodology.html` | 179 | `/methodology` |
+| `login.html` | 208 | `/login` |
+| `register.html` | 214 | `/register` |
+| `dashboard.html` | 3056 | `/port/<slug>` — main port dashboard |
+| `prices_partial.html` | 151 | `/port/<slug>/prices` — AJAX prices table |
+| `upload_form.html` | 166 | `/port/<slug>/upload` |
+| `confirm.html` | 94 | `/confirm/<token>` |
+| `edit.html` | 98 | `/confirm/<token>/edit` |
+| `submit.html` | 474 | `/port/submit` |
+| `digest_wrapper.html` | 131 | `/digest` — wraps email digest template |
+| `weekly.html` | 486 | `/digest/weekly` |
+| `monthly.html` | 513 | `/digest/monthly` |
+| `trade.html` | 3399 | `/trade` — species matrix, sidebar nav |
+| `trade_gate.html` | 25 | Trade paywall (£95/month) |
+| `trade_ports.html` | 314 | `/trade/ports` |
+| `ops.html` | 1104 | `/ops` |
+| `quality_report.html` | 592 | `/ops/quality-report` |
+| `errors.html` | 546 | `/ops/errors` — error dashboard with fix actions |
+| `error.html` | 11 | 404/500 error pages |
+| `_chat_float.html` | 126 | Shared floating chat FAB partial (included in dashboard + trade) |
+| `digest.html` (in `templates/`) | 1437 | Email-safe digest (standalone Jinja2, not in `web/templates/`) |
+
+## Design system
+
+**NOTE:** The CSS tokens in `tokens.css` have been updated to a cool-neutral theme (diverged from the warm palette documented in `BRAND.md`). The live values in `tokens.css` are authoritative:
+
+| Token | Hex | Usage |
+|---|---|---|
+| `--ink` | `#0f1820` | Primary text, dark backgrounds |
+| `--paper` | `#e8ecf0` | Page background (cool grey) |
+| `--tide` | `#1c2b35` | Primary brand (headers, nav, accents) |
+| `--salt` | `#d0d8e0` | Secondary backgrounds, bar tracks |
+| `--catch` | `#c8401a` | CTA buttons, alerts, accent highlights |
+| `--foam` | `#f4f6f8` | Card backgrounds, section fills |
+| `--muted` | `#6a7a88` | Secondary text, labels |
+| `--rule` | `#c0cad4` | Borders, dividers |
+| `--up` | `#4aaa6a` | Price increase |
+| `--down` | `#c85040` | Price decrease |
+| `--ink-body` | `#3a4a58` | Body text on light backgrounds |
+| `--tide-light` | `#7ab0c8` | Text on dark/teal backgrounds |
+| `--zone-nav` | `#1c2b35` | Navigation bar background |
+| `--zone-deep` | `#0f1820` | Ticker, card footers |
+| `--zone-strip` | `#141e24` | Stat strip background |
+
+Typography: Playfair Display (headings), IBM Plex Sans (body), IBM Plex Mono (data/labels/buttons). See `BRAND.md` for full typography and component pattern docs.
 
 ## Git workflow
 
@@ -323,6 +361,6 @@ If GitHub Actions SSH deployment fails with `unable to authenticate` / `no suppo
 
 ## Key docs
 
-- `BRAND.md` — full brand kit: colour palette, typography, design principles, component patterns
+- `BRAND.md` — brand kit: colour palette (NOTE: warm palette — tokens.css has since shifted to cool-neutral), typography, design principles, component patterns
 - `PORTS.md` — comprehensive audit of all UK & Ireland fish ports, data availability, partnership strategy
 - `ROADMAP.md` — development phases and status
