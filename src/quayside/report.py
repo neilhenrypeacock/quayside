@@ -9,10 +9,17 @@ from pathlib import Path
 
 import jinja2
 
-from quayside.db import get_30day_port_species_averages, get_30day_species_averages, get_all_prices_for_date, get_latest_date, get_latest_rich_date, get_previous_date, get_total_port_count
-from quayside.species import KEY_SPECIES, is_noisy_species, normalise_species
+from quayside.db import (
+    get_30day_port_species_averages,
+    get_30day_species_averages,
+    get_all_prices_for_date,
+    get_latest_rich_date,
+    get_previous_date,
+    get_total_port_count,
+)
 from quayside.fx import get_rate
 from quayside.ports import get_port_code_map
+from quayside.species import KEY_SPECIES, is_noisy_species, normalise_species
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +155,6 @@ def _build_port_highlights(rows: list[tuple], thirty_day_raw: dict[str, float]) 
 
     Falls back to best price if no 30-day data is available for any species at that port.
     """
-    from collections import defaultdict
 
     # Build per-port candidates: find the species with biggest deviation at each port
     port_best: dict[str, dict] = {}

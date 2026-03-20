@@ -7,7 +7,17 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from flask import Blueprint, Response, flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask import (
+    Blueprint,
+    Response,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from werkzeug.utils import secure_filename
 
 from quayside.confirm import generate_confirm_token, get_upload_for_token
@@ -15,10 +25,10 @@ from quayside.db import (
     confirm_upload,
     create_upload,
     get_all_ports,
+    get_last_scrape_info,
     get_latest_date,
     get_latest_port_date,
     get_latest_scraped_at,
-    get_last_scrape_info,
     get_market_averages_for_date,
     get_market_averages_for_range,
     get_port,
@@ -35,7 +45,6 @@ from quayside.db import (
     upsert_prices_with_upload,
 )
 from quayside.extractors import extract_from_file
-from quayside.models import PriceRecord
 from quayside.species import get_all_canonical_names, normalise_species
 from quayside.web.helpers import (
     build_best_performers,

@@ -26,7 +26,6 @@ Usage:
 from __future__ import annotations
 
 import logging
-import math
 import os
 import re
 import urllib.request
@@ -505,6 +504,7 @@ def _check_unmapped_species(conn, date: str, checked_at: str, active_ports: list
       - no match  → "no close match — new species or typo"
     """
     import difflib
+
     from quayside.species import _RAW_TO_CANONICAL, is_noisy_species
 
     # All known raw names (lowercased) for fuzzy matching
@@ -780,7 +780,7 @@ def build_comprehensive_report(date: str | None = None) -> dict:
 
 def _report_port_dashboards(conn, date: str, active_ports: list[str]) -> list[dict]:
     """Re-compute hero stats for each port to preview what the dashboard shows."""
-    from quayside.db import get_same_day_last_week, get_market_averages_for_date
+    from quayside.db import get_market_averages_for_date, get_same_day_last_week
     from quayside.species import normalise_species
 
     market = get_market_averages_for_date(date)
@@ -901,7 +901,6 @@ def _report_port_dashboards(conn, date: str, active_ports: list[str]) -> list[di
 
 def _report_digest_preview(date: str, active_ports: list[str]) -> dict:
     """Summarise what the daily digest will show for `date`."""
-    from pathlib import Path
 
     result: dict = {
         "ports_reporting": [],
@@ -917,7 +916,7 @@ def _report_digest_preview(date: str, active_ports: list[str]) -> dict:
     }
 
     try:
-        from quayside.report import build_report_data, BENCHMARK_SPECIES
+        from quayside.report import BENCHMARK_SPECIES, build_report_data
         data = build_report_data(date)
 
         result["ports_reporting"] = data.get("ports_reporting", [])

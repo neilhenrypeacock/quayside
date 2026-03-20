@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from quayside.scrapers.swfpa import get_swfpa_event_links, scrape_prices
 from quayside.db import upsert_prices
+from quayside.scrapers.swfpa import get_swfpa_event_links, scrape_prices
 
 TRADING_DAYS_TARGET = 25  # aim for 25 to guarantee 20 complete days
 

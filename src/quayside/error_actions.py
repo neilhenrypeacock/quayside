@@ -223,7 +223,7 @@ def generate_error_markdown(errors: list[dict], date_str: str) -> str:
     open_warn_count = sum(1 for e in open_errors if e["severity"] == "warning")
 
     lines = [
-        f"# Quayside Error Report",
+        "# Quayside Error Report",
         f"Generated: {now_str}",
         "",
     ]

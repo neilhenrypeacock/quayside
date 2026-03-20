@@ -30,7 +30,6 @@ from quayside.species import (
     normalise_species,
 )
 
-
 # ── Highlights ────────────────────────────────────────────────────────────────
 
 def _highlights_today(matrix: list[dict], port_code_map: dict) -> list[dict]:
@@ -516,8 +515,6 @@ def build_trade_data(date: str, selected_ports: list[str] | None = None) -> dict
     port_code_map = _port_codes()
     active_ports = get_all_ports(status="active")
     active_port_names = [p["name"] for p in active_ports]
-    # Filter to non-demo ports for selector display
-    demo_names_set = {p["name"] for p in active_ports if p.get("data_method") == "demo"}
     all_selectable_ports = sorted(
         p["name"] for p in active_ports if p.get("data_method") != "demo"
     )

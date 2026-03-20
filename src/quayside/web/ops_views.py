@@ -571,7 +571,7 @@ def ops_quality_report_download():
     lines = []
     lines.append(f"# Quayside Quality Report — {report['date']}")
     lines.append(f"\nGenerated: {report['generated_at'][:16].replace('T', ' ')} UTC")
-    lines.append(f"Site: https://quaysidedata.duckdns.org\n")
+    lines.append("Site: https://quaysidedata.duckdns.org\n")
 
     lines.append("## Port Dashboards\n")
     lines.append(f"What each port dashboard displays for {report['date']}.\n")
@@ -687,7 +687,7 @@ def _next_scan_time() -> str | None:
 def ops_errors():
     """Error dashboard — quality check results with plain-English explanations."""
     from quayside.db import get_error_log, get_last_scan_time
-    from quayside.error_actions import PLAIN_ENGLISH, FIX_ACTIONS
+    from quayside.error_actions import FIX_ACTIONS, PLAIN_ENGLISH
 
     errors = get_error_log()
     last_scan = get_last_scan_time()
@@ -717,6 +717,7 @@ def ops_errors():
 def ops_errors_scan():
     """Run a quality scan now and redirect back to the error dashboard."""
     from flask import flash, redirect, url_for
+
     from quayside.scheduler import run_and_log_quality_check
 
     run_and_log_quality_check()

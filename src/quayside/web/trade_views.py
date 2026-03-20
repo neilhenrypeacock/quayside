@@ -34,6 +34,7 @@ def _check_trade_access() -> bool:
 @trade_bp.route("/trade/<date>")
 def trade_dashboard(date: str | None = None):
     from flask import current_app
+
     from quayside.trade import build_trade_data
 
     if not _check_trade_access():

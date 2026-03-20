@@ -14,7 +14,6 @@ from quayside.db import (
 from quayside.report import BENCHMARK_SPECIES, PORT_CODES
 from quayside.species import normalise_species
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -168,7 +167,6 @@ def build_weekly_data(end_date: str | None = None) -> dict:
 
     # --- Weekly movers ---
     this_week_best = _best_price_per_species_per_date(rows)
-    prev_week_best = _best_price_per_species_per_date(prev_rows)
 
     movers = []
     for species, date_prices in this_week_best.items():
