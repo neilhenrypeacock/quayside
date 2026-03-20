@@ -239,6 +239,66 @@ def port_dashboard(slug: str):
     # Phase 1: Competitive position, smart alerts, missing species
     competitive = build_competitive_market(port["name"], date)
     competitive_summary = build_competitive_summary(competitive)
+
+    # Demo port: inject synthetic competitive data so the dashboard looks complete
+    if port.get("data_method") == "demo" and not competitive:
+        import random as _rng
+        _rng.seed(date)  # deterministic per date
+        _fake_ports = [
+            ("Harbour A", "HA"), ("Harbour B", "HB"), ("Harbour C", "HC"),
+        ]
+        competitive = []
+        for item in today_data[:15]:
+            sp = item["species"]
+            port_avg = item["price_avg"]
+            if not port_avg:
+                continue
+            # Generate 1-3 comparison ports with prices ±30% of this port
+            n_comp = _rng.randint(1, 3)
+            comp_ports = []
+            other_prices = []
+            for fp_name, fp_code in _rng.sample(_fake_ports, n_comp):
+                offset = _rng.uniform(-0.30, 0.20)
+                cp_avg = round(port_avg * (1 + offset), 2)
+                other_prices.append(cp_avg)
+                comp_ports.append({
+                    "port_name": fp_name, "port_code": fp_code,
+                    "price_avg": cp_avg, "weight_kg": None,
+                    "grades_summary": "",
+                })
+            market_avg = round(sum(other_prices) / len(other_prices), 2)
+            vs_pct = round(((port_avg - market_avg) / market_avg) * 100, 1) if market_avg else 0
+            competitive.append({
+                "species": sp,
+                "category": item.get("category", ""),
+                "port_avg": round(port_avg, 2),
+                "port_grades": [{"grade": "A", "price_low": None, "price_high": None, "price_avg": round(port_avg, 2), "weight_kg": item.get("weight_kg"), "boxes": item.get("boxes")}],
+                "market_avg": market_avg,
+                "vs_market_pct": vs_pct,
+                "comparison_ports": comp_ports,
+                "is_best_uk": vs_pct > 0,
+                "is_only_port": False,
+                "port_has_volume": bool(item.get("weight_kg")),
+                "port_has_ranges": bool(item.get("price_low")),
+                "port_has_boxes": bool(item.get("boxes")),
+            })
+        # Add a couple "only port" species from remaining items
+        for item in today_data[15:18]:
+            sp = item["species"]
+            if not item["price_avg"]:
+                continue
+            competitive.append({
+                "species": sp, "category": item.get("category", ""),
+                "port_avg": round(item["price_avg"], 2),
+                "port_grades": [{"grade": "A", "price_low": None, "price_high": None, "price_avg": round(item["price_avg"], 2), "weight_kg": None, "boxes": None}],
+                "market_avg": None, "vs_market_pct": None,
+                "comparison_ports": [], "is_best_uk": True,
+                "is_only_port": True,
+                "port_has_volume": False, "port_has_ranges": False, "port_has_boxes": False,
+            })
+        competitive.sort(key=lambda x: (x["is_only_port"], -(x["vs_market_pct"] or 0)))
+        competitive_summary = build_competitive_summary(competitive)
+
     smart_alerts = build_smart_alerts(port["name"], date, "port")
     missing_species = build_missing_species(port["name"], date)
 
