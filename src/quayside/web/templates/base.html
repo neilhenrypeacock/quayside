@@ -100,6 +100,38 @@
     </div>
     {% endif %}
 
+    {% if stats %}
+    <div class="stat-strip">
+      <div class="stat-item">
+        <div class="stat-label">Ports live today</div>
+        <div class="stat-value">{{ stats.ports_live }}</div>
+        <div class="stat-sub">{{ stats.port_names }}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Species tracked</div>
+        <div class="stat-value">{{ stats.species_count }}</div>
+        <div class="stat-sub">
+          {% if stats.species_delta > 0 %}
+          <span class="stat-delta-up">&#8593; {{ stats.species_delta }} vs yesterday</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Price records</div>
+        <div class="stat-value">{{ stats.record_count }}</div>
+        <div class="stat-sub">Last updated {{ stats.last_updated }}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Widest spread today</div>
+        <div class="stat-value stat-value--species">
+          <em>{{ stats.widest_species }}</em>
+          <span class="stat-spread">{{ stats.widest_spread_pct }}%</span>
+        </div>
+        <div class="stat-sub">{{ stats.widest_ports }}</div>
+      </div>
+    </div>
+    {% endif %}
+
     {% block main %}
     <div class="container">
         {% with messages = get_flashed_messages() %}

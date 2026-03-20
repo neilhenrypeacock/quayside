@@ -114,6 +114,21 @@ def create_app() -> Flask:
             return {"_ticker_items": key_items if len(key_items) >= 3 else all_items}
         return {"_ticker_items": []}
 
+    # ── Context processor: stat strip data for base.html ──
+    @app.context_processor
+    def inject_stats():
+        from quayside.web.helpers import build_stat_strip_data
+
+        date = get_latest_rich_date()
+        if date:
+            try:
+                stats = build_stat_strip_data(date)
+                return {"stats": stats}
+            except Exception:
+                logger.exception("Failed to build stat strip data")
+                return {"stats": {}}
+        return {"stats": {}}
+
     # ── Error handlers ──
     @app.errorhandler(404)
     def _not_found(e):

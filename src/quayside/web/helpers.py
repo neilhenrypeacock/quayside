@@ -1328,3 +1328,93 @@ def build_missing_species(port_name: str, date: str) -> list[dict]:
     # Sort by best price descending, cap at 10
     missing.sort(key=lambda x: x["best_price"], reverse=True)
     return missing[:10]
+
+
+def build_stat_strip_data(date: str) -> dict:
+    """Build aggregate stats for the header stat strip.
+
+    All queries exclude Demo Port data (demo_prices table is separate).
+    """
+    from quayside.db import get_last_scrape_info
+
+    # --- prices for today ---
+    rows = get_all_prices_for_date(date)  # already excludes demo
+    if not rows:
+        return {}
+
+    # ports_live + port_names
+    live_ports = sorted({r[1] for r in rows})  # r[1] = port
+    ports_live = len(live_ports)
+    port_names_str = ", ".join(live_ports)
+    if len(port_names_str) > 60:
+        port_names_str = port_names_str[:57] + "..."
+
+    # species_count (normalised, filtering noise)
+    raw_species = {r[2] for r in rows}  # r[2] = species
+    normalised = {normalise_species(s) for s in raw_species}
+    normalised.discard(None)
+    species_count = len(normalised)
+
+    # species_delta vs yesterday
+    prev_date = get_previous_date(date)
+    species_delta = 0
+    if prev_date:
+        prev_rows = get_all_prices_for_date(prev_date)
+        prev_normalised = {normalise_species(r[2]) for r in prev_rows}
+        prev_normalised.discard(None)
+        species_delta = species_count - len(prev_normalised)
+
+    # record_count
+    record_count = len(rows)
+
+    # last_updated
+    scrape_info = get_last_scrape_info()
+    last_ts = scrape_info.get("last_received") or scrape_info.get("last_checked")
+    if last_ts:
+        try:
+            dt = datetime.fromisoformat(last_ts)
+            last_updated = dt.strftime("%H:%M")
+        except (ValueError, TypeError):
+            last_updated = "--:--"
+    else:
+        last_updated = "--:--"
+
+    # widest spread — species with greatest cross-port price spread
+    market = get_market_averages_for_date(date)
+    widest_species = ""
+    widest_spread_pct = 0
+    widest_ports = ""
+    for raw_sp, data in market.items():
+        if data["port_count"] < 2:
+            continue
+        sp_name = normalise_species(raw_sp)
+        if not sp_name:
+            continue
+        avg = data["avg"]
+        if avg and avg > 0:
+            spread_pct = round(((data["max"] - data["min"]) / avg) * 100)
+        else:
+            spread_pct = 0
+        if spread_pct > widest_spread_pct:
+            widest_spread_pct = spread_pct
+            widest_species = sp_name
+            # Find which ports have min and max
+            ports = data["ports"]
+            max_port = max(ports, key=ports.get)
+            min_port = min(ports, key=ports.get)
+            widest_ports = (
+                f"{max_port} \u00a3{ports[max_port]:.2f}"
+                f" vs {min_port} \u00a3{ports[min_port]:.2f}"
+            )
+
+    return {
+        "ports_live": ports_live,
+        "port_names": port_names_str,
+        "species_count": species_count,
+        "species_delta": species_delta,
+        "record_count": record_count,
+        "last_updated": last_updated,
+        "widest_species": widest_species,
+        "widest_spread_pct": widest_spread_pct,
+        "widest_ports": widest_ports,
+    }
