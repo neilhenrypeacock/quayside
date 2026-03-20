@@ -170,6 +170,7 @@ def _check_outlier_prices(conn, date: str, checked_at: str, active_ports: list[s
 def _check_record_count(conn, date: str, checked_at: str, active_ports: list[str]) -> list[dict]:
     """Flag if today's record count is unusually low vs. the port's rolling median."""
     issues = []
+    is_today = date == date_type.today().isoformat()
 
     for port in active_ports:
         today_count = conn.execute(
@@ -193,6 +194,10 @@ def _check_record_count(conn, date: str, checked_at: str, active_ports: list[str
             continue
 
         if today_count == 0:
+            # SWFPA publishes auction results the day after — zero records for
+            # the current date is expected until tomorrow's scrape fills them in.
+            if is_today:
+                continue
             issues.append(_issue(
                 checked_at, "record_count", "error", port, date,
                 value=0, expected=median,
