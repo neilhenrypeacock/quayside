@@ -5,7 +5,8 @@
 set -euo pipefail
 
 echo "==> Pulling latest code"
-sudo -u quayside git -C /home/quayside/app pull --ff-only
+sudo -u quayside git -C /home/quayside/app fetch origin
+sudo -u quayside git -C /home/quayside/app reset --hard origin/main
 
 echo "==> Installing any new dependencies"
 sudo -u quayside /home/quayside/app/venv/bin/pip install -q -e "/home/quayside/app"
