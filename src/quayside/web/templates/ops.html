@@ -577,16 +577,19 @@
                     <span class="status-badge future">Pending</span>
                     {% endif %}
                 </td>
-                <td style="font-family:var(--font-mono);font-size:12px;line-height:1.7;">
+                <td style="font-family:var(--font-mono);font-size:12px;line-height:1.8;">
                     {% if s %}
-                        <div style="color:var(--muted);font-size:10px;">First {{ s.first_attempt }}</div>
-                        {% if s.success_times %}
-                            <div>{% for t in s.success_times %}<span style="color:var(--up);">✓{{ t }}</span>{% if not loop.last %} <span style="color:var(--muted);">·</span> {% endif %}{% endfor %}</div>
+                        <div style="color:var(--muted);font-size:10px;">First run {{ s.first_attempt }}</div>
+                        {% if s.first_success %}
+                            <div>
+                                <span style="color:var(--up);">✓ data {{ s.first_success }}</span>
+                                <span style="color:var(--muted);font-size:10px;"> &middot; {{ s.success_count }}/{{ s.attempt_count }} ok</span>
+                            </div>
                         {% else %}
-                            <div><span style="color:var(--down);">no successful scrape</span></div>
+                            <div><span style="color:var(--down);">no data today</span></div>
                         {% endif %}
-                        {% if s.last_attempt and s.last_attempt != s.last_success %}
-                        <div style="color:var(--muted);font-size:10px;">Last {{ s.last_attempt }}</div>
+                        {% if s.last_attempt and s.last_attempt != s.first_attempt %}
+                        <div style="color:var(--muted);font-size:10px;">Last run {{ s.last_attempt }}</div>
                         {% endif %}
                     {% else %}—{% endif %}
                 </td>
