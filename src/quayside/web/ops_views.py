@@ -383,6 +383,7 @@ def ops_dashboard():
                     "first_attempt": time_str,
                     "first_success": None,
                     "last_success": None,
+                    "success_times": [],
                     "success_count": 0,
                     "attempt_count": 0,
                     "status": "failed",
@@ -394,6 +395,7 @@ def ops_dashboard():
                 if today_scrape_summary[port_name]["first_success"] is None:
                     today_scrape_summary[port_name]["first_success"] = time_str
                 today_scrape_summary[port_name]["last_success"] = time_str
+                today_scrape_summary[port_name]["success_times"].append(time_str)
                 today_scrape_summary[port_name]["success_count"] += 1
                 today_scrape_summary[port_name]["status"] = "success"
                 today_scrape_summary[port_name]["record_count"] = row["record_count"]
@@ -444,6 +446,10 @@ def ops_dashboard():
                 # Show data_date alongside record count so ops can see what date was scraped
                 if scrape_data_date:
                     summary["data_date_display"] = datetime.strptime(scrape_data_date, "%Y-%m-%d").strftime("%-d %b")
+                # Flag when scraped data is from a previous date (e.g. yesterday's auction prices)
+                data_date = scrape_data_date or last_date
+                if data_date and data_date < today_str:
+                    summary["is_previous_data"] = True
                 # Only mark stale if latest data is >1 day old (most ports publish previous-day prices)
                 if last_date < yesterday_str:
                     summary["status"] = "stale"
@@ -453,6 +459,7 @@ def ops_dashboard():
     today_succeeded_count = len(today_succeeded)
     all_attempt_times = [v["first_attempt"] for v in today_scrape_summary.values() if v.get("first_attempt")]
     today_first_run = min(all_attempt_times) if all_attempt_times else None
+    today_last_run = max(all_attempt_times) if all_attempt_times else None
     _now = today
     next_scrape_str: str | None = None
     if 7 <= _now.hour < 17:
@@ -518,6 +525,7 @@ def ops_dashboard():
         today_attempted_count=today_attempted_count,
         today_succeeded_count=today_succeeded_count,
         today_first_run=today_first_run,
+        today_last_run=today_last_run,
         next_scrape_str=next_scrape_str,
         today_alerts=today_alerts,
         historical_alerts=historical_alerts,

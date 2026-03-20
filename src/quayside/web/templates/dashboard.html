@@ -1116,7 +1116,7 @@
     }
     .perf-grid {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 1px;
     }
     .perf-metric {
@@ -1552,6 +1552,9 @@
     th:first-child .info-tip-text,
     th:nth-child(2) .info-tip-text { left: 0; transform: none; }
     th:last-child .info-tip-text { left: auto; right: 0; transform: none; }
+    /* Info-tips on dark perf-card background */
+    .perf-card .info-tip { color: rgba(255,255,255,0.5); }
+    .perf-card .info-tip:hover { color: rgba(255,255,255,0.8); }
 </style>
 {% endblock %}
 
@@ -1738,19 +1741,19 @@
     <div class="competitive-summary-row">
         <div class="competitive-summary-stat">
             <div class="competitive-stat-value" style="color:var(--tide);">{{ competitive_summary.best_uk_count }}</div>
-            <div class="competitive-stat-label">Best UK price</div>
+            <div class="competitive-stat-label">Best UK price <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Number of species where this port's average price is the highest of all UK ports reporting today.</span></span></div>
         </div>
         <div class="competitive-summary-stat">
             <div class="competitive-stat-value" style="color:var(--up);">{{ competitive_summary.above_avg_count }}</div>
-            <div class="competitive-stat-label">Above market</div>
+            <div class="competitive-stat-label">Above market <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Species where this port's average price is above the UK market average (excluding this port).</span></span></div>
         </div>
         <div class="competitive-summary-stat">
             <div class="competitive-stat-value" style="color:var(--down);">{{ competitive_summary.below_avg_count }}</div>
-            <div class="competitive-stat-label">Below market</div>
+            <div class="competitive-stat-label">Below market <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Species where this port's average price is below the UK market average (excluding this port).</span></span></div>
         </div>
         <div class="competitive-summary-stat">
             <div class="competitive-stat-value" style="color:var(--muted);">{{ competitive_summary.only_port_count }}</div>
-            <div class="competitive-stat-label">Only port</div>
+            <div class="competitive-stat-label">Only port <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Species only this port reported today — no market comparison possible. Listed separately below the table.</span></span></div>
         </div>
     </div>
 
@@ -1769,12 +1772,12 @@
     <table class="competitive-table">
         <thead>
             <tr>
-                <th>Species</th>
-                <th style="width:180px;">Market position</th>
-                <th class="price">Your avg</th>
-                <th class="price">Market avg</th>
-                <th class="price">vs market</th>
-                <th>Comparison ports</th>
+                <th>Species <span class="info-tip">ⓘ<span class="info-tip-text">Click any row to expand and see grade-level detail and individual port prices.</span></span></th>
+                <th style="width:180px;">Market position <span class="info-tip">ⓘ<span class="info-tip-text">Bar shows how far above or below the UK market average. Centre line = market average.</span></span></th>
+                <th class="price">Your avg <span class="info-tip">ⓘ<span class="info-tip-text">This port's average price per kg across all grades for this species.</span></span></th>
+                <th class="price">Market avg <span class="info-tip">ⓘ<span class="info-tip-text">Average price across all other UK ports selling this species today. This port is excluded.</span></span></th>
+                <th class="price">vs market <span class="info-tip">ⓘ<span class="info-tip-text">Percentage difference between your average and market average. Positive = above market.</span></span></th>
+                <th>Comparison ports <span class="info-tip">ⓘ<span class="info-tip-text">Other UK ports that sold this species today, included in the market average calculation.</span></span></th>
             </tr>
         </thead>
         <tbody>
@@ -1904,7 +1907,7 @@
             <div class="perf-metric-value">
                 {% if perf.this_week_avg %}&pound;{{ "%.2f"|format(perf.this_week_avg) }}<span class="perf-unit">/kg</span>{% else %}&mdash;{% endif %}
             </div>
-            <div class="perf-metric-label">This week's avg price / kg</div>
+            <div class="perf-metric-label">This week's avg price / kg <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Average price per kg across all species and grades sold at this port so far this week (Mon–Fri).</span></span></div>
             {% if perf.week_change is not none %}
             <div class="perf-metric-detail">
                 <span class="{{ 'perf-up' if perf.week_change >= 0 else 'perf-down' }}">{{ "+" if perf.week_change >= 0 }}{{ "%.1f"|format(perf.week_change) }}%</span> vs last week
@@ -1914,22 +1917,11 @@
         </div>
         <div class="perf-metric">
             <div class="perf-metric-value">
-                {% if perf.this_month_avg %}&pound;{{ "%.2f"|format(perf.this_month_avg) }}<span class="perf-unit">/kg</span>{% else %}&mdash;{% endif %}
-            </div>
-            <div class="perf-metric-label">30-day rolling avg price / kg</div>
-            {% if perf.month_change is not none %}
-            <div class="perf-metric-detail">
-                <span class="{{ 'perf-up' if perf.month_change >= 0 else 'perf-down' }}">{{ "+" if perf.month_change >= 0 }}{{ "%.1f"|format(perf.month_change) }}%</span> vs the previous 30-day period
-            </div>
-            {% endif %}
-        </div>
-        <div class="perf-metric">
-            <div class="perf-metric-value">
                 {% if perf.mkt_pos_this_week is not none %}
                 <span class="{{ 'perf-up' if perf.mkt_pos_this_week >= 0 else 'perf-down' }}">{{ "+" if perf.mkt_pos_this_week >= 0 }}{{ "%.1f"|format(perf.mkt_pos_this_week) }}%</span>
                 {% else %}&mdash;{% endif %}
             </div>
-            <div class="perf-metric-label">This port vs UK market this week</div>
+            <div class="perf-metric-label">This port vs UK market this week <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">How this port's weekly average compares to the UK-wide average. Positive = above national average.</span></span></div>
             <div class="perf-metric-detail" style="opacity:0.7;">Positive = above UK average price; negative = below</div>
             {% if perf.mkt_trend is not none %}
             <div class="perf-metric-detail">
@@ -1939,7 +1931,7 @@
         </div>
         <div class="perf-metric">
             <div class="perf-metric-value">{{ perf.species_this_week }}</div>
-            <div class="perf-metric-label">Different species sold this week</div>
+            <div class="perf-metric-label">Different species sold this week <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Count of distinct species in this port's auction results so far this week.</span></span></div>
             {% if perf.species_last_week %}
             <div class="perf-metric-detail">
                 {% if perf.species_this_week > perf.species_last_week %}
@@ -1955,7 +1947,7 @@
         <div class="perf-metric">
             {% if perf.total_boxes %}
             <div class="perf-metric-value">{{ "{:,}".format(perf.total_boxes) }}</div>
-            <div class="perf-metric-label">Total boxes landed this week</div>
+            <div class="perf-metric-label">Total boxes landed this week <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Total boxes reported at this port's auctions this week. Not all ports share volume data.</span></span></div>
             {% if perf.boxes_change is not none %}
             <div class="perf-metric-detail">
                 <span class="{{ 'perf-up' if perf.boxes_change >= 0 else 'perf-down' }}">{{ "+" if perf.boxes_change >= 0 }}{{ "%.1f"|format(perf.boxes_change) }}%</span> vs last week
@@ -1963,7 +1955,7 @@
             {% endif %}
             {% else %}
             <div class="perf-metric-value">&mdash;</div>
-            <div class="perf-metric-label">Total boxes landed this week</div>
+            <div class="perf-metric-label">Total boxes landed this week <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Total boxes reported at this port's auctions this week. Not all ports share volume data.</span></span></div>
             <div class="perf-metric-detail"><span class="perf-coming-soon">Available when your port shares landings data</span></div>
             {% endif %}
         </div>
@@ -1972,7 +1964,7 @@
     {% if best_performers and (best_performers.strongest_species or best_performers.month_summary) %}
     <div id="section-best" class="best-grid" style="margin-top:20px;">
         <div class="best-panel">
-            <h3>Strongest vs Market <span style="font-family:var(--font-mono);font-size:10px;font-weight:400;color:var(--muted);letter-spacing:0.04em;">last 30 days &middot; 5+ days &middot; 2+ ports</span></h3>
+            <h3>Strongest vs Market <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Species where this port consistently beats the UK market average over the last 30 days. Only includes species traded on 5+ days with 2+ other ports reporting.</span></span> <span style="font-family:var(--font-mono);font-size:10px;font-weight:400;color:var(--muted);letter-spacing:0.04em;">last 30 days &middot; 5+ days &middot; 2+ ports</span></h3>
             {% if best_performers.strongest_species %}
             <table>
                 <thead>
@@ -1999,7 +1991,7 @@
             {% endif %}
         </div>
         <div class="best-panel">
-            <h3>Month Highlights</h3>
+            <h3>Month Highlights <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Key trading days from the last 30 days — best and lowest average price days, plus the day with the most species variety.</span></span></h3>
             {% set ms = best_performers.month_summary %}
             {% if ms and ms.total_sessions > 0 %}
             <div class="month-summary">
@@ -2107,6 +2099,14 @@
                     {% if history_days >= 45 %}<button class="toggle-btn" data-range="90">90d</button>{% endif %}
                 </div>
                 <span class="control-label">{{ history_days }}d available</span>
+            </div>
+            <div class="control-group">
+                <span class="control-label">Group by</span>
+                <div class="toggle-group" id="groupToggle">
+                    <button class="toggle-btn active" data-group="day">Day</button>
+                    <button class="toggle-btn" data-group="week">Week</button>
+                    <button class="toggle-btn" data-group="month">Month</button>
+                </div>
             </div>
             <div class="control-group">
                 <span class="control-label">Species</span>
@@ -2452,6 +2452,7 @@ speciesList.forEach(sp => {
 let currentRange = 30;
 let currentSpecies = 'all';
 let showMarketAvg = false;
+let currentGroup = 'day';
 let chart = null;
 
 function buildChartData() {
@@ -2463,12 +2464,11 @@ function buildChartData() {
 
     // Filter labels within range
     const filteredIndices = [];
-    const labels = [];
+    const rawLabels = [];
     allLabels.forEach((d, idx) => {
         if (new Date(d) >= cutoffDate) {
             filteredIndices.push(idx);
-            const dt = new Date(d);
-            labels.push(dt.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'}));
+            rawLabels.push(d);
         }
     });
 
@@ -2476,22 +2476,81 @@ function buildChartData() {
         ? trendData.datasets
         : trendData.datasets.filter(ds => ds.label === currentSpecies);
 
+    // --- Grouping helpers ---
+    function getGroupKey(dateStr) {
+        if (currentGroup === 'month') return dateStr.substring(0, 7);
+        if (currentGroup === 'week') {
+            const d = new Date(dateStr);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(d);
+            monday.setDate(diff);
+            return monday.toISOString().substring(0, 10);
+        }
+        return dateStr;
+    }
+    function formatGroupLabel(key) {
+        if (currentGroup === 'month') {
+            const [y, m] = key.split('-');
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return months[parseInt(m) - 1] + ' ' + y.substring(2);
+        }
+        if (currentGroup === 'week') {
+            const d = new Date(key);
+            return 'w/c ' + d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+        }
+        const dt = new Date(key);
+        return dt.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+    }
+    function avgArray(vals) {
+        const valid = vals.filter(v => v != null);
+        return valid.length > 0 ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
+    }
+
+    // Build ordered group keys
+    const groupKeys = [];
+    const groupKeySet = new Set();
+    rawLabels.forEach(d => {
+        const gk = getGroupKey(d);
+        if (!groupKeySet.has(gk)) { groupKeySet.add(gk); groupKeys.push(gk); }
+    });
+
+    // Map: for each rawLabel index, which group does it belong to?
+    const rawToGroup = rawLabels.map(d => getGroupKey(d));
+
+    const labels = groupKeys.map(formatGroupLabel);
     const datasets = [];
+
     filteredSpecies.forEach((ds, i) => {
-        const data = filteredIndices.map(idx => ds.data[idx]);
+        // Aggregate species data by group
+        const groupVals = {};
+        groupKeys.forEach(gk => { groupVals[gk] = []; });
+        rawLabels.forEach((d, ri) => {
+            const val = ds.data[filteredIndices[ri]];
+            if (val != null) groupVals[rawToGroup[ri]].push(val);
+        });
+        const data = groupKeys.map(gk => avgArray(groupVals[gk]));
+
         datasets.push({
             label: ds.label,
             data: data,
             borderColor: colors[i % colors.length],
             backgroundColor: 'transparent',
             borderWidth: 2,
-            pointRadius: currentRange <= 30 ? 3 : 1,
+            pointRadius: currentGroup === 'day' && currentRange <= 30 ? 3 : currentGroup === 'day' ? 1 : 3,
             tension: 0.3,
             spanGaps: false,
         });
 
         if (showMarketAvg && ds.market_avg) {
-            const mktData = filteredIndices.map(idx => ds.market_avg[idx] || null);
+            const mktGroupVals = {};
+            groupKeys.forEach(gk => { mktGroupVals[gk] = []; });
+            rawLabels.forEach((d, ri) => {
+                const val = ds.market_avg[filteredIndices[ri]];
+                if (val != null) mktGroupVals[rawToGroup[ri]].push(val);
+            });
+            const mktData = groupKeys.map(gk => avgArray(mktGroupVals[gk]));
+
             datasets.push({
                 label: ds.label + ' (UK avg)',
                 data: mktData,
@@ -2655,6 +2714,17 @@ speciesSelect.addEventListener('change', function() {
 document.getElementById('marketAvgToggle').addEventListener('change', function() {
     showMarketAvg = this.checked;
     renderChart();
+});
+
+// Group by toggle (day/week/month)
+document.getElementById('groupToggle').addEventListener('click', function(e) {
+    const btn = e.target.closest('.toggle-btn');
+    if (!btn) return;
+    this.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentGroup = btn.dataset.group;
+    renderChart();
+    updateSummaryStats();
 });
 
 // Initial render

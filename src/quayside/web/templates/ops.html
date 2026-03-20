@@ -536,17 +536,18 @@
     {% elif today_succeeded_count == live_ports|length %}
     <div style="padding:14px 20px;background:rgba(109,184,138,0.08);border-bottom:1px solid rgba(109,184,138,0.25);font-size:13px;color:var(--up);">
         <strong>✓ All {{ live_ports|length }} ports scraped successfully.</strong>
-        First run at <strong>{{ today_first_run }}</strong> — price data is live on all port dashboards.
+        First run at <strong>{{ today_first_run }}</strong>.{% if today_last_run and today_last_run != today_first_run %} Last run at <strong>{{ today_last_run }}</strong>.{% endif %}{% if next_scrape_str %} Next run at <strong>{{ next_scrape_str }}</strong>.{% endif %}
     </div>
     {% elif today_succeeded_count > 0 %}
     <div style="padding:14px 20px;background:rgba(224,183,96,0.08);border-bottom:1px solid rgba(224,183,96,0.3);font-size:13px;color:#8a6800;">
         <strong>{{ today_succeeded_count }} of {{ live_ports|length }} ports scraped.</strong>
-        First run at <strong>{{ today_first_run }}</strong>.
+        First run at <strong>{{ today_first_run }}</strong>.{% if today_last_run and today_last_run != today_first_run %} Last run at <strong>{{ today_last_run }}</strong>.{% endif %}
         {{ live_ports|length - today_succeeded_count }} port{{ 's' if (live_ports|length - today_succeeded_count) != 1 }} had issues — see below.{% if next_scrape_str %} Next retry at <strong>{{ next_scrape_str }}</strong>.{% endif %}
     </div>
     {% else %}
     <div style="padding:14px 20px;background:rgba(224,112,96,0.08);border-bottom:1px solid rgba(224,112,96,0.3);font-size:13px;color:var(--down);">
-        <strong>Scrape attempted at {{ today_first_run }} but all ports failed.</strong>{% if next_scrape_str %} Next retry at <strong>{{ next_scrape_str }}</strong>.{% endif %}
+        <strong>All ports failed.</strong>
+        First run at <strong>{{ today_first_run }}</strong>.{% if today_last_run and today_last_run != today_first_run %} Last run at <strong>{{ today_last_run }}</strong>.{% endif %}{% if next_scrape_str %} Next retry at <strong>{{ next_scrape_str }}</strong>.{% endif %}
     </div>
     {% endif %}
 
@@ -555,7 +556,7 @@
             <tr>
                 <th>Port</th>
                 <th>Result</th>
-                <th>Runs today</th>
+                <th>Data runs</th>
                 <th>Records imported</th>
             </tr>
         </thead>
@@ -581,17 +582,14 @@
                 </td>
                 <td style="font-family:var(--font-mono);font-size:12px;line-height:1.8;">
                     {% if s %}
-                        <div style="color:var(--muted);font-size:10px;">First run {{ s.first_attempt }}</div>
                         {% if s.first_success %}
-                            <div>
-                                <span style="color:var(--up);">✓ data {{ s.first_success }}</span>
-                                <span style="color:var(--muted);font-size:10px;"> &middot; {{ s.success_count }}/{{ s.attempt_count }} ok</span>
-                            </div>
+                            {% if s.is_previous_data %}
+                            <div style="color:#b8860b;font-size:11px;">✓ data {{ s.first_success }} *</div>
+                            {% else %}
+                            <div style="color:var(--up);font-size:11px;">✓ data {{ s.first_success }}</div>
+                            {% endif %}
                         {% else %}
                             <div><span style="color:var(--down);">no data today</span></div>
-                        {% endif %}
-                        {% if s.last_attempt and s.last_attempt != s.first_attempt %}
-                        <div style="color:var(--muted);font-size:10px;">Last run {{ s.last_attempt }}</div>
                         {% endif %}
                     {% else %}—{% endif %}
                 </td>

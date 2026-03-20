@@ -1410,31 +1410,56 @@ def build_stat_strip_data(date: str) -> dict:
         last_updated = "--:--"
 
     # widest spread — species with greatest cross-port price spread
-    market = get_market_averages_for_date(date)
+    # Uses volume-weighted average per port/species (falls back to simple avg
+    # when weight_kg is missing).  Requires ≥2 grade rows per port so a single
+    # off-grade entry can't skew the comparison.
+    from collections import defaultdict
+
+    # Accumulate per (normalised_species, port): list of (price_avg, weight_kg)
+    _spread_data: dict[tuple[str, str], list[tuple[float, float | None]]] = defaultdict(list)
+    for r in rows:
+        price_avg = r[6]
+        if price_avg is None:
+            continue
+        sp = normalise_species(r[2])
+        if not sp:
+            continue
+        _spread_data[(sp, r[1])].append((price_avg, r[7]))  # r[7] = weight_kg
+
+    # Compute a single representative price per port/species
+    _port_price: dict[str, dict[str, float]] = defaultdict(dict)  # {species: {port: price}}
+    for (sp, port), entries in _spread_data.items():
+        if len(entries) < 2:
+            continue  # skip single-grade entries — not representative
+        weights = [w for _, w in entries if w and w > 0]
+        if weights and len(weights) == len(entries):
+            # Volume-weighted average
+            total_w = sum(w for _, w in entries)
+            avg_price = sum(p * w for p, w in entries) / total_w
+        else:
+            # Simple average when weight data is incomplete
+            avg_price = sum(p for p, _ in entries) / len(entries)
+        _port_price[sp][port] = avg_price
+
     widest_species = ""
     widest_spread_pct = 0
     widest_ports = ""
-    for raw_sp, data in market.items():
-        if data["port_count"] < 2:
+    for sp, port_prices in _port_price.items():
+        if len(port_prices) < 2:
             continue
-        sp_name = normalise_species(raw_sp)
-        if not sp_name:
+        prices = list(port_prices.values())
+        avg = sum(prices) / len(prices)
+        if avg <= 0:
             continue
-        avg = data["avg"]
-        if avg and avg > 0:
-            spread_pct = round(((data["max"] - data["min"]) / avg) * 100)
-        else:
-            spread_pct = 0
+        spread_pct = round(((max(prices) - min(prices)) / avg) * 100)
         if spread_pct > widest_spread_pct:
             widest_spread_pct = spread_pct
-            widest_species = sp_name
-            # Find which ports have min and max
-            ports = data["ports"]
-            max_port = max(ports, key=ports.get)
-            min_port = min(ports, key=ports.get)
+            widest_species = sp
+            max_port = max(port_prices, key=port_prices.get)
+            min_port = min(port_prices, key=port_prices.get)
             widest_ports = (
-                f"{max_port} \u00a3{ports[max_port]:.2f}"
-                f" vs {min_port} \u00a3{ports[min_port]:.2f}"
+                f"{max_port} \u00a3{port_prices[max_port]:.2f}"
+                f" vs {min_port} \u00a3{port_prices[min_port]:.2f}"
             )
 
     return {

@@ -952,7 +952,7 @@ def get_latest_scraped_at(port: str, date: str) -> str | None:
 
 
 def seed_demo_port_data() -> None:
-    """Seed 30 days of realistic price data for the Demo Port.
+    """Seed 90 days of realistic price data for the Demo Port.
 
     Always runs — refreshes demo data so the dashboard always looks current.
     Writes exclusively to the 'demo_prices' table — never touches 'prices'.
@@ -970,7 +970,7 @@ def seed_demo_port_data() -> None:
     today = datetime.now()
     rows = []
 
-    for day_offset in range(30):
+    for day_offset in range(90):
         date = today - timedelta(days=day_offset)
         if date.weekday() >= 5:
             continue
