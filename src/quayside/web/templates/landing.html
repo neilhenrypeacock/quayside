@@ -227,6 +227,26 @@
     border-radius: 2px;
     padding: 16px 20px;
   }
+  .mock-waitlist-cta {
+    display: block;
+    margin-top: 10px;
+    padding: 12px 20px;
+    background: rgba(109,184,138,0.12);
+    border: 1px solid rgba(109,184,138,0.3);
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6db88a;
+    text-decoration: none;
+    text-align: center;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .mock-waitlist-cta:hover {
+    background: rgba(109,184,138,0.2);
+    border-color: rgba(109,184,138,0.5);
+  }
   .digest-subject {
     font-family: var(--font-mono);
     font-size: 10px;
@@ -1128,7 +1148,7 @@
         <input type="email" name="email" placeholder="Your email address" required class="email-input">
         <button type="submit" class="btn-primary">Get the free digest</button>
       </div>
-      <p class="form-note">Free daily digest launching April 2026. Sign up now to be first in line.</p>
+      <p class="form-note">Free daily email digest launching April 2026. Sign up now to be first in line.</p>
     </form>
   </div>
   <div class="hero-right">
@@ -1141,7 +1161,7 @@
         {% elif is_today %}
         <span class="mock-tag" style="color:#c8941a;background:rgba(200,148,26,0.15);">Updating</span>
         {% else %}
-        <span class="mock-tag" style="color:#7a7060;background:rgba(122,112,96,0.12);">Yesterday</span>
+        <span class="mock-tag" style="color:#7a7060;background:rgba(122,112,96,0.12);">{{ ld.port_count }} ports &middot; yesterday</span>
         {% endif %}
       </div>
       {% for row in ld.key_species_rows %}
@@ -1165,6 +1185,7 @@
         {% for m in ld.top_movers %}<strong>{{ m.species }}</strong> {% if m.direction == "up" %}surging{% else %}down{% endif %}{% if m.port %} at {{ m.port }}{% endif %} &pound;{{ "%.2f"|format(m.price) }}.{% if not loop.last %} {% endif %}{% endfor %} Full breakdown &#8595;
       </div>
     </div>
+    <a href="#signup-form" class="mock-waitlist-cta">Get this free daily email digest &rarr;</a>
     {% elif ld and ld.key_species_fallback %}
     <div class="mock-card">
       <div class="mock-card-header">
@@ -1296,8 +1317,8 @@
       </div>
       <div class="how-step fade-up">
         <div class="how-num">02</div>
-        <div class="how-title">Published online &amp; in your inbox</div>
-        <div class="how-body">Launching April 2026. Quayside publishes prices as they arrive throughout the day &mdash; building a full picture as each market reports. Your daily digest lands at 3pm: top movers, cross-port comparisons, and anything unusual, flagged.</div>
+        <div class="how-title">Prices on your dashboard, updated throughout the day</div>
+        <div class="how-body">Quayside publishes prices to your dashboard as they arrive throughout the day &mdash; building a full picture as each market reports. Your daily email digest lands each morning: top movers, cross-port comparisons, and anything unusual, flagged.</div>
       </div>
       <div class="how-step fade-up">
         <div class="how-num">03</div>

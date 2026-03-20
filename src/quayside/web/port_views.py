@@ -176,6 +176,10 @@ def port_dashboard(slug: str):
         if market_overall > 0:
             hero_vs_market = round(((port_overall - market_overall) / market_overall) * 100, 1)
 
+    # vs last 30 days (self-comparison): today's avg vs this port's 30-day rolling avg
+    hero_vs_30d = None
+    hero_30d_price = None
+
     species_gaps = [
         normalise_species(s)
         for s in get_species_availability_gaps(port["name"], date)
@@ -223,6 +227,13 @@ def port_dashboard(slug: str):
         freshness_status = "offline"
 
     perf = build_performance_overview(port["name"], date, history, market)
+
+    # Compute vs-30-day self-comparison now that perf is available
+    if perf and perf.get("this_month_avg") and hero_avg_price:
+        hero_30d_price = round(perf["this_month_avg"], 2)
+        if hero_30d_price > 0:
+            hero_vs_30d = round(((hero_avg_price - hero_30d_price) / hero_30d_price) * 100, 1)
+
     category_stats = build_category_stats(today_data, last_week_prices, market, history)
 
     # Phase 1: Competitive position, smart alerts, missing species
@@ -264,6 +275,8 @@ def port_dashboard(slug: str):
         hero_vs_last_week=hero_vs_last_week,
         hero_last_week_price=hero_last_week_price,
         hero_vs_market=hero_vs_market,
+        hero_vs_30d=hero_vs_30d,
+        hero_30d_price=hero_30d_price,
         species_grades=species_grades,
         species_gaps=species_gaps,
         seasonal_data=seasonal_data,

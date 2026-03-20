@@ -552,8 +552,11 @@ def build_landing_data(date: str) -> dict:
             best = item["rows"][0]  # already sorted price desc
             species_top_port[item["species"]] = (best["port"], best["price_avg"])
 
+    key_species_for_movers = set(KEY_SPECIES)
     top_movers = []
-    for m in data["movers"][:3]:
+    for m in data["movers"]:
+        if m["species"] not in key_species_for_movers:
+            continue
         port, price = species_top_port.get(m["species"], ("", m["price"]))
         top_movers.append({
             "species": m["species"],
@@ -562,6 +565,8 @@ def build_landing_data(date: str) -> dict:
             "pct_str": m["pct_str"],
             "direction": m["direction"],
         })
+        if len(top_movers) >= 3:
+            break
 
     # --- Ticker items with per-port day-over-day direction ---
     ticker_items = []

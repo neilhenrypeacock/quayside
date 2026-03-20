@@ -506,6 +506,15 @@
     }
     .competitive-row:hover { background: rgba(26,58,74,0.02); }
     .competitive-row.open { background: rgba(26,58,74,0.03); }
+    .expand-hint {
+        display: inline-block;
+        font-size: 10px;
+        color: var(--muted);
+        margin-left: 4px;
+        transition: transform 0.15s;
+        vertical-align: middle;
+    }
+    .competitive-row.open .expand-hint { transform: rotate(180deg); }
     .species-name {
         font-family: var(--font-serif);
         font-style: italic;
@@ -1580,7 +1589,6 @@
         <li><a href="#section-position">Market Position</a></li>
     </ul>
     <ul class="sidebar-nav" data-tab-group="tools" style="display:none;">
-        <li><a href="#section-ranking">Ranking</a></li>
         <li><a href="#section-compare">Compare</a></li>
         <li><a href="#section-customize">Customize</a></li>
         <li><a href="{{ url_for('ports.port_upload', slug=port.slug) }}" class="sidebar-upload-link">Upload &amp; Edit</a></li>
@@ -1705,13 +1713,14 @@
         <div class="hero-description">Change vs the same weekday last week</div>
     </div>
     <div class="hero-stat">
-        {% if hero_vs_market is not none %}
-        <div class="hero-value {{ 'hero-value-up' if hero_vs_market >= 0 else 'hero-value-down' }}" id="hero-vs-market">{{ "+" if hero_vs_market >= 0 }}{{ "%.1f"|format(hero_vs_market) }}%</div>
+        {% if hero_vs_30d is not none %}
+        <div class="hero-value {{ 'hero-value-up' if hero_vs_30d >= 0 else 'hero-value-down' }}" id="hero-vs-30d">{{ "+" if hero_vs_30d >= 0 }}{{ "%.1f"|format(hero_vs_30d) }}%</div>
         {% else %}
-        <div class="hero-value" id="hero-vs-market">&mdash;</div>
+        <div class="hero-value" id="hero-vs-30d">&mdash;</div>
         {% endif %}
-        <div class="hero-label">vs UK market avg <span class="info-tip">ⓘ<span class="info-tip-text">Market average is a simple mean across all ports reporting this species today. Ports are weighted equally regardless of volume. Scrabster's contribution is a midpoint estimate (not a true average).</span></span></div>
-        <div class="hero-description">Today's avg above (+) or below (−) the UK-wide average across all ports</div>
+        <div class="hero-label">vs last 30 days <span class="info-tip">ⓘ<span class="info-tip-text">Compares today's average price against this port's own 30-day rolling average. A positive percentage means today is performing above your recent trend.</span></span></div>
+        <div class="hero-sub-price" id="hero-30d-price">{% if hero_30d_price is not none %}&pound;{{ "%.2f"|format(hero_30d_price) }} 30-day avg{% endif %}</div>
+        <div class="hero-description">Today's avg vs your own 30-day rolling average</div>
     </div>
     {% if competitive_summary and competitive_summary.like_for_like_position_pct is not none %}
     <div class="hero-stat">
@@ -1724,7 +1733,7 @@
 
 <!-- ═══ ZONE 2: COMPETITIVE POSITION SCOREBOARD ═══ -->
 {% if competitive %}
-<div class="section-heading" id="section-competitive" style="scroll-margin-top:80px;">Competitive Position <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Market average is calculated only from ports selling the same species as you today. Species where you're the only port reporting are excluded.</span></span></div>
+<div class="section-heading" id="section-competitive" style="scroll-margin-top:80px;">Competitive Position <span class="info-tip" style="text-transform:none;letter-spacing:0;">ⓘ<span class="info-tip-text">Market average is calculated from ports selling the same species today — your port is excluded from the average. Data varies by port: Peterhead shares price ranges only (no volume), Brixham and Newlyn share prices with weight, Lerwick shares prices with volume but no minimums, Scrabster shares price ranges with box counts. Grade systems differ, so we compare top-grade averages. Species where you're the only port reporting are shown separately.</span></span></div>
 <div class="competitive-card">
     <div class="competitive-summary-row">
         <div class="competitive-summary-stat">
@@ -1745,6 +1754,16 @@
         </div>
     </div>
 
+    <div class="competitive-range-controls" style="display:flex;align-items:center;gap:12px;margin:16px 0 12px;">
+        <div class="toggle-group" id="competitiveRange">
+            <button class="toggle-btn active" data-days="1">Today</button>
+            <button class="toggle-btn" data-days="7">7d</button>
+            <button class="toggle-btn" data-days="30">30d</button>
+            <button class="toggle-btn" data-days="90">90d</button>
+        </div>
+    </div>
+
+    <div id="competitiveTodayView">
     {% set comparable = competitive | selectattr('is_only_port', 'false') | list %}
     {% if comparable %}
     <table class="competitive-table">
@@ -1753,6 +1772,7 @@
                 <th>Species</th>
                 <th style="width:180px;">Market position</th>
                 <th class="price">Your avg</th>
+                <th class="price">Market avg</th>
                 <th class="price">vs market</th>
                 <th>Comparison ports</th>
             </tr>
@@ -1763,6 +1783,7 @@
                 <td>
                     <span class="species-name">{{ item.species }}</span>
                     {% if item.is_best_uk %}<span class="badge badge-best">BEST UK</span>{% endif %}
+                    {% if item.port_grades | length > 1 %}<span class="expand-hint">&#9662;</span>{% endif %}
                 </td>
                 <td>
                     <div class="comp-bar-track">
@@ -1778,6 +1799,7 @@
                     </div>
                 </td>
                 <td class="price">&pound;{{ "%.2f"|format(item.port_avg) }}</td>
+                <td class="price">{% if item.market_avg %}&pound;{{ "%.2f"|format(item.market_avg) }}{% else %}&mdash;{% endif %}</td>
                 <td class="price">
                     {% if item.vs_market_pct is not none %}
                     <span class="{{ 'change-up' if item.vs_market_pct >= 0 else 'change-down' }}">{{ "+" if item.vs_market_pct >= 0 }}{{ "%.1f"|format(item.vs_market_pct) }}%</span>
@@ -1788,7 +1810,7 @@
                 </td>
             </tr>
             <tr class="competitive-expand-row" data-expand-for="{{ item.species }}" style="display:none;">
-                <td colspan="5">
+                <td colspan="6">
                     <div class="comp-expand-content">
                         <div class="comp-expand-grades">
                             <div class="comp-expand-label">Your grades</div>
@@ -2006,28 +2028,6 @@
 
 </div>
 {% endif %}
-
-<!-- ═══ SECTION: Ranking ═══ -->
-<div class="section-heading">Ranking</div>
-<div id="section-ranking" class="ranking-card">
-    <div class="ranking-controls">
-        <select class="ranking-species-select" id="rankingSpecies">
-            <option value="">All species</option>
-            {% for item in today_data | unique(attribute='species') | sort(attribute='species') %}
-            <option value="{{ item.species }}">{{ item.species }}</option>
-            {% endfor %}
-        </select>
-        <div class="toggle-group" id="rankingRange">
-            <button class="toggle-btn active" data-days="1">Today</button>
-            <button class="toggle-btn" data-days="7">7d</button>
-            <button class="toggle-btn" data-days="30">30d</button>
-            <button class="toggle-btn" data-days="90">90d</button>
-        </div>
-    </div>
-    <div id="rankingTableContainer">
-        <div class="ranking-empty">Loading&hellip;</div>
-    </div>
-</div>
 
 <!-- ═══ SECTION: Highlights of Your Day ═══ -->
 {% if port_insights %}
@@ -2405,18 +2405,7 @@ const DAY_NAME = {{ day_name|tojson }};
                 : '';
         }
 
-        // Card 5: vs UK market
-        const mktEl = document.getElementById('hero-vs-market');
-        if (mktEl) {
-            if (stats.vs_market !== null) {
-                const sign = stats.vs_market >= 0 ? '+' : '';
-                mktEl.innerHTML = sign + stats.vs_market.toFixed(1) + '%';
-                mktEl.className = 'hero-value ' + (stats.vs_market >= 0 ? 'hero-value-up' : 'hero-value-down');
-            } else {
-                mktEl.innerHTML = '&mdash;';
-                mktEl.className = 'hero-value';
-            }
-        }
+        // Card 3 (vs 30 days) is port-level, not category-specific — no update needed
     }
 
     document.querySelectorAll('.cat-pill').forEach(function(pill) {

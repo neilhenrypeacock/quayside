@@ -384,6 +384,7 @@ def ops_dashboard():
                     "first_success": None,
                     "last_success": None,
                     "success_count": 0,
+                    "success_times": [],
                     "status": "failed",
                     "record_count": 0,
                     "error_type": None,
@@ -393,6 +394,7 @@ def ops_dashboard():
                     today_scrape_summary[port_name]["first_success"] = time_str
                 today_scrape_summary[port_name]["last_success"] = time_str
                 today_scrape_summary[port_name]["success_count"] += 1
+                today_scrape_summary[port_name]["success_times"].append(time_str)
                 today_scrape_summary[port_name]["status"] = "success"
                 today_scrape_summary[port_name]["record_count"] = row["record_count"]
             elif today_scrape_summary[port_name]["status"] != "success":

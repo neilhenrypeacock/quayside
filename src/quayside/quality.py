@@ -72,7 +72,7 @@ def run_quality_checks(date: str | None = None) -> dict:
     active_ports = [r[0] for r in conn.execute(_ACTIVE_PORTS_SQL).fetchall()]
 
     issues.extend(_check_outlier_prices(conn, date, checked_at, active_ports))
-    issues.extend(_check_record_count(conn, date, checked_at, active_ports))
+    # record_count check removed — pipeline table already shows missing data clearly
     issues.extend(_check_stale_data(conn, date, checked_at, active_ports))
     issues.extend(_check_day_avg_spike(conn, date, checked_at, active_ports))
     issues.extend(_check_seeded_data(conn, date, checked_at, active_ports))
