@@ -5,7 +5,7 @@ from __future__ import annotations
 import jinja2
 from flask import Blueprint, render_template
 
-from quayside.db import get_latest_rich_date
+from quayside.db import get_latest_rich_date, get_previous_date
 from quayside.report import build_report_data
 from quayside.review import build_monthly_data, build_weekly_data
 
@@ -39,10 +39,11 @@ def digest_page(date: str | None = None):
 
 @digest_bp.route("/digest/yesterday")
 def digest_yesterday():
-    """Show the most recent completed trading day digest."""
-    date = get_latest_rich_date()
-    if not date:
+    """Show the previous trading day's digest (one day before latest)."""
+    latest = get_latest_rich_date()
+    if not latest:
         return render_template("landing.html")
+    date = get_previous_date(latest) or latest
     data = build_report_data(date)
     digest_template = _digest_env.get_template("digest.html")
     digest_html = digest_template.render(**data)

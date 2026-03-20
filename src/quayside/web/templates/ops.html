@@ -567,8 +567,10 @@
                 <td>
                     {% if s %}
                         {% if s.status == 'success' %}
-                        <span class="status-badge active">Success</span>
-                        {% elif s.status == 'empty' or s.status == 'stale' %}
+                        <span class="status-badge active">Success{% if s.data_date_display %} · {{ s.data_date_display }}{% elif s.last_data_date_display %} · {{ s.last_data_date_display }}{% endif %}</span>
+                        {% elif s.status == 'stale' %}
+                        <span class="status-badge stale">Stale · last {{ s.last_data_date_display or s.last_data_date or '?' }}</span>
+                        {% elif s.status == 'empty' %}
                         <span class="status-badge stale">No data since {{ s.last_data_date_display or s.last_data_date or '?' }}</span>
                         {% else %}
                         <span class="status-badge outreach">Failed</span>
@@ -595,9 +597,9 @@
                 </td>
                 <td style="font-family:var(--font-mono);font-size:12px;">
                     {% if s and s.status == 'success' %}
-                        <span style="color:var(--up);">{{ s.record_count }} records</span>
+                        <span style="color:var(--up);">{{ s.record_count }} records{% if s.data_date_display %} ({{ s.data_date_display }}){% endif %}</span>
                     {% elif s and (s.status == 'empty' or s.status == 'stale') %}
-                        <span style="color:#a06010;">No data since {{ s.last_data_date or '—' }}</span>
+                        <span style="color:#a06010;">Last data: {{ s.last_data_date_display or s.last_data_date or '—' }}</span>
                     {% elif s and s.error_type %}
                         <span style="color:var(--down);">{{ s.error_type }}</span>
                     {% elif s %}

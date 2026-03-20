@@ -84,7 +84,8 @@ def init_db() -> None:
             success INTEGER NOT NULL,
             record_count INTEGER DEFAULT 0,
             error_type TEXT,
-            error_msg TEXT
+            error_msg TEXT,
+            data_date TEXT
         );
 
         CREATE TABLE IF NOT EXISTS quality_log (
@@ -227,11 +228,19 @@ def _migrate(conn: sqlite3.Connection) -> None:
                 success INTEGER NOT NULL,
                 record_count INTEGER DEFAULT 0,
                 error_type TEXT,
-                error_msg TEXT
+                error_msg TEXT,
+                data_date TEXT
             )
         """)
     except Exception:
         pass
+    # Add data_date column to existing scrape_log tables
+    existing_scrape_cols = {row[1] for row in conn.execute("PRAGMA table_info(scrape_log)").fetchall()}
+    if "data_date" not in existing_scrape_cols:
+        try:
+            conn.execute("ALTER TABLE scrape_log ADD COLUMN data_date TEXT")
+        except Exception:
+            pass
     # quality_log table
     try:
         conn.execute("""
@@ -370,13 +379,14 @@ def log_scrape_attempt(
     record_count: int = 0,
     error_type: str | None = None,
     error_msg: str | None = None,
+    data_date: str | None = None,
 ) -> None:
     """Record a scrape attempt result in scrape_log."""
     conn = get_connection()
     conn.execute(
-        """INSERT INTO scrape_log (ran_at, port, success, record_count, error_type, error_msg)
-           VALUES (datetime('now', 'localtime'), ?, ?, ?, ?, ?)""",
-        (port, 1 if success else 0, record_count, error_type, error_msg),
+        """INSERT INTO scrape_log (ran_at, port, success, record_count, error_type, error_msg, data_date)
+           VALUES (datetime('now', 'localtime'), ?, ?, ?, ?, ?, ?)""",
+        (port, 1 if success else 0, record_count, error_type, error_msg, data_date),
     )
     conn.commit()
     conn.close()

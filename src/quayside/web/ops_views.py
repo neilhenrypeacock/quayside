@@ -407,6 +407,19 @@ def ops_dashboard():
     ).fetchall()
     latest_data_date = {row["port"]: row["last_data_date"] for row in latest_data_date_rows}
 
+    # Get latest data_date from today's scrape logs (what date did the scraper find?)
+    latest_scrape_data_date: dict[str, str] = {}
+    try:
+        data_date_rows = conn.execute(
+            "SELECT port, data_date FROM scrape_log WHERE ran_at >= ? AND data_date IS NOT NULL ORDER BY ran_at DESC",
+            (today_str_for_log,),
+        ).fetchall()
+        for row in data_date_rows:
+            if row["port"] not in latest_scrape_data_date:
+                latest_scrape_data_date[row["port"]] = row["data_date"]
+    except Exception:
+        pass
+
     for _pname, _s in today_scrape_summary.items():
         _s["last_attempt"] = last_attempt_per_port.get(_pname)
 
@@ -418,15 +431,22 @@ def ops_dashboard():
     conn.close()
 
     today_str = today.strftime("%Y-%m-%d")
+    yesterday_str = (today - timedelta(days=1)).strftime("%Y-%m-%d")
     today_is_weekday = today.weekday() < 5
 
     for port_name, summary in today_scrape_summary.items():
         if summary["status"] == "success":
             last_date = latest_data_date.get(port_name)
-            if last_date and last_date < today_str:
-                summary["status"] = "stale"
+            scrape_data_date = latest_scrape_data_date.get(port_name)
+            if last_date:
                 summary["last_data_date"] = last_date
                 summary["last_data_date_display"] = datetime.strptime(last_date, "%Y-%m-%d").strftime("%-d %b")
+                # Show data_date alongside record count so ops can see what date was scraped
+                if scrape_data_date:
+                    summary["data_date_display"] = datetime.strptime(scrape_data_date, "%Y-%m-%d").strftime("%-d %b")
+                # Only mark stale if latest data is >1 day old (most ports publish previous-day prices)
+                if last_date < yesterday_str:
+                    summary["status"] = "stale"
 
     today_succeeded = [p for p in today_scrape_summary.values() if p["status"] == "success"]
     today_attempted_count = len(today_scrape_summary)

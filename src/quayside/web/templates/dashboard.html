@@ -1864,6 +1864,11 @@
         </div>
     </details>
     {% endif %}
+    </div><!-- /competitiveTodayView -->
+
+    <div id="competitiveRankingView" style="display:none;">
+        <div class="ranking-empty" style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:16px 0;">Loading&hellip;</div>
+    </div>
 </div>
 {% endif %}
 
@@ -1967,7 +1972,7 @@
     {% if best_performers and (best_performers.strongest_species or best_performers.month_summary) %}
     <div id="section-best" class="best-grid" style="margin-top:20px;">
         <div class="best-panel">
-            <h3>Strongest vs Market</h3>
+            <h3>Strongest vs Market <span style="font-family:var(--font-mono);font-size:10px;font-weight:400;color:var(--muted);letter-spacing:0.04em;">last 30 days &middot; 5+ days &middot; 2+ ports</span></h3>
             {% if best_performers.strongest_species %}
             <table>
                 <thead>
@@ -2738,14 +2743,16 @@ function scrollActiveDateTab() {
 </script>
 
 <script>
-// ═══ Ranking panel ═══
+// ═══ Competitive Position: time-range toggle ═══
 (function() {
     var portSlug = {{ port.slug | tojson }};
     var latestDate = {{ date | tojson }};
+    var todayView = document.getElementById('competitiveTodayView');
+    var rankingView = document.getElementById('competitiveRankingView');
+    var toggleGroup = document.getElementById('competitiveRange');
+    if (!todayView || !rankingView || !toggleGroup) return;
+
     var currentDays = 1;
-    var currentSpecies = '';
-    var container = document.getElementById('rankingTableContainer');
-    if (!container) return;
 
     function ordinal(n) {
         var s = ['th','st','nd','rd'], v = n % 100;
@@ -2754,7 +2761,7 @@ function scrollActiveDateTab() {
 
     function renderSummaryTable(rows, period) {
         if (!rows || !rows.length) {
-            container.innerHTML = '<div class="ranking-empty">No data for this period.</div>';
+            rankingView.innerHTML = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:16px 0;">No data for this period.</div>';
             return;
         }
         var html = '<p style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-bottom:10px;letter-spacing:0.04em;">' + period + ' — your rank for each species across all UK ports</p>';
@@ -2771,12 +2778,12 @@ function scrollActiveDateTab() {
             html += '</tr>';
         });
         html += '</tbody></table>';
-        container.innerHTML = html;
+        rankingView.innerHTML = html;
     }
 
     function renderSpeciesTable(data) {
         if (!data.rows || !data.rows.length) {
-            container.innerHTML = '<div class="ranking-empty">No other ports reporting ' + data.species + ' for this period.</div>';
+            rankingView.innerHTML = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:16px 0;">No other ports reporting ' + data.species + ' for this period.</div>';
             return;
         }
         var html = '<p style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-bottom:10px;letter-spacing:0.04em;">' + data.period + ' &mdash; all ports reporting <em style="font-style:italic;">' + data.species + '</em></p>';
@@ -2793,41 +2800,62 @@ function scrollActiveDateTab() {
             html += '</tr>';
         });
         html += '</tbody></table>';
-        container.innerHTML = html;
+        rankingView.innerHTML = html;
     }
 
     function loadRanking() {
-        container.innerHTML = '<div class="ranking-empty">Loading&hellip;</div>';
+        rankingView.innerHTML = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:16px 0;">Loading&hellip;</div>';
         var url = '/port/' + portSlug + '/api/ranking?date=' + latestDate + '&days=' + currentDays;
-        if (currentSpecies) url += '&species=' + encodeURIComponent(currentSpecies);
         fetch(url).then(function(r) { return r.json(); }).then(function(data) {
             if (data.mode === 'summary') renderSummaryTable(data.rows, data.period);
             else renderSpeciesTable(data);
         }).catch(function() {
-            container.innerHTML = '<div class="ranking-empty">Could not load ranking data.</div>';
+            rankingView.innerHTML = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:16px 0;">Could not load ranking data.</div>';
         });
     }
 
-    // Range tabs
-    document.querySelectorAll('#rankingRange .toggle-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('#rankingRange .toggle-btn').forEach(function(b) { b.classList.remove('active'); });
-            btn.classList.add('active');
-            currentDays = parseInt(btn.dataset.days);
+    // Toggle between Today (server-rendered) and 7d/30d/90d (AJAX ranking)
+    toggleGroup.addEventListener('click', function(e) {
+        var btn = e.target.closest('.toggle-btn');
+        if (!btn) return;
+        toggleGroup.querySelectorAll('.toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        currentDays = parseInt(btn.dataset.days);
+
+        if (currentDays <= 1) {
+            todayView.style.display = '';
+            rankingView.style.display = 'none';
+        } else {
+            todayView.style.display = 'none';
+            rankingView.style.display = '';
             loadRanking();
-        });
+        }
     });
 
-    // Species select
-    var speciesSelect = document.getElementById('rankingSpecies');
-    if (speciesSelect) {
-        speciesSelect.addEventListener('change', function() {
-            currentSpecies = this.value;
-            loadRanking();
+    // Clicking a species row in ranking view drills into that species
+    rankingView.addEventListener('click', function(e) {
+        var row = e.target.closest('tr');
+        if (!row) return;
+        var speciesCell = row.querySelector('em');
+        if (!speciesCell) return;
+        var species = speciesCell.textContent.trim();
+        rankingView.innerHTML = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:16px 0;">Loading&hellip;</div>';
+        var url = '/port/' + portSlug + '/api/ranking?date=' + latestDate + '&days=' + currentDays + '&species=' + encodeURIComponent(species);
+        fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+            renderSpeciesTable(data);
+            // Add a back link
+            var backLink = document.createElement('p');
+            backLink.style.cssText = 'font-family:var(--font-mono);font-size:10px;margin-top:8px;';
+            backLink.innerHTML = '<a href="#" style="color:var(--catch);text-decoration:none;" onclick="event.preventDefault();this.parentElement.remove();">&larr; Back to all species</a>';
+            backLink.querySelector('a').addEventListener('click', function(ev) {
+                ev.preventDefault();
+                loadRanking();
+            });
+            rankingView.insertBefore(backLink, rankingView.firstChild);
+        }).catch(function() {
+            rankingView.innerHTML = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:16px 0;">Could not load ranking data.</div>';
         });
-    }
-
-    loadRanking();
+    });
 })();
 
 // ═══ Insights time tabs ═══

@@ -88,7 +88,8 @@ def main() -> int:
     log_scrape_attempt("Peterhead", success=err is None and len(prices) > 0,
                        record_count=len(prices),
                        error_type=err["type"] if err else None,
-                       error_msg=err["error"] if err else None)
+                       error_msg=err["error"] if err else None,
+                       data_date=prices[0].date if prices else None)
     all_prices += prices
 
     # --- Lerwick (prices from SSA portal XLSX) ---
@@ -103,7 +104,8 @@ def main() -> int:
     log_scrape_attempt("Lerwick", success=err is None and len(lerwick_prices) > 0,
                        record_count=len(lerwick_prices),
                        error_type=err["type"] if err else None,
-                       error_msg=err["error"] if err else None)
+                       error_msg=err["error"] if err else None,
+                       data_date=lerwick_prices[0].date if lerwick_prices else None)
     all_prices += lerwick_prices
 
     # --- Fraserburgh (prices only — dormant, SWFPA stopped publishing) ---
@@ -114,7 +116,8 @@ def main() -> int:
     log_scrape_attempt("Fraserburgh", success=err is None and len(fraserburgh_prices) > 0,
                        record_count=len(fraserburgh_prices),
                        error_type=err["type"] if err else None,
-                       error_msg=err["error"] if err else None)
+                       error_msg=err["error"] if err else None,
+                       data_date=fraserburgh_prices[0].date if fraserburgh_prices else None)
     all_prices += fraserburgh_prices
 
     # --- Brixham ---
@@ -131,7 +134,8 @@ def main() -> int:
     log_scrape_attempt("Brixham", success=err is None and len(brixham_prices) > 0,
                        record_count=len(brixham_prices),
                        error_type=err["type"] if err else None,
-                       error_msg=err["error"] if err else None)
+                       error_msg=err["error"] if err else None,
+                       data_date=brixham_prices[0].date if brixham_prices else None)
     all_prices += brixham_prices
 
     # --- Newlyn (SWFPA primary, CFPO fallback) ---
@@ -159,7 +163,8 @@ def main() -> int:
     log_scrape_attempt("Newlyn", success=err is None and len(newlyn_prices) > 0,
                        record_count=len(newlyn_prices),
                        error_type=err["type"] if err else None,
-                       error_msg=err["error"] if err else None)
+                       error_msg=err["error"] if err else None,
+                       data_date=newlyn_prices[0].date if newlyn_prices else None)
     all_prices += newlyn_prices
 
     # --- Scrabster ---
@@ -170,7 +175,8 @@ def main() -> int:
     log_scrape_attempt("Scrabster", success=err is None and len(scrabster_prices) > 0,
                        record_count=len(scrabster_prices),
                        error_type=err["type"] if err else None,
-                       error_msg=err["error"] if err else None)
+                       error_msg=err["error"] if err else None,
+                       data_date=scrabster_prices[0].date if scrabster_prices else None)
     all_prices += scrabster_prices
 
     # --- Scraper health summary ---

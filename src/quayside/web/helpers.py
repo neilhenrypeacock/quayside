@@ -156,6 +156,15 @@ def build_best_performers(
     # Get market averages for the same range
     market_range = get_market_averages_for_range(start_date, end_date)
 
+    # Count distinct ports per species across the period for reliability filtering
+    all_range_rows = get_prices_for_date_range(start_date, end_date)
+    species_port_set: dict[str, set[str]] = defaultdict(set)
+    for _d, row_port, row_sp, _grade, _low, _high, row_avg, *_ in all_range_rows:
+        if row_avg:
+            canon = normalise_species(row_sp)
+            if canon:
+                species_port_set[canon].add(row_port)
+
     # Group port prices by (date, species) -> best avg
     port_by_date_species: dict[str, dict[str, float]] = defaultdict(dict)
     for hist_date, species, _grade, _low, _high, avg in port_history:
@@ -167,6 +176,10 @@ def build_best_performers(
                 port_by_date_species[hist_date][canonical] = avg
 
     # --- Strongest species: % above market average over period ---
+    # Reliability filter: require 5+ comparison days from 2+ ports
+    min_comparison_days = 5
+    min_ports = 2
+
     species_vs_market: dict[str, list[float]] = defaultdict(list)
     species_above_count: dict[str, int] = defaultdict(int)
     species_total_days: dict[str, int] = defaultdict(int)
@@ -186,9 +199,13 @@ def build_best_performers(
 
     strongest = []
     for species, vs_list in species_vs_market.items():
+        total_days = species_total_days[species]
+        port_count = len(species_port_set.get(species, set()))
+        # Skip species without enough comparison data
+        if total_days < min_comparison_days or port_count < min_ports:
+            continue
         avg_vs = sum(vs_list) / len(vs_list)
         avg_price = sum(species_avg_price[species]) / len(species_avg_price[species])
-        total_days = species_total_days[species]
         above_days = species_above_count[species]
         strongest.append({
             "species": species,
