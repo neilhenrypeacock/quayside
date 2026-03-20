@@ -93,18 +93,31 @@ def build_trend_data(
     market_avgs: optional {date: {raw_species: market_avg}} from
     get_market_averages_for_range — used to overlay the real UK market average.
     """
-    species_dates: dict[str, dict[str, float]] = defaultdict(dict)
+    # Collect all grade prices per (species, date) for averaging
+    species_date_prices: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
 
     for date, species, _grade, _low, _high, avg in history:
         canonical = normalise_species(species)
         if canonical is None:
             continue
-        if avg and (date not in species_dates[canonical] or avg > species_dates[canonical][date]):
-            species_dates[canonical][date] = avg
+        if avg:
+            species_date_prices[canonical][date].append(avg)
 
-    # Get top 5 species by frequency
-    species_freq = sorted(species_dates.keys(), key=lambda s: len(species_dates[s]), reverse=True)
-    top_species = species_freq[:5]
+    # Average across grades per species per date
+    species_dates: dict[str, dict[str, float]] = {}
+    for sp, date_prices in species_date_prices.items():
+        species_dates[sp] = {
+            d: sum(prices) / len(prices)
+            for d, prices in date_prices.items()
+        }
+
+    # Top 5 species by economic significance (frequency * avg price)
+    def species_score(sp: str) -> float:
+        prices = list(species_dates[sp].values())
+        return len(prices) * (sum(prices) / len(prices)) if prices else 0
+
+    species_ranked = sorted(species_dates.keys(), key=species_score, reverse=True)
+    top_species = species_ranked[:5]
 
     # Build chart data
     all_dates = sorted({d for sp in top_species for d in species_dates[sp]})

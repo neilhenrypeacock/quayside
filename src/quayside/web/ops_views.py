@@ -550,6 +550,15 @@ def ops_clear_quality_issue(issue_id):
     return jsonify({"ok": True})
 
 
+@ops_bp.route("/ops/quality/clear-all", methods=["POST"])
+def ops_clear_all_quality_issues():
+    """Mark all open quality issues as cleared."""
+    from quayside.db import clear_all_quality_issues
+
+    count = clear_all_quality_issues()
+    return jsonify({"ok": True, "cleared": count})
+
+
 @ops_bp.route("/ops/quality-report")
 def ops_quality_report():
     """Comprehensive quality report — port dashboards, digest preview, ops health."""

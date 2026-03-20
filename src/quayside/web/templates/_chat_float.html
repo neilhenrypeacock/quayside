@@ -1,4 +1,4 @@
-{# Floating chat bar — shared between trade and port dashboards.
+{# Floating chat FAB — shared between trade and port dashboards.
 
    Required template variables:
      chat_endpoint  — URL string, e.g. "/trade/chat" or "/port/peterhead/chat"
@@ -9,26 +9,29 @@
      window.CHAT_CONTEXT = { date: "2026-03-19", species_count: 18, top_prices: [...] };
 #}
 
-<!-- Floating chat bar -->
-<div class="chat-float-bar" id="chat-float-bar">
-    <div class="chat-float-toggle" onclick="toggleChatBar()">
-        <span class="chat-float-label">Ask Quayside</span>
-    </div>
-    <div class="chat-float-input-wrap">
-        <input type="text" class="chat-float-input" id="chat-input"
-               placeholder="Ask about prices, trends, opportunities&hellip;"
-               onkeydown="if(event.key==='Enter')sendChat()"
-               onfocus="expandChatBar()">
-        <button class="chat-float-send" id="chat-send-btn" onclick="sendChat()">Send</button>
-    </div>
-    <div class="chat-float-pills" id="chat-float-pills"></div>
+<!-- Floating chat FAB -->
+<div class="chat-fab" id="chat-fab">
+    <button class="chat-fab-btn" onclick="toggleChatFab()" aria-label="Ask Quayside">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
+    <span class="chat-fab-label">Ask Quayside</span>
 
-    <!-- Expanded panel -->
-    <div class="chat-float-panel" id="chat-float-panel" style="display:none;">
-        <div class="chat-float-messages" id="chat-messages">
-            <div class="chat-msg system-msg" style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:8px 0;">Ask me anything about today's fish prices, trends, or market opportunities.</div>
+    <div class="chat-fab-panel" id="chat-fab-panel">
+        <div class="chat-fab-header">
+            <span class="chat-fab-header-title">Ask Quayside</span>
+            <button class="chat-fab-close" onclick="closeChatFab()" aria-label="Close">&times;</button>
         </div>
-        <div class="chat-thinking" id="chat-thinking" style="display:none;">Thinking&hellip;</div>
+        <div class="chat-fab-pills" id="chat-fab-pills"></div>
+        <div class="chat-fab-messages" id="chat-messages">
+            <div class="chat-msg system-msg">Ask me anything about today's fish prices, trends, or market opportunities.</div>
+        </div>
+        <div class="chat-fab-thinking" id="chat-thinking" style="display:none;">Thinking&hellip;</div>
+        <div class="chat-fab-input-row">
+            <input type="text" class="chat-fab-input" id="chat-input"
+                   placeholder="Ask about prices, trends, opportunities&hellip;"
+                   onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="chat-fab-send" id="chat-send-btn" onclick="sendChat()">Send</button>
+        </div>
     </div>
 </div>
 
@@ -37,22 +40,20 @@
     var CHAT_ENDPOINT = {{ chat_endpoint|tojson }};
     var CHAT_PILLS = {{ chat_pills|tojson }};
 
-    function expandChatBar() {
-        var bar = document.getElementById('chat-float-bar');
-        var panel = document.getElementById('chat-float-panel');
-        if (bar) bar.classList.add('expanded');
-        if (panel) panel.style.display = '';
+    function openChatFab() {
+        var fab = document.getElementById('chat-fab');
+        if (fab) fab.classList.add('expanded');
+        var input = document.getElementById('chat-input');
+        if (input) setTimeout(function() { input.focus(); }, 100);
     }
-    function collapseChatBar() {
-        var bar = document.getElementById('chat-float-bar');
-        var panel = document.getElementById('chat-float-panel');
-        if (bar) bar.classList.remove('expanded');
-        if (panel) panel.style.display = 'none';
+    function closeChatFab() {
+        var fab = document.getElementById('chat-fab');
+        if (fab) fab.classList.remove('expanded');
     }
-    function toggleChatBar() {
-        var bar = document.getElementById('chat-float-bar');
-        if (bar && bar.classList.contains('expanded')) collapseChatBar();
-        else expandChatBar();
+    function toggleChatFab() {
+        var fab = document.getElementById('chat-fab');
+        if (fab && fab.classList.contains('expanded')) closeChatFab();
+        else openChatFab();
     }
 
     function appendChatMsg(role, text) {
@@ -66,16 +67,16 @@
 
     function sendChatPill(text) {
         document.getElementById('chat-input').value = text;
-        expandChatBar();
+        openChatFab();
         sendChat();
     }
 
     function initChatPills() {
-        var pillsEl = document.getElementById('chat-float-pills');
+        var pillsEl = document.getElementById('chat-fab-pills');
         if (!pillsEl || !CHAT_PILLS.length) return;
         pillsEl.innerHTML = CHAT_PILLS.map(function(p) {
             var esc = p.replace(/'/g, "\\'");
-            return '<button class="chat-float-pill" onclick="window._chatSendPill(\'' + esc + '\')">' + p + '</button>';
+            return '<button class="chat-fab-pill" onclick="window._chatSendPill(\'' + esc + '\')">' + p + '</button>';
         }).join('');
     }
 
@@ -84,7 +85,7 @@
         var msg = input.value.trim();
         if (!msg) return;
 
-        expandChatBar();
+        openChatFab();
         appendChatMsg('user', msg);
         input.value = '';
         document.getElementById('chat-send-btn').disabled = true;
@@ -108,10 +109,10 @@
         document.getElementById('chat-thinking').style.display = 'none';
     }
 
-    // Expose to global scope for onclick handlers
-    window.toggleChatBar = toggleChatBar;
-    window.expandChatBar = expandChatBar;
-    window.collapseChatBar = collapseChatBar;
+    // Expose to global scope
+    window.toggleChatFab = toggleChatFab;
+    window.openChatFab = openChatFab;
+    window.closeChatFab = closeChatFab;
     window.sendChat = sendChat;
     window._chatSendPill = sendChatPill;
 

@@ -833,32 +833,6 @@
     }
 
     /* Mini summary strip (inside trend card) */
-    .mini-summary {
-        display: flex;
-        gap: 24px;
-        padding-bottom: 16px;
-        margin-bottom: 16px;
-        border-bottom: 1px solid var(--rule);
-    }
-    .mini-stat {
-        text-align: center;
-    }
-    .mini-stat .stat-value {
-        font-family: var(--font-serif);
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--ink);
-        line-height: 1;
-    }
-    .mini-stat .stat-label {
-        font-family: var(--font-mono);
-        font-size: 9px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin-top: 4px;
-    }
-
     /* Chart controls */
     .chart-controls {
         display: flex;
@@ -1081,85 +1055,6 @@
         font-style: italic;
     }
 
-    /* Chat shell */
-    .chat-card {
-        background: var(--foam);
-        border: 1px solid var(--rule);
-        border-radius: 2px;
-        padding: 24px;
-        margin-bottom: 20px;
-    }
-    .chat-label {
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        color: var(--tide);
-        margin-bottom: 16px;
-        font-weight: 500;
-    }
-    .chat-pills {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 16px;
-    }
-    .chat-pill {
-        background: var(--salt);
-        border: 1px solid var(--rule);
-        border-radius: 2px;
-        padding: 6px 14px;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.03em;
-        color: var(--tide);
-        cursor: pointer;
-        transition: background 0.15s, color 0.15s;
-    }
-    .chat-pill:hover { background: var(--tide); color: #d0e8f0; }
-    .chat-input-row {
-        display: flex;
-        gap: 8px;
-    }
-    .chat-input {
-        flex: 1;
-        padding: 12px 16px;
-        border: 1px solid var(--rule);
-        border-radius: 2px;
-        font-size: 14px;
-        font-family: var(--font-sans);
-        background: #fff;
-        color: var(--ink);
-    }
-    .chat-input:focus { outline: none; border-color: var(--tide); }
-    .chat-send {
-        padding: 10px 20px;
-        background: var(--catch);
-        color: white;
-        border: none;
-        border-radius: 2px;
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        cursor: pointer;
-        transition: background 0.15s;
-    }
-    .chat-send:hover { background: #a83010; }
-    .chat-response {
-        margin-top: 16px;
-        padding: 16px;
-        background: var(--salt);
-        border-radius: 2px;
-        font-size: 14px;
-        line-height: 1.6;
-        color: var(--muted);
-    }
-    .chat-response.active {
-        color: var(--ink);
-        background: rgba(26,58,74,0.06);
-        border-left: 3px solid var(--tide);
-    }
 
     /* Today's prices — vs market badges */
     .vs-badge {
@@ -1562,7 +1457,6 @@
 
         .perf-grid { grid-template-columns: 1fr 1fr; }
         .perf-metric-value { font-size: 20px; }
-        .mini-summary { flex-direction: column; gap: 12px; }
         .chart-controls { flex-direction: column; align-items: flex-start; }
         .best-grid { grid-template-columns: 1fr; }
         .chat-pills { flex-direction: column; }
@@ -1571,16 +1465,36 @@
     }
 
     /* ═══ Port data note ═══ */
-    .port-data-note {
+    .data-suggestion {
+        margin-bottom: 16px;
+    }
+    .data-suggestion summary {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 6px 0;
+        list-style: none;
+        text-transform: uppercase;
+    }
+    .data-suggestion summary::-webkit-details-marker { display: none; }
+    .data-suggestion summary::before { content: '+ '; }
+    .data-suggestion[open] summary::before { content: '− '; }
+    .data-suggestion-body {
         font-family: var(--font-mono);
         font-size: 11px;
         color: var(--muted);
         line-height: 1.6;
-        margin-bottom: 16px;
         padding: 8px 12px;
-        border-left: 2px solid var(--rule);
+        border-left: 2px solid var(--up);
+        background: rgba(109,184,138,0.04);
+        border-radius: 0 2px 2px 0;
+        margin-top: 4px;
         letter-spacing: 0.01em;
     }
+    .data-suggestion-body a { color: var(--catch); text-decoration: none; }
+    .data-suggestion-body a:hover { text-decoration: underline; }
 
     /* ═══ Info tooltips ═══ */
     .info-tip {
@@ -1662,7 +1576,6 @@
     <ul class="sidebar-nav" data-tab-group="trends" style="display:none;">
         <li><a href="#section-performance">Performance</a></li>
         <li><a href="#section-chart">Price Trends</a></li>
-        <li><a href="#section-best">Best Performers</a></li>
         <li><a href="#section-insights">Insights</a></li>
         <li><a href="#section-position">Market Position</a></li>
     </ul>
@@ -1714,16 +1627,23 @@
 </div>
 <div class="page-header-rule"></div>
 
+{% set data_suggestion = none %}
 {% if port.slug == 'peterhead' %}
-<p class="port-data-note">Peterhead publishes daily auction prices with low, high, and average prices per grade (A1–A5). Volume data is not published by this port.</p>
+{% set data_suggestion = "Adding volume or weight data would unlock landing trends, market share estimates, and richer species-level analysis on your dashboard." %}
 {% elif port.slug == 'brixham' %}
-<p class="port-data-note">Brixham publishes daily auction averages with weight sold per species and grade. Weekly averages and DEFRA species codes are also available.</p>
+{% set data_suggestion = "Adding vessel or buyer data would enable fleet analysis and demand-side insights on your dashboard." %}
 {% elif port.slug == 'newlyn' %}
-<p class="port-data-note">Newlyn publishes daily auction averages with weight sold per species and grade. Size band descriptions are included where available.</p>
+{% set data_suggestion = "Adding vessel or buyer data would enable fleet analysis and demand-side insights on your dashboard." %}
 {% elif port.slug == 'lerwick' %}
-<p class="port-data-note">Lerwick publishes daily auction averages and maximum prices with volume sold per species and grade. Minimum prices are not published by this port.</p>
+{% set data_suggestion = "Adding minimum prices would enable spread analysis and price range insights on your dashboard." %}
 {% elif port.slug == 'scrabster' %}
-<p class="port-data-note">Scrabster publishes daily price ranges (low and high) with box counts per species. Average prices are not published — ranges shown are the auction floor and ceiling.</p>
+{% set data_suggestion = "Adding average prices or volume data would unlock richer trend analysis and market comparisons." %}
+{% endif %}
+{% if data_suggestion %}
+<details class="data-suggestion">
+    <summary>How to get more from this dashboard</summary>
+    <div class="data-suggestion-body">{{ data_suggestion }} <a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Upload data</a> or <a href="{{ url_for('public.for_ports') }}">learn more</a>.</div>
+</details>
 {% endif %}
 
 {% if is_fallback %}
@@ -2021,6 +1941,69 @@
             {% endif %}
         </div>
     </div>
+
+    {% if best_performers and (best_performers.strongest_species or best_performers.month_summary) %}
+    <div id="section-best" class="best-grid" style="margin-top:20px;">
+        <div class="best-panel">
+            <h3>Strongest vs Market</h3>
+            {% if best_performers.strongest_species %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Species</th>
+                        <th class="text-right">Avg Price</th>
+                        <th class="text-right">vs Market</th>
+                        <th class="text-right">Consistency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sp in best_performers.strongest_species %}
+                    <tr>
+                        <td><span class="species-name">{{ sp.species }}</span></td>
+                        <td class="price">&pound;{{ "%.2f"|format(sp.avg_price) }}</td>
+                        <td class="price {{ 'vs-positive' if sp.vs_market_pct >= 0 else 'vs-negative' }}">{{ "+" if sp.vs_market_pct >= 0 }}{{ "%.1f"|format(sp.vs_market_pct) }}%</td>
+                        <td class="text-right"><span class="consistency">{{ sp.above_days }}/{{ sp.total_days }} days above</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="font-size:13px;color:var(--muted);">Not enough data yet.</p>
+            {% endif %}
+        </div>
+        <div class="best-panel">
+            <h3>Month Highlights</h3>
+            {% set ms = best_performers.month_summary %}
+            {% if ms and ms.total_sessions > 0 %}
+            <div class="month-summary">
+                <div class="month-highlights">
+                    {% if ms.best_price_day %}
+                    <div class="month-highlight-row">
+                        <span class="month-hl-label">Best avg day</span>
+                        <span class="month-hl-value">&pound;{{ "%.2f"|format(ms.best_price_day.avg_price) }} <span class="best-date">{{ ms.best_price_day.date }}</span></span>
+                    </div>
+                    {% endif %}
+                    {% if ms.worst_price_day %}
+                    <div class="month-highlight-row">
+                        <span class="month-hl-label">Lowest avg day</span>
+                        <span class="month-hl-value">&pound;{{ "%.2f"|format(ms.worst_price_day.avg_price) }} <span class="best-date">{{ ms.worst_price_day.date }}</span></span>
+                    </div>
+                    {% endif %}
+                    {% if ms.busiest_day %}
+                    <div class="month-highlight-row">
+                        <span class="month-hl-label">Most species</span>
+                        <span class="month-hl-value">{{ ms.busiest_day.species_count }} species <span class="best-date">{{ ms.busiest_day.date }}</span></span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p style="font-size:13px;color:var(--muted);">Not enough data yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 {% endif %}
 
@@ -2108,23 +2091,8 @@
 <!-- ═══ SECTION: Price Trends ═══ -->
 <div class="section-heading">Price Trends</div>
 <div id="section-chart" class="card card-chart">
-    <div class="mini-summary">
-        <div class="mini-stat" id="avgPriceStat">
-            <div class="stat-value">&pound;{{ "%.2f"|format(hero_avg_price) if hero_avg_price else '—' }}</div>
-            <div class="stat-label">Avg price / kg</div>
-        </div>
-        <div class="mini-stat" id="aboveMarketStat">
-            <div class="stat-value">{{ above_count }}/{{ total_species }}</div>
-            <div class="stat-label">Above market avg <span class="info-tip">ⓘ<span class="info-tip-text">Compares this port's average price against the simple mean of all reporting ports. Species where this port achieves above the UK average for the selected period.</span></span></div>
-        </div>
-        <div class="mini-stat" id="periodTrendStat">
-            <div class="stat-value">&mdash;</div>
-            <div class="stat-label">Period trend</div>
-        </div>
-    </div>
-
     <div class="chart-controls">
-        <h2>Price Trends</h2>
+        <h2>Price Trends <span id="periodTrendStat" style="font-family:var(--font-mono);font-size:12px;font-weight:400;letter-spacing:0.03em;margin-left:12px;">&mdash;</span></h2>
         <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
             <div class="control-group">
                 <span class="control-label">Range</span>
@@ -2149,90 +2117,6 @@
     <canvas id="trendChart" height="260"></canvas>
 </div>
 
-<!-- ═══ SECTION: Market Position & Month Summary ═══ -->
-{% if best_performers and (best_performers.strongest_species or best_performers.month_summary) %}
-<div class="section-heading">Best Performers</div>
-<div id="section-best" class="best-grid">
-    <div class="best-panel">
-        <h3>Strongest vs Market</h3>
-        {% if best_performers.strongest_species %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Species</th>
-                    <th class="text-right">Avg Price</th>
-                    <th class="text-right">vs Market</th>
-                    <th class="text-right">Consistency</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sp in best_performers.strongest_species %}
-                <tr>
-                    <td><span class="species-name">{{ sp.species }}</span></td>
-                    <td class="price">&pound;{{ "%.2f"|format(sp.avg_price) }}</td>
-                    <td class="price {{ 'vs-positive' if sp.vs_market_pct >= 0 else 'vs-negative' }}">{{ "+" if sp.vs_market_pct >= 0 }}{{ "%.1f"|format(sp.vs_market_pct) }}%</td>
-                    <td class="text-right"><span class="consistency">{{ sp.above_days }}/{{ sp.total_days }} days above</span></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p style="font-size:13px;color:var(--muted);">Not enough data yet.</p>
-        {% endif %}
-    </div>
-    <div class="best-panel">
-        <h3>This Month</h3>
-        {% set ms = best_performers.month_summary %}
-        {% if ms and ms.total_sessions > 0 %}
-        <div class="month-summary">
-            <div class="month-summary-stats">
-                <div class="month-kpi">
-                    <span class="month-kpi-value">&pound;{{ "%.2f"|format(ms.month_avg) }}</span>
-                    <span class="month-kpi-label">Avg price / kg</span>
-                </div>
-                <div class="month-kpi">
-                    <span class="month-kpi-value">{{ ms.total_sessions }}</span>
-                    <span class="month-kpi-label">Trading sessions</span>
-                </div>
-                <div class="month-kpi">
-                    <span class="month-kpi-value">{{ ms.total_species }}</span>
-                    <span class="month-kpi-label">Species listed</span>
-                </div>
-                {% if ms.month_trend_pct is not none %}
-                <div class="month-kpi">
-                    <span class="month-kpi-value {{ 'vs-positive' if ms.month_trend_pct >= 0 else 'vs-negative' }}">{{ "+" if ms.month_trend_pct >= 0 }}{{ "%.1f"|format(ms.month_trend_pct) }}%</span>
-                    <span class="month-kpi-label">Price trend</span>
-                </div>
-                {% endif %}
-            </div>
-            <div class="month-highlights">
-                {% if ms.best_price_day %}
-                <div class="month-highlight-row">
-                    <span class="month-hl-label">Best avg day</span>
-                    <span class="month-hl-value">&pound;{{ "%.2f"|format(ms.best_price_day.avg_price) }} <span class="best-date">{{ ms.best_price_day.date }}</span></span>
-                </div>
-                {% endif %}
-                {% if ms.worst_price_day %}
-                <div class="month-highlight-row">
-                    <span class="month-hl-label">Lowest avg day</span>
-                    <span class="month-hl-value">&pound;{{ "%.2f"|format(ms.worst_price_day.avg_price) }} <span class="best-date">{{ ms.worst_price_day.date }}</span></span>
-                </div>
-                {% endif %}
-                {% if ms.busiest_day %}
-                <div class="month-highlight-row">
-                    <span class="month-hl-label">Most species</span>
-                    <span class="month-hl-value">{{ ms.busiest_day.species_count }} species <span class="best-date">{{ ms.busiest_day.date }}</span></span>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% else %}
-        <p style="font-size:13px;color:var(--muted);">Not enough data yet.</p>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
-
 <!-- ═══ SECTION: Compare Dates ═══ -->
 <div class="section-heading">Compare</div>
 <div id="section-compare" class="compare-card">
@@ -2254,24 +2138,6 @@
         <button class="btn btn-primary" id="compareBtn" style="font-size:11px;padding:5px 14px;">Compare</button>
     </div>
     <div id="compareTableContainer"></div>
-</div>
-
-<!-- ═══ SECTION: Ask Quayside ═══ -->
-<div class="section-heading">Ask Quayside</div>
-<div id="section-chat" class="chat-card">
-    <div class="chat-label">Ask Quayside</div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Ask a plain-English question about your price history, market position, or trends — powered by your port's data.</p>
-    <div class="chat-pills">
-        <button class="chat-pill" data-q="What was my best price for Cod this month?">Best Cod price this month?</button>
-        <button class="chat-pill" data-q="How do I compare to the market for Monkfish?">How do I compare on Monkfish?</button>
-        <button class="chat-pill" data-q="Which species should I focus on?">Which species to focus on?</button>
-        <button class="chat-pill" data-q="Show me last Tuesday's prices">Last Tuesday's prices</button>
-    </div>
-    <div class="chat-input-row">
-        <input type="text" class="chat-input" id="chatInput" placeholder="Ask a question about your prices, trends, or market position...">
-        <button class="chat-send" id="chatSend">Ask</button>
-    </div>
-    <div class="chat-response" id="chatResponse">Ask a question about your prices, trends, or market position.</div>
 </div>
 
 <div id="section-prices" style="scroll-margin-top:80px;">
@@ -2457,38 +2323,6 @@ initGradeExpansion();
     }
 })();
 
-// Chat shell
-(function() {
-    var pills = document.querySelectorAll('.chat-pill');
-    var input = document.getElementById('chatInput');
-    var sendBtn = document.getElementById('chatSend');
-    var response = document.getElementById('chatResponse');
-
-    function showResponse(q) {
-        if (!q) return;
-        response.className = 'chat-response active';
-        response.innerHTML = '<strong>Coming soon</strong> — we\'re building AI-powered answers to questions like "' + q + '". Check back soon.';
-    }
-
-    pills.forEach(function(pill) {
-        pill.addEventListener('click', function() {
-            var q = pill.getAttribute('data-q');
-            if (input) input.value = q;
-            showResponse(q);
-        });
-    });
-
-    if (sendBtn) {
-        sendBtn.addEventListener('click', function() {
-            showResponse(input ? input.value : '');
-        });
-    }
-    if (input) {
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') showResponse(input.value);
-        });
-    }
-})();
 </script>
 
 {% if today_data %}
@@ -2659,7 +2493,7 @@ function buildChartData() {
             borderWidth: 2,
             pointRadius: currentRange <= 30 ? 3 : 1,
             tension: 0.3,
-            spanGaps: true,
+            spanGaps: false,
         });
 
         if (showMarketAvg && ds.market_avg) {
@@ -2673,7 +2507,7 @@ function buildChartData() {
                 borderDash: [6, 4],
                 pointRadius: 0,
                 tension: 0.3,
-                spanGaps: true,
+                spanGaps: false,
             });
         }
     });
@@ -2774,52 +2608,34 @@ function updateSummaryStats() {
         });
     });
 
-    // --- Avg price ---
-    const avgEl = document.getElementById('avgPriceStat');
-    if (avgEl && allPrices.length) {
-        const avg = (allPrices.reduce((a,b) => a+b, 0) / allPrices.length).toFixed(2);
-        avgEl.innerHTML = '<div class="stat-value">&pound;' + avg + '</div><div class="stat-label">Avg price / kg</div>';
-    }
-
-    // --- Above market count (from today's data, filtered by species) ---
-    const aboveEl = document.getElementById('aboveMarketStat');
-    if (aboveEl) {
-        const filteredToday = currentSpecies === 'all'
-            ? todayData
-            : todayData.filter(item => item.species === currentSpecies);
-        const above = filteredToday.filter(item => item.position && item.position.vs_pct > 0).length;
-        const total = filteredToday.length;
-        aboveEl.innerHTML = '<div class="stat-value">' + above + '/' + total + '</div><div class="stat-label">Above market avg</div>';
-    }
-
-    // --- Period trend: compare first half vs second half of selected range ---
+    // --- Period trend: linear regression slope over selected range ---
     const trendEl = document.getElementById('periodTrendStat');
     if (trendEl && allPrices.length >= 4) {
-        // Split the range data into first half and second half
-        const firstHalfPrices = [];
-        const secondHalfPrices = [];
-        const midpoint = Math.floor(filteredIndices.length / 2);
-
+        // Collect (index, price) pairs for regression
+        const points = [];
         filteredDS.forEach(ds => {
             filteredIndices.forEach((idx, i) => {
-                if (ds.data[idx] != null) {
-                    if (i < midpoint) firstHalfPrices.push(ds.data[idx]);
-                    else secondHalfPrices.push(ds.data[idx]);
-                }
+                if (ds.data[idx] != null) points.push({ x: i, y: ds.data[idx] });
             });
         });
 
-        if (firstHalfPrices.length && secondHalfPrices.length) {
-            const firstAvg = firstHalfPrices.reduce((a,b) => a+b, 0) / firstHalfPrices.length;
-            const secondAvg = secondHalfPrices.reduce((a,b) => a+b, 0) / secondHalfPrices.length;
-            const pct = ((secondAvg - firstAvg) / firstAvg * 100).toFixed(1);
+        if (points.length >= 4) {
+            const n = points.length;
+            const sumX = points.reduce((a, p) => a + p.x, 0);
+            const sumY = points.reduce((a, p) => a + p.y, 0);
+            const sumXY = points.reduce((a, p) => a + p.x * p.y, 0);
+            const sumX2 = points.reduce((a, p) => a + p.x * p.x, 0);
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const meanY = sumY / n;
+            const totalChange = slope * (filteredIndices.length - 1);
+            const pct = meanY > 0 ? ((totalChange / meanY) * 100).toFixed(1) : 0;
             const isUp = parseFloat(pct) >= 0;
-            const rangeLabel = currentRange + '-day trend';
-            trendEl.innerHTML = '<div class="stat-value" style="color:' + (isUp ? 'var(--up)' : 'var(--down)') + '">' + (isUp ? '+' : '') + pct + '%</div><div class="stat-label">' + rangeLabel + '</div>';
+            trendEl.innerHTML = '<span style="color:' + (isUp ? 'var(--up)' : 'var(--down)') + '">' + (isUp ? '+' : '') + pct + '%</span> <span style="opacity:0.6;">' + currentRange + 'd trend</span>';
+        } else {
+            trendEl.innerHTML = '&mdash;';
         }
     } else if (trendEl) {
-        const rangeLabel = currentRange + '-day trend';
-        trendEl.innerHTML = '<div class="stat-value">&mdash;</div><div class="stat-label">' + rangeLabel + '</div>';
+        trendEl.innerHTML = '&mdash;';
     }
 }
 

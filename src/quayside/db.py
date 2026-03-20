@@ -1219,6 +1219,18 @@ def clear_quality_issue(issue_id: int) -> None:
     conn.close()
 
 
+def clear_all_quality_issues() -> int:
+    """Mark all open quality issues as cleared. Returns count of issues cleared."""
+    conn = get_connection()
+    cursor = conn.execute(
+        "UPDATE quality_log SET cleared = 1 WHERE cleared IS NULL OR cleared = 0"
+    )
+    count = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return count
+
+
 def get_quality_summary() -> dict:
     """Return last check time and issue counts for the ops dashboard."""
     conn = get_connection()

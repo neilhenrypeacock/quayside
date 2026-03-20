@@ -611,10 +611,17 @@
 <div id="quality-card" class="card" style="margin-bottom:16px;">
     <div class="section-head">
         Data Quality
-        <span class="count">checks: unknown fields · unmapped species (fuzzy) · price sanity · price swings · statistical outliers · stale data · live site</span>
         <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
             <a href="/ops/errors" style="font-size:12px;font-family:var(--font-mono);font-weight:500;color:var(--catch);text-decoration:none;letter-spacing:0.02em;" title="Error Dashboard">Error Dashboard →</a>
             {% if quality_summary.last_checked_at %}<a href="/ops/quality-report/download" style="font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;letter-spacing:0.02em;" title="Download Markdown report">↓ Download</a>{% endif %}
+            {% if quality_summary.open_errors or quality_summary.open_warns %}
+            <button id="clear-all-quality-btn" onclick="clearAllQualityIssues()"
+                style="font-size:12px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;
+                       padding:5px 14px;border:1px solid var(--rule);border-radius:3px;
+                       background:transparent;color:var(--muted);">
+                Clear all
+            </button>
+            {% endif %}
             <button id="run-quality-btn" onclick="runQualityCheck()"
                 style="font-size:12px;font-family:var(--font-mono);letter-spacing:0.05em;cursor:pointer;
                        padding:5px 14px;border:1px solid var(--rule);border-radius:3px;
@@ -650,69 +657,24 @@
     </div>
     {% endif %}
 
-    {# ── Per-page status grid ────────────────────────────────────────────── #}
+    {# ── Port status row ─────────────────────────────────────────────────── #}
     {% if quality_summary.last_checked_at and live_ports %}
-    <div style="padding:16px 20px 0;border-bottom:1px solid var(--rule);">
-        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">
-            Page status — most recent check only
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;margin-bottom:16px;">
-
-        {# Digest page — affected if any port has errors in latest check #}
-        {% set digest_errors = latest_quality_by_port.values() | selectattr('errors', 'gt', 0) | list | length %}
-        {% set digest_warns = latest_quality_by_port.values() | selectattr('warns', 'gt', 0) | list | length %}
-        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:3px;font-size:12px;
-            {% if digest_errors > 0 %}background:rgba(224,112,96,0.08);border:1px solid rgba(224,112,96,0.25);
-            {% elif digest_warns > 0 %}background:rgba(224,183,96,0.07);border:1px solid rgba(224,183,96,0.25);
-            {% else %}background:rgba(109,184,138,0.07);border:1px solid rgba(109,184,138,0.2);{% endif %}">
-            <span style="font-size:14px;">{% if digest_errors > 0 %}❌{% elif digest_warns > 0 %}⚠️{% else %}✅{% endif %}</span>
-            <div>
-                <a href="/digest" style="color:var(--ink);text-decoration:none;font-weight:600;">Digest</a>
-                <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">
-                    {% if digest_errors > 0 %}{{ digest_errors }} port{{ 's' if digest_errors != 1 }} with errors
-                    {% elif digest_warns > 0 %}{{ digest_warns }} port{{ 's' if digest_warns != 1 }} with warnings
-                    {% else %}all clear{% endif %}
-                </div>
-            </div>
-        </div>
-
-        {# Trade page — same cross-port logic #}
-        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:3px;font-size:12px;
-            {% if digest_errors > 0 %}background:rgba(224,112,96,0.08);border:1px solid rgba(224,112,96,0.25);
-            {% elif digest_warns > 0 %}background:rgba(224,183,96,0.07);border:1px solid rgba(224,183,96,0.25);
-            {% else %}background:rgba(109,184,138,0.07);border:1px solid rgba(109,184,138,0.2);{% endif %}">
-            <span style="font-size:14px;">{% if digest_errors > 0 %}❌{% elif digest_warns > 0 %}⚠️{% else %}✅{% endif %}</span>
-            <div>
-                <a href="/trade" style="color:var(--ink);text-decoration:none;font-weight:600;">Trade</a>
-                <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">
-                    {% if digest_errors > 0 %}{{ digest_errors }} port{{ 's' if digest_errors != 1 }} with errors
-                    {% elif digest_warns > 0 %}{{ digest_warns }} port{{ 's' if digest_warns != 1 }} with warnings
-                    {% else %}all clear{% endif %}
-                </div>
-            </div>
-        </div>
-
-        {# Per-port pages #}
+    <div style="padding:12px 20px;border-bottom:1px solid var(--rule);font-size:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);margin-right:4px;">Port status</span>
         {% for port in live_ports %}
         {% set pq = latest_quality_by_port.get(port.name, {}) %}
         {% set pe = pq.get('errors', 0) %}
         {% set pw = pq.get('warns', 0) %}
-        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:3px;font-size:12px;
-            {% if pe > 0 %}background:rgba(224,112,96,0.08);border:1px solid rgba(224,112,96,0.25);
-            {% elif pw > 0 %}background:rgba(224,183,96,0.07);border:1px solid rgba(224,183,96,0.25);
-            {% else %}background:rgba(109,184,138,0.07);border:1px solid rgba(109,184,138,0.2);{% endif %}">
-            <span style="font-size:14px;">{% if pe > 0 %}❌{% elif pw > 0 %}⚠️{% else %}✅{% endif %}</span>
-            <div>
-                <a href="/port/{{ port.slug }}" style="color:var(--ink);text-decoration:none;font-weight:600;">{{ port.name }}</a>
-                <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">
-                    {% if pe > 0 %}{{ pe }} error{{ 's' if pe != 1 }}{% if pw > 0 %} · {{ pw }} warn{{ 's' if pw != 1 }}{% endif %}
-                    {% elif pw > 0 %}{{ pw }} warning{{ 's' if pw != 1 }}
-                    {% else %}all clear{% endif %}
-                </div>
-            </div>
-        </div>
+        <a href="/port/{{ port.slug }}" style="text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:3px;">
+            {% if pe > 0 %}<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--down);"></span>
+            {% elif pw > 0 %}<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#c89b00;"></span>
+            {% else %}<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--up);"></span>{% endif %}
+            <span style="font-weight:500;">{{ port.name }}</span>
+            {% if pe > 0 %}<span style="font-family:var(--font-mono);font-size:10px;color:var(--down);">{{ pe }}</span>{% endif %}
+            {% if pw > 0 %}<span style="font-family:var(--font-mono);font-size:10px;color:#8a6800;">{{ pw }}</span>{% endif %}
+        </a>
+        {% if not loop.last %}<span style="color:var(--rule);">·</span>{% endif %}
         {% endfor %}
-        </div>
     </div>
     {% endif %}
 
@@ -721,30 +683,26 @@
     <table class="port-table">
         <thead>
             <tr>
+                <th></th>
                 <th>Port</th>
                 <th>Date</th>
-                <th>Check</th>
-                <th></th>
                 <th style="min-width:360px;">Issue</th>
-                <th>Checked</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
         {% for issue in quality_issues %}
         <tr id="quality-row-{{ issue.id }}">
-            <td style="font-weight:500;">{{ issue.port }}</td>
-            <td style="font-family:var(--font-mono);font-size:12px;">{{ issue.date }}</td>
-            <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">{{ issue.check_type }}</td>
-            <td>
+            <td style="width:12px;">
                 {% if issue.severity == 'error' %}
-                <span style="display:inline-block;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:600;background:rgba(224,112,96,0.12);color:var(--down);">ERROR</span>
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--down);" title="Error"></span>
                 {% else %}
-                <span style="display:inline-block;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:600;background:rgba(224,183,96,0.15);color:#8a6800;">WARN</span>
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c89b00;" title="Warning"></span>
                 {% endif %}
             </td>
+            <td style="font-weight:500;">{{ issue.port }}</td>
+            <td style="font-family:var(--font-mono);font-size:12px;white-space:nowrap;">{{ issue.date }}</td>
             <td style="font-size:13px;">{{ issue.message }}</td>
-            <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:nowrap;">{{ issue.checked_at[:16].replace('T',' ') }}</td>
             <td>
                 <button onclick="clearQualityIssue({{ issue.id }})" style="font-size:11px;font-family:var(--font-mono);cursor:pointer;padding:3px 10px;border:1px solid var(--rule);border-radius:3px;background:var(--foam);color:var(--muted);">Clear</button>
             </td>
@@ -802,6 +760,18 @@ async function clearQualityIssue(issueId) {
         setTimeout(() => row.remove(), 350);
     } catch(e) {
         if (btn) { btn.disabled = false; btn.textContent = 'Clear'; }
+    }
+}
+
+async function clearAllQualityIssues() {
+    const btn = document.getElementById('clear-all-quality-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Clearing…'; }
+    try {
+        const r = await fetch('/ops/quality/clear-all', {method: 'POST', headers: {'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content}});
+        if (!r.ok) throw new Error('Server error');
+        setTimeout(() => window.location.reload(), 400);
+    } catch(e) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Clear all'; }
     }
 }
 </script>
