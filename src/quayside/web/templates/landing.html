@@ -1165,6 +1165,16 @@
         {% for m in ld.top_movers %}<strong>{{ m.species }}</strong> {% if m.direction == "up" %}surging{% else %}down{% endif %}{% if m.port %} at {{ m.port }}{% endif %} &pound;{{ "%.2f"|format(m.price) }}.{% if not loop.last %} {% endif %}{% endfor %} Full breakdown &#8595;
       </div>
     </div>
+    {% elif ld and ld.key_species_fallback %}
+    <div class="mock-card">
+      <div class="mock-card-header">
+        <span class="mock-card-title">{{ data_label or "Latest" }} best prices</span>
+        <span class="mock-tag" style="color:#7a7060;background:rgba(122,112,96,0.12);">Low volume</span>
+      </div>
+      <div class="price-row" style="opacity:0.6;">
+        <div><div class="price-species">Insufficient volume today</div><div class="price-port">Prices available in the full digest</div></div>
+      </div>
+    </div>
     {% else %}
     <div class="mock-card">
       <div class="mock-card-header">

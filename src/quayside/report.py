@@ -41,6 +41,9 @@ def _get_port_codes() -> dict[str, str]:
 
 PORT_CODES = _get_port_codes()
 
+# Minimum total traded weight (kg) for a species to appear in "Best Prices".
+# Species from ports that don't report weight (NULL) are exempt.
+MIN_BEST_PRICES_WEIGHT_KG = 25
 
 # Benchmark species shown in the market snapshot — ordered by commercial importance
 BENCHMARK_SPECIES = [
@@ -600,6 +603,15 @@ def build_landing_data(date: str) -> dict:
         if sp not in best_by_species:
             continue
         port_name, port_code, price, weight_kg, boxes = best_by_species[sp]
+        # --- Weight threshold filter (applied to best-price row only) ---
+        # NULL weight = port doesn't report weight at all → exempt.
+        # Otherwise, the best-price row must meet the minimum weight.
+        if weight_kg is not None and weight_kg < MIN_BEST_PRICES_WEIGHT_KG:
+            logger.info(
+                "Best prices: excluded '%s' at %s (%.0fkg < %dkg threshold)",
+                sp, port_code, weight_kg, MIN_BEST_PRICES_WEIGHT_KG,
+            )
+            continue
         prev = prev_port_species.get((port_name, sp))
         direction, pct_str = "flat", "—"
         if prev and prev > 0:
@@ -626,6 +638,7 @@ def build_landing_data(date: str) -> dict:
         "price_count": data["total_rows"],
         "haddock_rows": haddock_rows[:5],
         "key_species_rows": key_species_rows,
+        "key_species_fallback": not key_species_rows,
         "ticker_items": ticker_items,
         "top_movers": top_movers,
         "fx_str": fx_str,
@@ -662,3 +675,83 @@ def generate_report(date: str | None = None) -> Path:
         data["total_rows"],
     )
     return path
+
+
+if __name__ == "__main__":
+    """Weight diagnostic: dump key-species weight data for recent days.
+
+    Usage:
+        python -m quayside.report                    # last 5 days
+        python -m quayside.report --days 10          # last 10 days
+        python -m quayside.report --date 2026-03-19  # specific date
+    """
+    import sys
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+
+    days = 5
+    target_date = None
+    args = sys.argv[1:]
+    if "--days" in args:
+        days = int(args[args.index("--days") + 1])
+    if "--date" in args:
+        target_date = args[args.index("--date") + 1]
+
+    from quayside.db import get_connection, init_db
+
+    init_db()
+
+    if target_date:
+        dates = [target_date]
+    else:
+        conn = get_connection()
+        date_rows = conn.execute(
+            "SELECT DISTINCT date FROM prices ORDER BY date DESC LIMIT ?",
+            (days,),
+        ).fetchall()
+        conn.close()
+        dates = [r[0] for r in date_rows]
+
+    if not dates:
+        print("No price data found.")
+        sys.exit(0)
+
+    key_species_set = set(KEY_SPECIES)
+
+    for date in dates:
+        print(f"\n{'=' * 60}")
+        print(f"Date: {date}")
+        print(f"{'=' * 60}")
+        data = build_report_data(date)
+
+        for item in data["prices_by_species"]:
+            sp = item["species"]
+            if sp not in key_species_set or not item["rows"]:
+                continue
+
+            best_row = item["rows"][0]  # sorted price desc
+            best_wkg = best_row.get("weight_kg")
+            best_port = best_row["port"]
+            best_price = best_row["price_avg"]
+
+            if best_wkg is None:
+                status = "PASS (best row NULL-weight exempt)"
+            elif best_wkg >= MIN_BEST_PRICES_WEIGHT_KG:
+                status = f"PASS (best row {best_wkg:.0f}kg >= {MIN_BEST_PRICES_WEIGHT_KG}kg)"
+            else:
+                status = f"REJECT (best row {best_wkg:.0f}kg < {MIN_BEST_PRICES_WEIGHT_KG}kg)"
+
+            port_details = []
+            for row in item["rows"]:
+                wkg = row.get("weight_kg")
+                port = row["port"]
+                price = row["price_avg"]
+                marker = " <-- best" if row is best_row else ""
+                if wkg is None:
+                    port_details.append(f"  {port}: \u00a3{price:.2f}/kg  weight=NULL{marker}")
+                else:
+                    port_details.append(f"  {port}: \u00a3{price:.2f}/kg  {wkg:.0f}kg{marker}")
+
+            print(f"\n{sp}: {status}")
+            for detail in port_details:
+                print(detail)
