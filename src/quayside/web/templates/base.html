@@ -20,19 +20,16 @@
                 <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">For Ports <span class="nav-caret">&#9662;</span></button>
                 <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
                     <a href="{{ url_for('public.for_ports') }}">Learn more</a>
-                    <a href="{{ url_for('ports.port_dashboard', slug='peterhead') }}">Demo dashboard</a>
+                    <a href="{{ url_for('ports.port_dashboard', slug='demo') }}">Demo port dashboard</a>
                 </div></div>
             </div>
             <div class="nav-dropdown">
-                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">For Buyers &amp; Sellers <span class="nav-caret">&#9662;</span></button>
+                <button class="nav-dropdown-toggle" onclick="this.parentElement.classList.toggle('active')">For Trade <span class="nav-caret">&#9662;</span></button>
                 <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
                     <a href="{{ url_for('public.for_traders') }}">Learn more</a>
-                    <a href="{{ url_for('digest.digest_today') }}">Today's Digest</a>
-                    <a href="{{ url_for('digest.digest_yesterday') }}">Yesterday's Digest</a>
-                    <a href="{{ url_for('trade.trade_dashboard') }}">Demo dashboard</a>
+                    <a href="{{ url_for('trade.trade_dashboard') }}">Demo trade dashboard</a>
                 </div></div>
             </div>
-            <a href="{{ url_for('digest.digest_today') }}" class="nav-link">Today's Digest</a>
             <a href="{{ url_for('digest.digest_yesterday') }}" class="nav-link">Yesterday's Digest</a>
             <a href="{{ url_for('public.about') }}" class="nav-link">About Us</a>
             <div class="nav-dropdown">
@@ -40,16 +37,16 @@
                 <div class="nav-dropdown-menu"><div class="nav-dropdown-menu-inner">
                     <a href="{{ url_for('ops.ops_dashboard') }}">Ops</a>
                     <div class="nav-dropdown-sep"></div>
+                    <div class="nav-dropdown-header">Digest</div>
                     <a href="{{ url_for('digest.digest_today') }}">Today's Digest</a>
-                    <a href="{{ url_for('digest.digest_yesterday') }}">Yesterday's Digest</a>
                     <a href="{{ url_for('digest.weekly_digest') }}">Weekly Report</a>
                     <a href="{{ url_for('digest.monthly_digest') }}">Monthly Report</a>
                     <div class="nav-dropdown-sep"></div>
                     <a href="{{ url_for('ports.port_dashboard', slug='peterhead') }}">Peterhead</a>
-                    <a href="{{ url_for('ports.port_dashboard', slug='brixham') }}">Brixham</a>
                     <a href="{{ url_for('ports.port_dashboard', slug='newlyn') }}">Newlyn</a>
-                    <a href="{{ url_for('ports.port_dashboard', slug='scrabster') }}">Scrabster</a>
+                    <a href="{{ url_for('ports.port_dashboard', slug='brixham') }}">Brixham</a>
                     <a href="{{ url_for('ports.port_dashboard', slug='lerwick') }}">Lerwick</a>
+                    <a href="{{ url_for('ports.port_dashboard', slug='scrabster') }}">Scrabster</a>
                 </div></div>
             </div>
             {% block nav %}{% endblock %}

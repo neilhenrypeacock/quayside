@@ -169,6 +169,14 @@ body {
   background: var(--rule);
   margin: 4px 0;
 }
+.nav-dropdown-header {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mid);
+  padding: 0.4rem 1rem 0.2rem;
+}
 
 /* ── Sign In button ── */
 .nav-signin-btn {
