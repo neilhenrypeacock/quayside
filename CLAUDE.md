@@ -368,6 +368,7 @@ If GitHub Actions SSH deployment fails with `unable to authenticate` / `no suppo
 
 ## Key docs
 
+- `MARKETING.md` — **single source of truth for all copy, messaging, and tone.** Before writing any user-facing text (landing page, emails, flash messages, onboarding, error pages), read this first. Defines: the problem statement, elevator pitch, target audiences, four marketing pillars (Visibility / Confidence / Simplicity / Independence), tone of voice, language rules (words to use/avoid), and benefit messaging per audience. Primary tagline: "UK fish market intelligence, every day." Hero variant: "See the whole market. Buy with confidence." The target audience is independent fish merchants (buyers), not a tech audience. Do NOT use: empower, disrupt, ecosystem, real-time, seamless, unlock, leverage, democratise, or lead with AI. DO use: short sentences, real port/species names, second person, trade-register language.
 - `BRAND.md` — brand kit: colour palette (NOTE: warm palette — tokens.css has since shifted to cool-neutral), typography, design principles, component patterns
 - `PORTS.md` — comprehensive audit of all UK & Ireland fish ports, data availability, partnership strategy
 - `ROADMAP.md` — development phases and status

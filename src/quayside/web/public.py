@@ -50,6 +50,8 @@ def landing():
         is_today=is_today,
         table=table,
         hide_ticker=True,
+        hide_stats=True,
+        hide_nav=True,
     )
 
 

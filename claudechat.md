@@ -96,7 +96,7 @@ quayside/
     └── web/
         ├── app.py          # Flask app factory, CSRF, security headers, context processors (172 lines)
         ├── auth.py         # Authentication blueprint — login, register, logout, roles (122 lines)
-        ├── public.py       # Public pages — landing, overview, for-ports, for-traders, about (135 lines)
+        ├── public.py       # Public pages — landing, overview, for-ports, for-traders, about (137 lines)
         ├── port_views.py   # Port blueprint — dashboards, upload, confirm, export, chat, onboarding (865 lines)
         ├── trade_views.py  # Trade blueprint — trade dashboard, export, AI chat, compare (310 lines)
         ├── ops_views.py    # Ops blueprint — ops dashboard, pipeline, quality, errors (873 lines)

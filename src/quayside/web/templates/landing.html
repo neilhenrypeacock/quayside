@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Quayside — Fish Market Intelligence{% endblock %}
+{% block title %}Quayside — UK Fish Market Intelligence{% endblock %}
 
 {% block head %}
 <style>
@@ -47,7 +47,7 @@
 
 /* ── Hero ── */
 .hero {
-  min-height: calc(100vh - 60px);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -64,17 +64,28 @@
     rgba(255,255,255,0.04) 40px
   );
 }
+.hero-welcome {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--tide-light);
+  opacity: 0;
+  margin-bottom: 20px;
+  transition: opacity 1.0s cubic-bezier(0.23,1,0.32,1);
+}
+.hero-welcome.visible { opacity: 0.6; }
 .hero-logo {
   font-family: var(--font-serif);
-  font-size: 48px;
+  font-size: 52px;
   font-weight: 700;
   color: var(--paper);
   letter-spacing: -0.02em;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   opacity: 0;
   transform: scale(0.97);
-  transition: opacity 1.2s cubic-bezier(0.23,1,0.32,1),
-              transform 1.2s cubic-bezier(0.23,1,0.32,1);
+  transition: opacity 1.6s cubic-bezier(0.23,1,0.32,1),
+              transform 1.6s cubic-bezier(0.23,1,0.32,1);
 }
 .hero-logo span { color: var(--catch); }
 .hero-logo.visible {
@@ -86,20 +97,12 @@
   font-size: 18px;
   font-weight: 300;
   color: var(--tide-light);
-  max-width: 480px;
-  line-height: 1.6;
+  max-width: 440px;
+  line-height: 1.65;
   opacity: 0;
-  transition: opacity 1.0s cubic-bezier(0.23,1,0.32,1) 0.4s;
+  transition: opacity 1.2s cubic-bezier(0.23,1,0.32,1) 0.7s;
 }
 .hero-tagline.visible { opacity: 1; }
-.hero-tagline strong {
-  color: var(--paper);
-  font-weight: 500;
-  text-decoration: underline;
-  text-decoration-color: var(--catch);
-  text-underline-offset: 3px;
-  text-decoration-thickness: 2px;
-}
 .hero-scroll-cue {
   position: absolute;
   bottom: 32px;
@@ -114,10 +117,10 @@
   align-items: center;
   gap: 6px;
   opacity: 0;
-  transition: opacity 1s 1.2s;
+  transition: opacity 1s 1.8s;
 }
 .hero-scroll-cue.visible {
-  opacity: 0.5;
+  opacity: 0.4;
   animation: scroll-bob 2.5s ease-in-out infinite;
 }
 @keyframes scroll-bob {
@@ -128,7 +131,7 @@
 /* ── Problem section word-reveal ── */
 .word-reveal .word {
   opacity: 0.12;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.35s ease;
   display: inline;
 }
 .word-reveal .word.lit { opacity: 1; }
@@ -159,12 +162,12 @@
   font-size: 15px;
   font-weight: 700;
   color: var(--tide);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .tool-desc {
   font-size: 12px;
   color: var(--muted);
-  line-height: 1.55;
+  line-height: 1.65;
 }
 
 /* ── Audience cards ── */
@@ -212,7 +215,7 @@
 .port-subhead {
   font-size: 15px;
   color: var(--tide-light);
-  max-width: 480px;
+  max-width: 520px;
   line-height: 1.65;
   margin-bottom: 36px;
 }
@@ -245,7 +248,7 @@
 .benefit-desc {
   font-size: 12px;
   color: var(--tide-light);
-  line-height: 1.6;
+  line-height: 1.65;
 }
 .port-how {
   font-size: 13px;
@@ -434,22 +437,22 @@
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .reveal, .reveal-left,
-  .hero-logo, .hero-tagline, .hero-scroll-cue,
+  .hero-logo, .hero-tagline, .hero-welcome, .hero-scroll-cue,
   .word-reveal .word {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
     animation: none !important;
   }
-  .hero-scroll-cue { opacity: 0.5 !important; }
+  .hero-scroll-cue { opacity: 0.4 !important; }
 }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .lp-section { padding: 56px 0; }
   .lp-inner, .lp-inner--narrow { padding: 0 24px; }
-  .hero { min-height: auto; padding: 80px 24px 64px; }
-  .hero-logo { font-size: 36px; }
+  .hero { min-height: 100vh; padding: 80px 24px 64px; }
+  .hero-logo { font-size: 38px; }
   .hero-tagline { font-size: 16px; }
   .tools-grid { grid-template-columns: 1fr; }
   .audience-grid { grid-template-columns: 1fr; }
@@ -471,10 +474,9 @@
 
 {# ─── Section 1: Hero ─── #}
 <section class="hero" id="top">
+  <p class="hero-welcome" id="hero-welcome">Welcome to</p>
   <div class="hero-logo" id="hero-logo">Quay<span>side</span></div>
-  <p class="hero-tagline" id="hero-tagline">
-    Fish market <strong>intelligence</strong> for the UK and Ireland.
-  </p>
+  <p class="hero-tagline" id="hero-tagline">UK fish market intelligence, every day.</p>
   <div class="hero-scroll-cue" id="hero-scroll-cue">
     <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M6 1V13M1 8L6 13L11 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -487,7 +489,7 @@
 <section class="lp-section lp-section--paper">
   <div class="lp-inner">
     <div class="section-label reveal">THE PROBLEM</div>
-    <p class="lp-body word-reveal" id="problem-text">Fish auction prices in the UK are scattered across dozens of port websites, published in different formats, at different times — or in many cases, not published online at all. There is no single source of truth for what fish sold for this morning. Quayside changes that.</p>
+    <p class="lp-body word-reveal" id="problem-text">Most fish merchants buy from the port they know, pay whatever the price is that day, and have no way to tell if they got a good deal or a bad one. Prices vary significantly across the UK — but that information is scattered across half a dozen port websites, PDF sheets, and phone calls to contacts at the docks. Some ports don't publish at all. The ones with the best networks have the advantage. Everyone else flies blind.</p>
   </div>
 </section>
 
@@ -495,22 +497,22 @@
 <section class="lp-section lp-section--foam">
   <div class="lp-inner">
     <div class="section-label reveal">ONE PLATFORM, THREE TOOLS</div>
-    <p class="lp-body reveal" style="transition-delay:0.1s">Quayside collects auction prices from a growing network of UK and Irish ports, and turns fragmented data into clear, usable intelligence.</p>
+    <p class="lp-body reveal" style="transition-delay:0.1s">Quayside collects auction prices from ports across the UK and delivers them to buyers every day. One place to see what fish is selling for, everywhere. The information comes to you. You don't have to chase it.</p>
     <div class="tools-grid">
       <div class="tool-card reveal" style="transition-delay:0.1s">
-        <div class="tool-label">Daily Digest</div>
+        <div class="tool-label">Daily Email Digest</div>
         <div class="tool-title">The morning briefing</div>
-        <p class="tool-desc">Prices, movers, and cross-port spreads from every port we cover. Delivered to your inbox each trading day.</p>
+        <p class="tool-desc">Prices, movers, and cross-port spreads from every port we cover — delivered to your inbox before the day's buying begins. One email. The whole market.</p>
       </div>
       <div class="tool-card reveal" style="transition-delay:0.25s">
         <div class="tool-label">Port Dashboards</div>
         <div class="tool-title">Deep dive by port</div>
-        <p class="tool-desc">90-day trends, grade breakdowns, and market positioning — see how any port is performing against itself and the wider market.</p>
+        <p class="tool-desc">See how a port did today. How it's trended over 90 days. How it's priced against every other port in the network — so you know whether you're seeing a fair read of the market, or an outlier.</p>
       </div>
       <div class="tool-card reveal" style="transition-delay:0.4s">
         <div class="tool-label">Trade Intelligence</div>
-        <div class="tool-title">The full picture</div>
-        <p class="tool-desc">Species-first view across all ports. Best prices, widest spreads, and how today compares to the last 30 days.</p>
+        <div class="tool-title">Every species. Every port. One view.</div>
+        <p class="tool-desc">See where haddock is cheapest this morning. Track how monkfish has moved over the past month. Compare ports side by side. Make buying decisions with the whole market in front of you — not just your corner of it.</p>
       </div>
     </div>
   </div>
@@ -522,18 +524,18 @@
     <div class="section-label reveal">BUILT FOR THE TRADE</div>
     <div class="audience-grid">
       <div class="audience-card reveal-left" style="transition-delay:0s">
-        <div class="audience-name">Fish merchants &amp; buyers</div>
-        <p class="audience-desc">Know what happened at every auction this morning. See where prices are moving and how today compares to the trend.</p>
+        <div class="audience-name">Merchants &amp; buyers</div>
+        <p class="audience-desc">Stop buying blind. See prices from ports you'd never have checked — and know whether the price you're being quoted is fair before you agree to it.</p>
         <a href="{{ url_for('public.for_traders') }}" class="audience-link">For traders &rarr;</a>
       </div>
       <div class="audience-card reveal-left" style="transition-delay:0.18s">
-        <div class="audience-name">Port operators</div>
-        <p class="audience-desc">Your own dashboard showing performance against your history and the wider UK market. Plus visibility to more buyers.</p>
-        <a href="{{ url_for('public.for_ports') }}" class="audience-link">For ports &rarr;</a>
+        <div class="audience-name">Processors &amp; distributors</div>
+        <p class="audience-desc">Cross-port price tracking to optimise procurement. Historical trends for forward buying. Small per-kilo savings compound fast at volume.</p>
+        <a href="{{ url_for('public.for_traders') }}" class="audience-link">For trade &rarr;</a>
       </div>
       <div class="audience-card reveal-left" style="transition-delay:0.36s">
         <div class="audience-name">Industry &amp; media</div>
-        <p class="audience-desc">The UK's only daily multi-port fish price tracker. Real auction data from a growing list of commercial ports.</p>
+        <p class="audience-desc">The UK's only daily multi-port fish price tracker. Real auction data from a growing network of commercial ports.</p>
         <a href="{{ url_for('public.about') }}" class="audience-link">About Quayside &rarr;</a>
       </div>
     </div>
@@ -544,32 +546,32 @@
 <section class="lp-section lp-section--tide">
   <div class="lp-inner">
     <div class="section-label--dark reveal">FOR PORT OPERATORS</div>
-    <h2 class="port-headline reveal" style="transition-delay:0.1s">Add your port to Quayside</h2>
-    <p class="port-subhead reveal" style="transition-delay:0.2s">Send us your prices in a spreadsheet, a PDF, or fill in our template. We handle everything else.</p>
+    <h2 class="port-headline reveal" style="transition-delay:0.1s">Put your prices in front of every fish buyer in the UK.</h2>
+    <p class="port-subhead reveal" style="transition-delay:0.2s">More buyers seeing your auction means more competition. More competition means better prices for your sellers. Quayside puts you in the daily digest that fish merchants read every morning — alongside every other port they're comparing you against.</p>
     <div class="benefits-grid">
       <div class="benefit-card reveal" style="transition-delay:0.1s">
-        <div class="benefit-label">For Your Port</div>
-        <div class="benefit-title">A market dashboard, free</div>
-        <p class="benefit-desc">See how your port is performing today, this week, and over time — against its own history and against every other port in the network.</p>
+        <div class="benefit-label">Already publishing prices?</div>
+        <div class="benefit-title">Reach buyers you're missing</div>
+        <p class="benefit-desc">Your prices reach more buyers, in a format they'll actually read, alongside every other port they check. More eyeballs at auction means more competition — better returns for your sellers.</p>
       </div>
       <div class="benefit-card reveal" style="transition-delay:0.2s">
-        <div class="benefit-label">For Your Skippers</div>
-        <div class="benefit-title">Better prices through visibility</div>
-        <p class="benefit-desc">When more buyers can see your prices, more buyers show up. More competition at auction means better returns for the boats that land with you.</p>
+        <div class="benefit-label">Not publishing yet?</div>
+        <div class="benefit-title">No tech. No commitment.</div>
+        <p class="benefit-desc">Email us your daily price sheet in whatever format you have. We extract, normalise, and publish it. Nothing goes live without your sign-off. No new systems, no data entry, no cost.</p>
       </div>
       <div class="benefit-card reveal" style="transition-delay:0.3s">
-        <div class="benefit-label">For the Industry</div>
-        <div class="benefit-title">Transparency builds trust</div>
-        <p class="benefit-desc">An open, accurate price record benefits everyone — from quota negotiations to supply chain planning to public accountability.</p>
+        <div class="benefit-label">Your own dashboard</div>
+        <div class="benefit-title">See how you're doing</div>
+        <p class="benefit-desc">Every port in the network gets a free dashboard — today's performance, 90-day trends, and how your prices sit against every other port. Know your market position.</p>
       </div>
       <div class="benefit-card reveal" style="transition-delay:0.4s">
-        <div class="benefit-label">Zero Effort</div>
-        <div class="benefit-title">We do the work</div>
-        <p class="benefit-desc">No new systems. No data entry. Send us what you already produce and we'll extract, normalise, and publish it — with your approval before anything goes live.</p>
+        <div class="benefit-label">Your data, your control</div>
+        <div class="benefit-title">Nothing publishes without you</div>
+        <p class="benefit-desc">Every price record we publish is confirmed by you first. You see it, approve it, and it goes live. If something's wrong, you tell us and we fix it.</p>
       </div>
     </div>
     <p class="port-how reveal" style="transition-delay:0.45s">
-      <strong>How it works:</strong> Send us your daily price sheet in whatever format you have. We extract the data automatically, send it back for you to confirm, and publish once you approve.
+      <strong>How it works:</strong> Send us your daily price sheet — spreadsheet, PDF, or whatever you already produce. We extract the data, send it back for your approval, and publish once you confirm.
     </p>
     <div class="reveal" style="transition-delay:0.5s">
       <a href="{{ url_for('public.for_ports') }}" class="btn btn-primary">GET YOUR PORT LISTED &rarr;</a>
@@ -665,19 +667,20 @@
 
 <script>
 (function() {
-  // ── Hero entrance ──
+  // ── Hero entrance — cinematic, staggered ──
+  var welcome = document.getElementById('hero-welcome');
   var logo    = document.getElementById('hero-logo');
   var tagline = document.getElementById('hero-tagline');
   var cue     = document.getElementById('hero-scroll-cue');
-  if (logo)    setTimeout(function(){ logo.classList.add('visible'); }, 80);
-  if (tagline) setTimeout(function(){ tagline.classList.add('visible'); }, 480);
-  if (cue)     setTimeout(function(){ cue.classList.add('visible'); }, 1280);
+  if (welcome) setTimeout(function(){ welcome.classList.add('visible'); }, 200);
+  if (logo)    setTimeout(function(){ logo.classList.add('visible'); }, 500);
+  if (tagline) setTimeout(function(){ tagline.classList.add('visible'); }, 900);
+  if (cue)     setTimeout(function(){ cue.classList.add('visible'); }, 1800);
 
   // ── Word-by-word reveal for problem section ──
   var problemEl = document.getElementById('problem-text');
   if (problemEl) {
-    var text = problemEl.textContent;
-    var tokens = text.split(/(\s+)/);
+    var tokens = problemEl.textContent.split(/(\s+)/);
     var html = '';
     tokens.forEach(function(token) {
       if (/^\s+$/.test(token)) {

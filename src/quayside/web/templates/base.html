@@ -11,7 +11,7 @@
 </head>
 <body class="{% block bodyclass %}{% endblock %}">
     {% block navbar %}
-    <nav class="nav">
+    <nav class="nav{% if hide_nav %} nav--hidden{% endif %}">
         <a href="/" class="nav-brand">Quay<span>side</span></a>
         <button class="nav-burger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
             <span></span><span></span><span></span>
@@ -115,7 +115,7 @@
     </div>
     {% endif %}
 
-    {% if stats %}
+    {% if stats and not hide_stats %}
     <div class="stat-strip">
       <div class="stat-item">
         <div class="stat-label">Ports live today</div>
