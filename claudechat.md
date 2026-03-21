@@ -59,7 +59,7 @@ quayside/
 └── src/quayside/
     ├── __main__.py         # Entry point: python -m quayside
     ├── run.py              # Pipeline orchestrator — scrape → store → export → quality (519 lines)
-    ├── db.py               # SQLite connection, schema, upsert, queries (1449 lines)
+    ├── db.py               # SQLite connection, schema, upsert, queries (1459 lines)
     ├── models.py           # PriceRecord and LandingRecord dataclasses (32 lines)
     ├── export.py           # Per-port CSV export (33 lines)
     ├── email.py            # SMTP email delivery, env-var configured (83 lines)
@@ -97,14 +97,14 @@ quayside/
         ├── app.py          # Flask app factory, CSRF, security headers, context processors (172 lines)
         ├── auth.py         # Authentication blueprint — login, register, logout, roles (122 lines)
         ├── public.py       # Public pages — landing, overview, for-ports, for-traders, about (137 lines)
-        ├── port_views.py   # Port blueprint — dashboards, upload, confirm, export, chat, onboarding (865 lines)
+        ├── port_views.py   # Port blueprint — dashboards, upload, confirm, export, chat, onboarding (889 lines)
         ├── trade_views.py  # Trade blueprint — trade dashboard, export, AI chat, compare (310 lines)
         ├── ops_views.py    # Ops blueprint — ops dashboard, pipeline, quality, errors (873 lines)
         ├── api_views.py    # API blueprint — /api/v1/ingest (POST), /api/v1/export/csv (GET) (200 lines)
         ├── digest.py       # Digest blueprint — daily/weekly/monthly digest serving (86 lines)
         ├── helpers.py      # Data processing engine — market position, trends, insights (1474 lines)
         ├── static/
-        │   ├── css/tokens.css    # CSS design tokens — cool-neutral palette (1089 lines)
+        │   ├── css/tokens.css    # CSS design tokens — cool-neutral palette (1099 lines)
         │   └── img/              # Marketing images (nets.jpg, pots.jpg, dashboard-preview.jpg)
         └── templates/            # 30 Jinja2 templates (~19,500 lines total)
 ```

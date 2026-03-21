@@ -6,15 +6,19 @@
 
 ## 1. THE PROBLEM
 
-The UK fish market is fragmented. Prices vary significantly from port to port, day to day — but most buyers only ever see their corner of it.
+The UK fish market runs on incomplete information. Prices vary significantly from port to port — but there's no single place to see across the whole market. Everyone is working with only part of the picture.
 
-A merchant in Grimsby doesn't know that cod was 18% cheaper in Peterhead this morning. A processor locked into one port relationship doesn't know they've been overpaying versus the network average for months. A restaurant buyer has no way to check whether their supplier's prices are fair.
+This isn't just a merchant problem. Without market-wide transparency, the whole industry loses:
 
-The information exists. It's just scattered across six different port websites, PDF price sheets, Excel downloads, and phone calls to contacts at the docks. Some ports don't publish at all. The government publishes retrospective data, but it's quarterly at best — useless for daily buying decisions.
+- **Ports** can't show buyers why their auction is worth choosing. Competitive prices and strong catch volumes go unnoticed by merchants who never knew to look.
+- **Fishermen** land their catch without knowing what it would fetch at the port across the water. No benchmark means no leverage.
+- **Merchants** buy from the port they know, pay whatever the price is that day, and have no way to check if they got a good deal or a bad one.
 
-**The result:** most merchants buy from the port they know, pay whatever the price is that day, and have no way to tell if they got a good deal or a bad one. The ones with the best phone networks and the most time have an advantage. Everyone else flies blind.
+When the whole market can see itself clearly, it works better for everyone. More competition at auction. Better returns for fishermen. More informed decisions for buyers.
 
-**This is the status quo Quayside replaces.**
+**This is the status quo Quayside changes.**
+
+*Note for copy: On the homepage, always frame the problem as industry-wide — ports, fishermen, and merchants all benefit from transparency. Audience-specific messaging (merchants, port operators) lives in Section 9. Avoid framing Quayside as a risk to ports — they gain from more buyers seeing their prices.*
 
 ---
 
@@ -24,7 +28,7 @@ Quayside aggregates fish auction prices from ports across the UK into one place 
 
 That's it. No complexity. No jargon. One place to see what fish is selling for, everywhere.
 
-For the first time, a merchant can open their phone in the morning and see prices across the whole UK market before they buy. They can spot where haddock is cheapest, track how monkfish prices have moved over the past month, and know whether the price they're being quoted is fair.
+For the first time, a merchant can see prices across the whole UK market after each day's auctions close — before they plan their next buy. They can spot where haddock is cheapest, track how monkfish prices have moved over the past month, and know whether the price they're being quoted is fair.
 
 The information comes to them. They don't have to chase it.
 
@@ -33,7 +37,7 @@ The information comes to them. They don't have to chase it.
 ## 3. ELEVATOR PITCH
 
 **10-second version (for a merchant):**
-"We pull fish auction prices from ports across the UK and send them to you every morning. One place to see the whole market, before you buy."
+"We pull fish auction prices from ports across the UK and send them to you every day after the auctions close. One place to see the whole market."
 
 **30-second version (for anyone):**
 "Fish merchants currently have to check half a dozen different port websites — or just rely on their contacts — to understand what fish is selling for across the UK. Most don't bother. They buy from the port they know and hope for the best. Quayside changes that. We aggregate auction prices from ports across the country into a single daily digest. Merchants see the whole market in one place, spot the best prices, and buy with confidence."
@@ -62,7 +66,7 @@ The information comes to them. They don't have to chase it.
 ### Primary: Independent Fish Merchants (Trade tier — £95/month)
 - **Who they are:** Buy at auction across one or more ports, sell to restaurants, fishmongers, and food service. Typically owner-operators or small teams. Age 35–60. Practical, busy, phone-first. Not especially online. Value relationships and trust over flashy tools.
 - **What they do today:** Mix of checking individual port websites, calling contacts at ports, and just buying from their usual port because they don't have time to check everywhere.
-- **What Quayside gives them:** The whole market in one place, every morning. They can see where the best prices are, compare across ports, and spot opportunities they'd never have found manually.
+- **What Quayside gives them:** The whole market in one place, every day after the auctions close. They can see where the best prices are, compare across ports, and spot opportunities they'd never have found manually.
 - **What makes them pay:** The knowledge that they're not overpaying — and that they're seeing ports they wouldn't otherwise check. £95/month is nothing if it saves them even one bad buying decision a week.
 - **Emotional outcome:** Calm. In control. "The information comes to me."
 
@@ -169,7 +173,7 @@ Somewhere between a trade magazine and a text message from a contact. Profession
 - **Market intelligence** — the overarching term for the product
 - **Market data** — the prices and trends themselves
 - **Auction prices** — when being specific about what we aggregate
-- **Daily digest** — the morning email/notification
+- **Daily digest** — the post-market email report, published after each day's auctions close (not a morning briefing — it covers that day's results)
 - **Price intelligence** — when emphasising the analysis layer (trade audience)
 
 ### Terms we avoid
@@ -177,7 +181,7 @@ Somewhere between a trade magazine and a text message from a contact. Profession
 |---|---|
 | Disrupt / disruptive | Overused tech speak. We're not disrupting — we're serving an underserved market. |
 | Ecosystem | Too abstract. Say "network" or just name the ports. |
-| Real-time | Not accurate — data is daily, not live. Say "daily" or "every morning." |
+| Real-time | Not accurate — data is daily, not live. Say "daily" or "after each day's auctions." |
 | Cutting-edge | Empty. Just describe what it does. |
 | Unlock / unleash | Cliché startup language. |
 | Best-in-class | Says nothing. |
@@ -203,7 +207,7 @@ Somewhere between a trade magazine and a text message from a contact. Profession
 
 ### For Merchants (primary)
 
-**Headline:** "See fish prices across UK ports. Every morning. One place."
+**Headline:** "See fish prices across UK ports. Every day. One place."
 
 **Key messages (in priority order):**
 1. Stop buying blind — see prices from ports you'd never check
@@ -256,7 +260,7 @@ Somewhere between a trade magazine and a text message from a contact. Profession
 | What exists today | Limitation | What Quayside does instead |
 |---|---|---|
 | Individual port websites | One port at a time, different formats, some don't publish at all | All ports, one format, one place |
-| Phone networks / contacts | Depends who you know, time-consuming, incomplete | Systematic, complete, every morning |
+| Phone networks / contacts | Depends who you know, time-consuming, incomplete | Systematic, complete, every day |
 | Seafish / MMO / Defra data | Quarterly or annual, retrospective, useless for daily buying | Daily, forward-looking, actionable |
 | Buying from your usual port | Can't see alternatives, no benchmark for fair price | Full market visibility, price benchmarks |
 | Nothing (just accepting the price) | No leverage, no information, paying whatever it costs | Information that gives you leverage |

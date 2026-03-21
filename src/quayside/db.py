@@ -185,6 +185,16 @@ def init_db() -> None:
             resolved_at TEXT,
             resolution TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS port_enquiries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            port_name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            phone TEXT,
+            created_at TEXT DEFAULT (datetime('now')),
+            status TEXT DEFAULT 'new'
+        );
     """)
 
     # Migrations: add columns that were introduced after initial deploy

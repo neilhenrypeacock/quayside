@@ -1,867 +1,716 @@
 {% extends "base.html" %}
-
 {% block title %}For Ports — Quayside{% endblock %}
 
 {% block head %}
 <style>
-  html { scroll-behavior: smooth; }
-  body { overflow-x: hidden; }
+/* ── Layout ── */
+.fp-section {
+  padding: 80px 0;
+}
+.fp-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+.fp-inner--narrow {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
 
-  /* SECTION LABEL */
-  .section-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 48px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--rule);
-    max-width: 200px;
-  }
+/* ── Section labels ── */
+.section-label--dark {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #5a8a9a;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label--dark::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #2a5a6a;
+  max-width: 200px;
+}
 
-  /* HERO */
-  .port-hero {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    min-height: 60vh;
-    border-bottom: 1px solid var(--rule);
-  }
-  .port-hero-left {
-    padding: 80px 48px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .port-hero-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--catch);
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .port-hero-eyebrow::before {
-    content: '';
-    display: block;
-    width: 32px;
-    height: 1px;
-    background: var(--catch);
-  }
-  .port-hero-left h1 {
-    font-family: var(--font-serif);
-    font-size: clamp(32px, 3.5vw, 52px);
-    font-weight: 900;
-    line-height: 1.05;
-    letter-spacing: -0.03em;
-    margin-bottom: 24px;
-  }
-  .port-hero-left h1 em {
-    font-style: italic;
-    color: var(--tide);
-  }
-  .port-hero-sub {
-    font-size: 17px;
-    line-height: 1.7;
-    color: var(--ink-body);
-    max-width: 440px;
-    margin-bottom: 40px;
-  }
-  .btn-primary {
-    background: var(--catch);
-    color: white;
-    padding: 14px 32px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    transition: background 0.2s, transform 0.1s;
-    border-radius: 2px;
-  }
-  .btn-primary:hover { background: #a83010; transform: translateY(-1px); }
-  .btn-secondary {
-    background: var(--foam);
-    color: var(--tide);
-    padding: 14px 32px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    border: 1px solid var(--rule);
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    border-radius: 2px;
-    transition: background 0.2s;
-  }
-  .btn-secondary:hover { background: var(--salt); }
+/* ── Hero ── */
+.fp-hero {
+  background: var(--tide);
+  padding: 100px 40px 96px;
+}
+.fp-hero-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.fp-hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--tide-light);
+  margin-bottom: 24px;
+  opacity: 0.7;
+}
+.fp-hero h1 {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--paper);
+  line-height: 1.2;
+  margin-bottom: 24px;
+  max-width: 560px;
+}
+.fp-hero-body {
+  font-size: 16px;
+  color: var(--tide-light);
+  max-width: 460px;
+  line-height: 1.65;
+}
 
-  .port-hero-right {
-    background: var(--tide);
-    position: relative;
-    overflow: hidden;
-  }
-  .port-hero-right img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.6;
-  }
-  .port-hero-right::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(26,58,74,0.3) 0%, rgba(26,58,74,0.5) 100%);
-  }
+/* ── Section intro text ── */
+.fp-section-intro {
+  font-size: 15px;
+  color: var(--ink-body);
+  line-height: 1.7;
+  max-width: 560px;
+  margin-bottom: 48px;
+}
 
-  /* SECTIONS */
-  .section { padding: 96px 48px; border-bottom: 1px solid var(--rule); }
-  .section-inner { max-width: 1100px; margin: 0 auto; }
+/* ── Section backgrounds ── */
+.fp-section--paper { background: var(--paper); }
+.fp-section--foam  { background: var(--foam); }
+.fp-section--tide  { background: var(--tide); }
+.fp-section--tide .fp-section-intro { color: var(--tide-light); }
 
-  /* TWO WAYS TO SHARE */
-  .share-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background: var(--rule);
-    border: 1px solid var(--rule);
-  }
-  .share-card {
-    background: var(--foam);
-    padding: 40px 36px;
-  }
-  .share-card-method {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--catch);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .share-card-method::before {
-    content: '';
-    display: block;
-    width: 20px;
-    height: 1px;
-    background: var(--catch);
-  }
-  .share-card h3 {
-    font-family: var(--font-serif);
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    letter-spacing: -0.01em;
-  }
-  .share-card p {
-    font-size: 15px;
-    line-height: 1.75;
-    color: var(--ink-body);
-    margin-bottom: 20px;
-  }
-  .share-card .share-detail {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--tide);
-    letter-spacing: 0.04em;
-    padding: 10px 16px;
-    background: rgba(26,58,74,0.06);
-    border-left: 2px solid var(--tide);
-    line-height: 1.6;
-  }
+/* ── Dashboard mock ── */
+.demo-frame-wrap {
+  background: var(--tide);
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.demo-frame {
+  background: var(--ink);
+  border-radius: 2px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+}
+.demo-frame-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #1e2e38;
+  background: #0a1218;
+}
+.demo-frame-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: #c8d8e0;
+  letter-spacing: 0.05em;
+}
+.demo-frame-badge {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--up);
+  border: 1px solid var(--up);
+  padding: 2px 7px;
+  border-radius: 2px;
+  opacity: 0.8;
+}
+.demo-stat-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid #1e2e38;
+}
+.demo-stat {
+  padding: 10px 14px;
+  border-right: 1px solid #1e2e38;
+}
+.demo-stat:last-child { border-right: none; }
+.demo-stat-label {
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #2a4a5a;
+  margin-bottom: 4px;
+}
+.demo-stat-value {
+  font-size: 14px;
+  color: #c8d8e0;
+  font-weight: 500;
+}
+.demo-stat-sub {
+  font-size: 9px;
+  color: var(--up);
+  margin-top: 2px;
+}
+.demo-stat-sub--muted { color: #4a6a78; }
+.demo-price-table { width: 100%; }
+.demo-price-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  padding: 8px 16px;
+  border-bottom: 1px solid #0d1a22;
+  align-items: center;
+  gap: 16px;
+}
+.demo-price-row:last-child { border-bottom: none; }
+.demo-price-species { font-size: 11px; color: #c8d8e0; }
+.demo-price-grade   { font-size: 9px; color: #4a6a78; letter-spacing: 0.08em; }
+.demo-price-val     { font-size: 12px; color: #e8f0f4; font-weight: 500; text-align: right; }
+.demo-price-delta   { font-size: 10px; min-width: 36px; text-align: right; }
+.demo-price-delta.up   { color: var(--up); }
+.demo-price-delta.down { color: var(--down); }
+.demo-cta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--catch);
+  text-decoration: none;
+}
+.demo-cta:hover { text-decoration: underline; }
 
-  /* DASHBOARD SHOWCASE */
-  .dashboard-screenshot {
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-bottom: 48px;
-    position: relative;
-  }
-  .dashboard-screenshot img {
-    width: 100%;
-    display: block;
-  }
-  .dashboard-screenshot-caption {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(0deg, rgba(15,14,12,0.7) 0%, transparent 100%);
-    padding: 32px 24px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .dashboard-screenshot-caption span {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: rgba(245,240,232,0.8);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .dashboard-screenshot-caption a {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--tide-light);
-    letter-spacing: 0.06em;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(122,176,200,0.4);
-    padding-bottom: 1px;
-    transition: color 0.2s;
-  }
-  .dashboard-screenshot-caption a:hover { color: var(--paper); }
+/* ── Benefits grid ── */
+.fp-benefits-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 40px;
+}
+.fp-benefit {
+  border-left: 2px solid var(--tide);
+  padding: 16px 20px;
+  background: var(--paper);
+}
+.fp-benefit-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--catch);
+  margin-bottom: 8px;
+}
+.fp-benefit-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tide);
+  margin-bottom: 8px;
+}
+.fp-benefit-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+}
 
-  .feature-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--rule);
-    border: 1px solid var(--rule);
-  }
-  .feature-card {
-    background: var(--foam);
-    padding: 32px 28px;
-  }
-  .feature-num {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    color: var(--catch);
-    margin-bottom: 12px;
-  }
-  .feature-card h4 {
-    font-family: var(--font-serif);
-    font-size: 17px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    letter-spacing: -0.01em;
-  }
-  .feature-card p {
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--ink-body);
-  }
+/* ── Q&A ── */
+.fp-qa-list {
+  margin-top: 36px;
+  max-width: 600px;
+}
+.fp-qa {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.fp-qa:last-child { border-bottom: none; }
+.fp-qa-q {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tide);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+.fp-qa-a {
+  font-size: 14px;
+  color: var(--ink-body);
+  line-height: 1.65;
+  max-width: 520px;
+}
 
-  /* BENEFITS SECTION */
-  .benefits-section {
-    background: var(--tide);
-    padding: 96px 48px;
-    border-bottom: 1px solid #0a1a24;
-  }
-  .benefits-section .section-label {
-    color: rgba(122,176,200,0.6);
-  }
-  .benefits-section .section-label::after {
-    background: rgba(122,176,200,0.2);
-  }
-  .benefits-section h2 {
-    font-family: var(--font-serif);
-    font-size: clamp(28px, 3vw, 42px);
-    font-weight: 700;
-    color: var(--paper);
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-    margin-bottom: 16px;
-  }
-  .benefits-section h2 em {
-    font-style: italic;
-    color: var(--tide-light);
-  }
-  .benefits-section .benefits-intro {
-    font-size: 16px;
-    line-height: 1.7;
-    color: var(--tide-light);
-    max-width: 560px;
-    margin-bottom: 56px;
-  }
-  .benefit-list {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: rgba(122,176,200,0.15);
-    border: 1px solid rgba(122,176,200,0.15);
-  }
-  .benefit-card {
-    background: rgba(26,58,74,0.6);
-    padding: 36px 32px;
-  }
-  .benefit-card h3 {
-    font-family: var(--font-serif);
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--paper);
-    margin-bottom: 14px;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-  .benefit-card h3 em {
-    font-style: italic;
-    color: var(--tide-light);
-  }
-  .benefit-card p {
-    font-size: 14px;
-    color: var(--tide-light);
-    line-height: 1.8;
-  }
-  .benefit-card strong {
-    color: var(--paper);
-    font-weight: 500;
-  }
+/* ── Steps ── */
+.fp-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: #2a5a6a;
+  margin-top: 48px;
+}
+.fp-step {
+  background: #1e3a4a;
+  padding: 28px 24px;
+}
+.fp-step-num {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--catch);
+  margin-bottom: 12px;
+  line-height: 1;
+}
+.fp-step-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--paper);
+  margin-bottom: 8px;
+}
+.fp-step-desc {
+  font-size: 12px;
+  color: var(--tide-light);
+  line-height: 1.5;
+}
+.fp-approval-note {
+  margin-top: 40px;
+  font-size: 13px;
+  color: var(--tide-light);
+  line-height: 1.6;
+  max-width: 600px;
+}
+.fp-approval-note strong { color: var(--paper); }
 
-  /* VALUE GRID */
-  .value-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--rule);
-    border: 1px solid var(--rule);
-  }
-  .value-card {
-    background: var(--foam);
-    padding: 40px 32px;
-  }
-  .value-num {
-    font-family: var(--font-serif);
-    font-size: 48px;
-    font-weight: 900;
-    color: var(--salt);
-    line-height: 1;
-    margin-bottom: 20px;
-  }
-  .value-card h3 {
-    font-family: var(--font-serif);
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    letter-spacing: -0.01em;
-  }
-  .value-card p {
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--ink-body);
-  }
+/* ── Contact form ── */
+.fp-form-wrap {
+  max-width: 420px;
+  margin: 48px auto 0;
+}
+.fp-form-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.fp-form-header h2 {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--tide);
+  margin-bottom: 8px;
+}
+.fp-form-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+}
+.fp-field {
+  margin-bottom: 18px;
+}
+.fp-field label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.fp-field input {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 9px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--ink);
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.fp-field input:focus {
+  outline: none;
+  border-color: var(--tide);
+}
+.fp-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.fp-field-row .fp-field { margin-bottom: 0; }
+.fp-submit {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--catch);
+  color: #fff;
+  border: none;
+  padding: 13px;
+  border-radius: 2px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s;
+}
+.fp-submit:hover { background: #a83415; }
+.fp-form-note {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 16px;
+  line-height: 1.5;
+}
+.fp-form-note a { color: var(--muted); }
 
-  /* HOW TO JOIN */
-  .steps-list {
-    list-style: none;
-    max-width: 640px;
-  }
-  .steps-list li {
-    padding: 28px 0;
-    border-bottom: 1px solid var(--rule);
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-  }
-  .step-num {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--catch);
-    letter-spacing: 0.05em;
-    padding-top: 4px;
-    min-width: 24px;
-    flex-shrink: 0;
-  }
-  .step-content h3 {
-    font-family: var(--font-serif);
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    letter-spacing: -0.01em;
-  }
-  .step-content p {
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--ink-body);
-    margin-bottom: 8px;
-  }
-  .step-highlight {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--tide);
-    font-weight: 500;
-    letter-spacing: 0.03em;
-  }
+/* ── AI chat mock ── */
+.fp-chat-wrap {
+  margin-top: 36px;
+}
+.fp-chat-mock {
+  background: var(--foam);
+  border-radius: 4px;
+  padding: 24px 20px;
+  max-width: 480px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+.fp-chat-exchange {
+  margin-bottom: 20px;
+}
+.fp-chat-exchange:last-child { margin-bottom: 0; }
+.fp-chat-msg {
+  margin-bottom: 8px;
+  display: flex;
+}
+.fp-chat-msg--user {
+  justify-content: flex-end;
+}
+.fp-chat-msg--ai {
+  justify-content: flex-start;
+}
+.fp-chat-bubble {
+  padding: 8px 14px;
+  border-radius: 14px;
+  line-height: 1.5;
+  max-width: 90%;
+}
+.fp-chat-msg--user .fp-chat-bubble {
+  background: var(--tide);
+  color: var(--paper);
+  border: 1px solid var(--rule);
+}
+.fp-chat-msg--ai .fp-chat-bubble {
+  background: var(--paper);
+  color: var(--ink-body);
+  border: 1px solid var(--rule);
+}
+.fp-chat-tagline {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--muted);
+  margin-top: 16px;
+  max-width: 480px;
+  line-height: 1.6;
+}
 
-  /* STRAIGHT TALK */
-  .talk-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: #2a2820;
-    border: 1px solid #2a2820;
-  }
-  .talk-card {
-    background: #161410;
-    padding: 40px 32px;
-  }
-  .talk-card h3 {
-    font-family: var(--font-serif);
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--paper);
-    margin-bottom: 16px;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-  .talk-card p {
-    font-size: 14px;
-    color: #7a7060;
-    line-height: 1.8;
-  }
-  .talk-card strong { color: #a8c8d8; font-weight: 500; }
+.fp-form-success {
+  background: #e8f5ec;
+  border: 1px solid #4aaa6a;
+  border-radius: 2px;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: #2a6a40;
+  margin-bottom: 24px;
+  text-align: center;
+}
 
-  /* FINAL CTA */
-  .final-cta {
-    background: var(--ink);
-    padding: 80px 48px;
-    text-align: center;
-  }
-  .final-cta h2 {
-    font-family: var(--font-serif);
-    font-size: clamp(28px, 3.5vw, 44px);
-    font-weight: 700;
-    color: var(--paper);
-    letter-spacing: -0.02em;
-    margin-bottom: 16px;
-  }
-  .final-cta p {
-    color: var(--ink-body);
-    font-size: 15px;
-    margin-bottom: 8px;
-  }
-  .email-highlight {
-    font-family: var(--font-mono);
-    font-size: 18px;
-    letter-spacing: 0.05em;
-    color: var(--paper);
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 12px 24px;
-    border-radius: 2px;
-    display: inline-block;
-    margin: 24px 0 16px;
-  }
-  .final-cta .sub-text {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--ink-deep);
-    letter-spacing: 0.06em;
-  }
-  .final-cta .sub-text a { color: var(--ink-body); }
-  .cta-or-divider {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    justify-content: center;
-    margin: 20px 0;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: #2a2820;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-  .cta-or-divider::before,
-  .cta-or-divider::after {
-    content: '';
-    width: 60px;
-    height: 1px;
-    background: #2a2820;
-  }
+/* ── Reveal animations ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.9s cubic-bezier(0.23,1,0.32,1),
+              transform 0.9s cubic-bezier(0.23,1,0.32,1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-  /* FOOTER */
-  footer {
-    background: var(--ink);
-    padding: 32px 48px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 24px;
-    border-top: 1px solid #2a2820;
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
-  .footer-logo {
-    font-family: var(--font-serif);
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--paper);
-  }
-  .footer-logo span { color: var(--catch); }
-  .footer-copy {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    color: var(--ink-deep);
-  }
-  .footer-links {
-    display: flex;
-    gap: 24px;
-    list-style: none;
-  }
-  .footer-links a {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-deep);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .footer-links a:hover { color: var(--muted); }
+}
 
-  /* SCROLL ANIMATIONS */
-  .fade-up {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  .fade-up.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  @keyframes pulse-pill {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(200,64,26,0.4); }
-    50% { box-shadow: 0 0 0 12px rgba(200,64,26,0); }
-  }
-
-  @media (max-width: 900px) {
-    .talk-grid { grid-template-columns: 1fr; }
-    .port-hero { grid-template-columns: 1fr; min-height: auto; }
-    .port-hero-left { padding: 48px 24px; }
-    .port-hero-right { min-height: 240px; }
-    .section { padding: 64px 24px; }
-    .value-grid { grid-template-columns: 1fr; }
-    .feature-grid { grid-template-columns: 1fr 1fr; }
-    .share-grid { grid-template-columns: 1fr; }
-    .benefit-list { grid-template-columns: 1fr; }
-    .final-cta { padding: 48px 24px; }
-    footer { padding: 24px; flex-direction: column; align-items: flex-start; }
-    .benefits-section { padding: 64px 24px; }
-    .email-feature-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-    .email-sub-grid { grid-template-columns: 1fr !important; }
-    .started-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-  }
-  @media (max-width: 600px) {
-    .feature-grid { grid-template-columns: 1fr; }
-  }
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .fp-section        { padding: 56px 0; }
+  .fp-inner,
+  .fp-inner--narrow  { padding: 0 24px; }
+  .fp-hero           { padding: 72px 24px 64px; }
+  .fp-hero h1        { font-size: 26px; }
+  .fp-benefits-grid  { grid-template-columns: 1fr; }
+  .fp-steps-grid     { grid-template-columns: 1fr; }
+  .demo-stat-strip   { grid-template-columns: repeat(2, 1fr); }
+  .fp-field-row      { grid-template-columns: 1fr; }
+  .fp-form-wrap      { padding: 0 4px; }
+}
 </style>
 {% endblock %}
 
 {% block main %}
-<!-- HERO -->
-<section class="port-hero">
-  <div class="port-hero-left">
-    <div class="port-hero-eyebrow">For port &amp; auction operators</div>
-    <h1>Send us your<br>daily prices.<br><em>We do<br>everything else.</em></h1>
-    <p class="port-hero-sub">
-      Send us your daily price data after each auction and get a live market intelligence dashboard, free. See how you're trending, understand where you sit in the UK market, and give your prices daily visibility with buyers.
+
+<!-- ── Section 1: Hero ── -->
+<section class="fp-hero">
+  <div class="fp-hero-inner">
+    <div class="fp-hero-eyebrow reveal">FOR PORTS</div>
+    <h1 class="reveal" style="transition-delay:0.1s">Your port, visible to every fish buyer in the UK.</h1>
+    <p class="fp-hero-body reveal" style="transition-delay:0.2s">Quayside gives your port a free market intelligence dashboard and puts your daily prices in front of merchants, processors, and buyers across the country. We currently cover 5 ports — and we're growing.</p>
+  </div>
+</section>
+
+<!-- ── Section 2: What You Get ── -->
+<section class="fp-section fp-section--paper">
+  <div class="fp-inner">
+    <div class="section-label reveal">WHAT YOU GET</div>
+    <p class="fp-section-intro reveal" style="transition-delay:0.05s">Every port on Quayside gets a live market dashboard and an AI-powered analyst that knows your port's entire trading history. Both free, both updated automatically.</p>
+
+    <div class="demo-frame-wrap reveal" style="transition-delay:0.1s">
+      <div class="demo-frame">
+        <div class="demo-frame-header">
+          <span class="demo-frame-title">Your Port</span>
+          <span class="demo-frame-badge">LIVE DASHBOARD</span>
+        </div>
+        <div class="demo-stat-strip">
+          <div class="demo-stat">
+            <div class="demo-stat-label">Species today</div>
+            <div class="demo-stat-value">34</div>
+            <div class="demo-stat-sub demo-stat-sub--muted">&nbsp;</div>
+          </div>
+          <div class="demo-stat">
+            <div class="demo-stat-label">Avg price</div>
+            <div class="demo-stat-value">£2.85</div>
+            <div class="demo-stat-sub">+3.1% vs 30d</div>
+          </div>
+          <div class="demo-stat">
+            <div class="demo-stat-label">Market rank</div>
+            <div class="demo-stat-value">2nd of 5</div>
+            <div class="demo-stat-sub demo-stat-sub--muted">ports</div>
+          </div>
+          <div class="demo-stat">
+            <div class="demo-stat-label">90d trend</div>
+            <div class="demo-stat-value">+8.4%</div>
+            <div class="demo-stat-sub">above network</div>
+          </div>
+        </div>
+        <div class="demo-price-table">
+          <div class="demo-price-row">
+            <div>
+              <div class="demo-price-species">Haddock</div>
+              <div class="demo-price-grade">A1</div>
+            </div>
+            <div class="demo-price-val">£1.58/kg</div>
+            <div class="demo-price-delta up">+5%</div>
+          </div>
+          <div class="demo-price-row">
+            <div>
+              <div class="demo-price-species">Monkfish</div>
+              <div class="demo-price-grade">—</div>
+            </div>
+            <div class="demo-price-val">£6.10/kg</div>
+            <div class="demo-price-delta down">-2%</div>
+          </div>
+          <div class="demo-price-row">
+            <div>
+              <div class="demo-price-species">Cod</div>
+              <div class="demo-price-grade">Lg</div>
+            </div>
+            <div class="demo-price-val">£2.35/kg</div>
+            <div class="demo-price-delta up">+1%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="{{ url_for('ports.port_dashboard', slug='demo') }}" class="demo-cta reveal" style="transition-delay:0.15s">EXPLORE THE FULL DEMO DASHBOARD →</a>
+
+    <div class="fp-chat-wrap reveal" style="transition-delay:0.2s">
+      <div class="fp-chat-mock">
+        <div class="fp-chat-exchange">
+          <div class="fp-chat-msg fp-chat-msg--user">
+            <div class="fp-chat-bubble">How did we do on haddock this month versus last?</div>
+          </div>
+          <div class="fp-chat-msg fp-chat-msg--ai">
+            <div class="fp-chat-bubble">Haddock prices averaged £1.52/kg this month, up 8% from £1.41 last month. You're currently above the network average of £1.45.</div>
+          </div>
+        </div>
+        <div class="fp-chat-exchange">
+          <div class="fp-chat-msg fp-chat-msg--user">
+            <div class="fp-chat-bubble">Which species has seen the biggest price increase in the last 90 days?</div>
+          </div>
+          <div class="fp-chat-msg fp-chat-msg--ai">
+            <div class="fp-chat-bubble">Lemon sole — up 22% over 90 days, from £3.50 to £4.28. It's your strongest performer this quarter.</div>
+          </div>
+        </div>
+      </div>
+      <p class="fp-chat-tagline">Like having a data analyst and business consultant who knows every trade your port has ever made. Ask anything, in plain English.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Section 3: Why Ports Join ── -->
+<section class="fp-section fp-section--foam">
+  <div class="fp-inner">
+    <div class="section-label reveal">WHY PORTS JOIN</div>
+    <div class="fp-benefits-grid">
+      <div class="fp-benefit reveal" style="transition-delay:0.1s">
+        <div class="fp-benefit-label">MORE BUYERS</div>
+        <div class="fp-benefit-title">Visibility drives competition</div>
+        <p class="fp-benefit-desc">When buyers across the UK can see your prices every morning, more of them show up at your auction. More competition means better returns for the boats that land with you.</p>
+      </div>
+      <div class="fp-benefit reveal" style="transition-delay:0.2s">
+        <div class="fp-benefit-label">MARKET POSITION</div>
+        <div class="fp-benefit-title">Know where you stand</div>
+        <p class="fp-benefit-desc">See how your port's prices compare to the network average, track trends over 90 days, and understand your competitive position — information that used to take weeks to compile.</p>
+      </div>
+      <div class="fp-benefit reveal" style="transition-delay:0.3s">
+        <div class="fp-benefit-label">FOR YOUR VESSELS</div>
+        <div class="fp-benefit-title">Market context for your captains</div>
+        <p class="fp-benefit-desc">Your captains receive the daily digest — prices from every port we cover, key movers, and cross-port spreads. Better-informed vessels make better landing decisions.</p>
+      </div>
+      <div class="fp-benefit reveal" style="transition-delay:0.4s">
+        <div class="fp-benefit-label">ZERO COST, ZERO EFFORT</div>
+        <div class="fp-benefit-title">We do the work</div>
+        <p class="fp-benefit-desc">No new software. No data entry. Send us your prices in a spreadsheet, a PDF, or fill in our template. We extract, normalise, and publish — with your sign-off before anything goes live.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Section 4: Fair Questions ── -->
+<section class="fp-section fp-section--paper">
+  <div class="fp-inner--narrow">
+    <div class="section-label reveal">FAIR QUESTIONS</div>
+    <p class="fp-section-intro reveal" style="transition-delay:0.05s">Sharing your price data is a big decision. Here are the questions we'd ask too.</p>
+
+    <div class="fp-qa-list">
+      <div class="fp-qa reveal" style="transition-delay:0.1s">
+        <div class="fp-qa-q">"Won't competitors use our prices against us?"</div>
+        <p class="fp-qa-a">They'll see your prices — and you'll see theirs. Transparency is a two-way street. When the whole market is visible, competition happens on quality and service, not information gaps. The ports that benefit most from opaque pricing are the ones with the least to offer. If your port is competitive, visibility is your advantage.</p>
+      </div>
+      <div class="fp-qa reveal" style="transition-delay:0.2s">
+        <div class="fp-qa-q">"Do we lose control of our data?"</div>
+        <p class="fp-qa-a">No. Every price record you submit goes through an approval step — we extract the data, send it back to you to review, and only publish once you confirm. If something looks wrong, you reject it. You can also withdraw from the network at any time and your historical data will be removed.</p>
+      </div>
+      <div class="fp-qa reveal" style="transition-delay:0.3s">
+        <div class="fp-qa-q">"We don't have time for another system."</div>
+        <p class="fp-qa-a">There is no system. You send us whatever you already produce — a spreadsheet, a PDF, or fill in our template. The same file you'd print for the noticeboard. We handle everything from there.</p>
+      </div>
+      <div class="fp-qa reveal" style="transition-delay:0.4s">
+        <div class="fp-qa-q">"What does it cost?"</div>
+        <p class="fp-qa-a">Nothing. Ports pay nothing to be on Quayside. You get the dashboard, the AI analyst, the daily digest, and the visibility — all free. Quayside is funded by paid subscriptions from fish merchants and trade buyers who use the cross-port intelligence tools.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Section 5: How It Works ── -->
+<section class="fp-section fp-section--tide">
+  <div class="fp-inner">
+    <div class="section-label--dark reveal">HOW IT WORKS</div>
+    <p class="fp-section-intro reveal" style="transition-delay:0.05s">Three steps. No contracts, no IT department required. And if you'd like to talk it through first, there's always someone available for a call.</p>
+
+    <div class="fp-steps-grid">
+      <div class="fp-step reveal" style="transition-delay:0.1s">
+        <div class="fp-step-num">1</div>
+        <div class="fp-step-title">Send us your prices</div>
+        <p class="fp-step-desc">Email your daily price sheet in any format — spreadsheet, PDF, or our template. Same file you'd already produce.</p>
+      </div>
+      <div class="fp-step reveal" style="transition-delay:0.2s">
+        <div class="fp-step-num">2</div>
+        <div class="fp-step-title">Review the extract</div>
+        <p class="fp-step-desc">We extract and normalise the data automatically, then send it back to you to check. Edit anything that looks wrong.</p>
+      </div>
+      <div class="fp-step reveal" style="transition-delay:0.3s">
+        <div class="fp-step-num">3</div>
+        <div class="fp-step-title">Approve and publish</div>
+        <p class="fp-step-desc">One click to confirm. Your prices go live on Quayside and into the daily briefing read by buyers across the UK.</p>
+      </div>
+    </div>
+
+    <p class="fp-approval-note reveal" style="transition-delay:0.35s">
+      <strong>Nothing publishes without your approval.</strong> This is the rule, not the exception. You are the gatekeeper for your port's data at every step.
     </p>
-    <div style="display:flex;gap:16px;flex-wrap:wrap;">
-      <a href="{{ url_for('ports.port_submit') }}" class="btn-primary">Sign up free &rarr;</a>
-      <a href="{{ url_for('ports.port_dashboard', slug='demo') }}" class="btn-secondary">Open the demo dashboard &rarr;</a>
-    </div>
-  </div>
-  <div class="port-hero-right">
-    <img src="{{ url_for('static', filename='img/nets.jpg') }}" alt="Fishing nets on the water">
   </div>
 </section>
 
-<!-- DASHBOARD SHOWCASE -->
-<section class="section" style="background:var(--foam);">
-  <div class="section-inner">
-    <div class="section-label">Your dashboard, live from day one</div>
-    <p style="font-size:17px;line-height:1.7;color:#4a4438;max-width:600px;margin-bottom:40px;">
-      The moment your first prices land, your port gets a live dashboard. See how you're trending, where you sit in the national market for each species, and what's moving.
+<!-- ── Section 6: Contact Form ── -->
+<section class="fp-section fp-section--paper" id="contact">
+  <div class="fp-inner">
+    <div class="fp-form-header reveal">
+      <h2>Get your port listed</h2>
+      <p class="fp-form-subtitle">Tell us about your port and we'll be in touch within 24 hours.</p>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="fp-form-wrap">
+      {% for msg in messages %}
+      <div class="fp-form-success">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <form class="fp-form-wrap reveal" style="transition-delay:0.05s" method="POST" action="{{ url_for('ports.port_enquiry') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="fp-field">
+        <label for="enq-name">Your name</label>
+        <input type="text" id="enq-name" name="name" placeholder="e.g. John McAllister" required>
+      </div>
+
+      <div class="fp-field">
+        <label for="enq-port">Port name</label>
+        <input type="text" id="enq-port" name="port_name" placeholder="e.g. Kinlochbervie" required>
+      </div>
+
+      <div class="fp-field-row">
+        <div class="fp-field">
+          <label for="enq-email">Email</label>
+          <input type="email" id="enq-email" name="email" placeholder="john@port.co.uk" required>
+        </div>
+        <div class="fp-field">
+          <label for="enq-phone">Phone</label>
+          <input type="tel" id="enq-phone" name="phone" placeholder="07xxx xxxxxx">
+        </div>
+      </div>
+
+      <button type="submit" class="fp-submit">GET STARTED →</button>
+    </form>
+
+    <p class="fp-form-note reveal" style="transition-delay:0.1s">
+      After submitting, we'll verify your connection to the port before setting up your dashboard. This keeps the network trustworthy for everyone.<br><br>
+      Or email us directly at <a href="mailto:hello@quaysidedata.co.uk">hello@quaysidedata.co.uk</a>
     </p>
-    <div class="dashboard-screenshot fade-up">
-      <a href="{{ url_for('ports.port_dashboard', slug='demo') }}" target="_blank" style="display:block;position:relative;">
-        <img src="{{ url_for('static', filename='img/dashboard-preview.jpg') }}" alt="Quayside demo dashboard — price data, species rankings, and market position">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,14,12,0.3);transition:background 0.2s;" onmouseover="this.style.background='rgba(15,14,12,0.5)'" onmouseout="this.style.background='rgba(15,14,12,0.3)'">
-          <div style="background:var(--catch);color:white;font-family:var(--font-mono);font-size:13px;letter-spacing:0.12em;text-transform:uppercase;padding:16px 36px;border-radius:2px;box-shadow:0 8px 32px rgba(0,0,0,0.3);">Click to open the demo dashboard &rarr;</div>
-        </div>
-      </a>
-      <div class="dashboard-screenshot-caption">
-        <span>Demo dashboard &mdash; representative data</span>
-        <a href="{{ url_for('ports.port_dashboard', slug='demo') }}" target="_blank">Explore the demo &rarr;</a>
-      </div>
-    </div>
-
-    <div class="feature-grid fade-up">
-      <div class="feature-card">
-        <div class="feature-num">01 &mdash; SNAPSHOT</div>
-        <h4>Today's price at a glance</h4>
-        <p>The moment the auction closes, you have your average price per kg for the day &mdash; and instantly how that compares to yesterday, last week, this month, and this year. One number that tells the whole story. No spreadsheet required.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">02 &mdash; MARKET POSITION</div>
-        <h4>Where you sit in the market</h4>
-        <p>For every species you sell, see where your price sits in the national range. Not a competition &mdash; just context. When you're achieving strong prices, you'll know it. When there's a gap to close, you'll spot it early.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">03 &mdash; PERFORMANCE</div>
-        <h4>Full price history</h4>
-        <p>Every auction day adds to your history. The longer you&rsquo;re on Quayside, the richer your trend data &mdash; rolling averages, seasonal patterns, and long-run shifts you can share with sellers and buyers alike.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">04 &mdash; INSIGHTS</div>
-        <h4>Automated daily insights</h4>
-        <p>Plain-English commentary generated each auction day: which species are performing above or below the market, what's moved most, and how you compare to last week.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">05 &mdash; PRICE RANGE</div>
-        <h4>Your position in the national range</h4>
-        <p>Each species row shows a visual bar placing your price within the national min&ndash;max range. Instantly see where you sit without scanning a table.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">06 &mdash; BEST PERFORMERS</div>
-        <h4>Best performers today</h4>
-        <p>Your top species by price and volume, highlighted automatically. Share with sellers or use internally to identify where your port has a clear edge.</p>
-      </div>
-    </div>
   </div>
 </section>
 
-<!-- YOUR OWN PORT EMAIL — BIG FEATURE -->
-<section style="background:var(--catch);padding:96px 48px;border-bottom:1px solid #a83010;">
-  <div class="section-inner">
-    <div class="section-label" style="color:rgba(255,255,255,0.45);">New &mdash; your own port email</div>
-    <div class="email-feature-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;">
-      <div class="fade-up">
-        <h2 style="font-family:var(--font-serif);font-size:clamp(32px,4vw,52px);font-weight:700;color:white;letter-spacing:-0.02em;line-height:1.05;margin-bottom:24px;">A daily email for <em style="font-style:italic;color:rgba(255,255,255,0.7);">your buyers.</em><br>About <em style="font-style:italic;color:rgba(255,255,255,0.7);">your port.</em></h2>
-        <p style="font-size:17px;line-height:1.7;color:rgba(255,255,255,0.85);margin-bottom:20px;">
-          Quayside can build and send a custom daily email &mdash; just about your port &mdash; automatically to your team and your buyers. No design work. No spreadsheets. No chasing anyone.
-        </p>
-        <p style="font-size:16px;line-height:1.7;color:rgba(255,255,255,0.7);margin-bottom:36px;">
-          You choose what's in it: today's prices, your best performers, how you're tracking against the national market. Set a send time once &mdash; and it goes out automatically every auction day, the moment your data is processed.
-        </p>
-        <a href="{{ url_for('ports.port_submit') }}" style="background:white;color:var(--catch);padding:14px 32px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;border:none;cursor:pointer;text-decoration:none;display:inline-block;border-radius:2px;transition:transform 0.1s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">Get set up &rarr;</a>
-      </div>
-      <!-- HTML digest-style email mock -->
-      <div class="fade-up" style="background:#f5f0e8;border-radius:4px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.35);">
-        <!-- Email client bar -->
-        <div style="background:#e8e0d4;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #d4ccc0;">
-          <div style="font-family:var(--font-mono);font-size:9px;color:#9a9080;letter-spacing:0.06em;text-transform:uppercase;">Inbox &mdash; prices@quayside.fish</div>
-          <div style="display:flex;gap:5px;">
-            <div style="width:8px;height:8px;border-radius:50%;background:#ccc4b8;"></div>
-            <div style="width:8px;height:8px;border-radius:50%;background:#ccc4b8;"></div>
-            <div style="width:8px;height:8px;border-radius:50%;background:#ccc4b8;"></div>
-          </div>
-        </div>
-        <!-- Email header -->
-        <div style="background:var(--tide);padding:20px 24px 18px;">
-          <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(122,176,200,0.7);margin-bottom:5px;">Peterhead Fish Market &mdash; Tue 18 Mar 2026</div>
-          <div style="font-family:var(--font-serif);font-size:19px;font-weight:700;color:white;letter-spacing:-0.01em;line-height:1.2;">Today's prices &amp; highlights</div>
-        </div>
-        <!-- Average price banner -->
-        <div style="background:#eeeae2;padding:14px 24px;border-bottom:1px solid #ddd8d0;display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8a8070;margin-bottom:3px;">Today's average</div>
-            <div style="font-family:var(--font-serif);font-size:26px;font-weight:900;color:#1a2830;line-height:1;">&pound;3.14<span style="font-size:13px;font-weight:400;color:#8a8070;">/kg</span></div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-family:var(--font-mono);font-size:11px;color:#4a8a30;font-weight:500;">&#9650; +8% on yesterday</div>
-            <div style="font-family:var(--font-mono);font-size:10px;color:#8a8070;margin-top:3px;">+4% above this month</div>
-          </div>
-        </div>
-        <!-- Price rows -->
-        <div style="padding:0 24px;">
-          <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8a8070;padding:12px 0 6px;">Top performers</div>
-          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #e4ddd4;">
-            <div style="font-family:var(--font-serif);font-size:14px;font-style:italic;color:#1a2830;">Halibut</div>
-            <div style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:#1a2830;">&pound;12.40</div>
-            <div style="font-family:var(--font-mono);font-size:10px;color:#4a8a30;">&#9650; top nationally</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #e4ddd4;">
-            <div style="font-family:var(--font-serif);font-size:14px;font-style:italic;color:#1a2830;">Haddock A1</div>
-            <div style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:#1a2830;">&pound;2.87</div>
-            <div style="font-family:var(--font-mono);font-size:10px;color:#4a8a30;">&#9650; +12%</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 0;">
-            <div style="font-family:var(--font-serif);font-size:14px;font-style:italic;color:#1a2830;">Monkfish</div>
-            <div style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:#1a2830;">&pound;5.60</div>
-            <div style="font-family:var(--font-mono);font-size:10px;color:#8a8070;">&mdash;</div>
-          </div>
-        </div>
-        <!-- Footer -->
-        <div style="background:#e8e0d4;padding:11px 24px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #d4ccc0;">
-          <div style="font-family:var(--font-mono);font-size:9px;color:#9a9080;letter-spacing:0.04em;">Sent by Quayside &middot; Peterhead Fish Market</div>
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--tide);letter-spacing:0.04em;">Full dashboard &rarr;</div>
-        </div>
-      </div>
-    </div>
-    <div class="email-sub-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(0,0,0,0.2);border:1px solid rgba(0,0,0,0.2);margin-top:64px;">
-      <div style="background:rgba(0,0,0,0.15);padding:32px 28px;">
-        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;color:rgba(255,255,255,0.45);margin-bottom:12px;text-transform:uppercase;">Custom content</div>
-        <h4 style="font-family:var(--font-serif);font-size:18px;font-weight:700;color:white;margin-bottom:10px;letter-spacing:-0.01em;">You choose what's in it</h4>
-        <p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;">Today's prices, your best performers, how you're tracking against the national market. Your email, your story &mdash; about your port only.</p>
-      </div>
-      <div style="background:rgba(0,0,0,0.15);padding:32px 28px;">
-        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;color:rgba(255,255,255,0.45);margin-bottom:12px;text-transform:uppercase;">Fully automatic</div>
-        <h4 style="font-family:var(--font-serif);font-size:18px;font-weight:700;color:white;margin-bottom:10px;letter-spacing:-0.01em;">Goes out at a time you set</h4>
-        <p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;">Configure it once. The moment your data is processed each day, your email is ready and sent automatically &mdash; every auction day, no effort required.</p>
-      </div>
-      <div style="background:rgba(0,0,0,0.15);padding:32px 28px;">
-        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;color:rgba(255,255,255,0.45);margin-bottom:12px;text-transform:uppercase;">Your audience</div>
-        <h4 style="font-family:var(--font-serif);font-size:18px;font-weight:700;color:white;margin-bottom:10px;letter-spacing:-0.01em;">Your team and your buyers</h4>
-        <p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;">Send it to whoever matters to you &mdash; operations, management, regular buyers. Keep your people informed and your buyers in the loop, automatically.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- HOW TO GET STARTED -->
-<section class="section" style="background:var(--paper);padding-top:80px;padding-bottom:80px;">
-  <div class="section-inner">
-    <div class="section-label">How to get started</div>
-    <div class="started-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;">
-      <div>
-        <p style="font-size:17px;line-height:1.7;color:#4a4438;margin-bottom:40px;">Four steps from today to live. No software, no IT, no disruption to how you already operate.</p>
-        <ol class="steps-list fade-up">
-          <li>
-            <span class="step-num">01</span>
-            <div class="step-content">
-              <h3>We verify you're the port</h3>
-              <p>Fill in a short form &mdash; port name, contact details, that's it. We'll reach out within 24 hours for a quick email exchange to confirm you're a legitimate operator. This keeps your port's data in the right hands.</p>
-            </div>
-          </li>
-          <li>
-            <span class="step-num">02</span>
-            <div class="step-content">
-              <h3>You get your logins</h3>
-              <p>Once confirmed, your port account is ready. Log in, see your dashboard, and manage everything in one place. No software to install. No IT required.</p>
-            </div>
-          </li>
-          <li>
-            <span class="step-num">03</span>
-            <div class="step-content">
-              <h3>Add your prices</h3>
-              <p>Upload any historic data you want and we'll backfill your dashboard with rich history immediately. Or just start from today &mdash; your data builds from here. The longer you're on Quayside, the richer the picture.</p>
-              <span class="step-highlight">Have old price sheets? Email them over and we'll load them.</span>
-            </div>
-          </li>
-          <li>
-            <span class="step-num">04</span>
-            <div class="step-content">
-              <h3>Share going forward</h3>
-              <p>After each auction, send us your daily price data. We'll work with you to find a workflow that fits &mdash; email, upload, or a simple template we set up together.</p>
-              <p>We extract the data privately and share back exactly what we've read, for your review. One click to confirm, one click to edit. Nothing goes live without your say&ndash;so.</p>
-              <span class="step-highlight">Takes under two minutes once you're set up.</span>
-            </div>
-          </li>
-        </ol>
-        <a href="{{ url_for('ports.port_submit') }}" class="btn-primary" style="margin-top:32px;display:inline-block;">Sign up free &rarr;</a>
-      </div>
-      <div class="fade-up" style="display:flex;flex-direction:column;gap:1px;background:var(--rule);border:1px solid var(--rule);">
-        <div class="share-card">
-          <div class="share-card-method">Option A &mdash; Email</div>
-          <h3>Forward your price sheet</h3>
-          <p>After the auction closes, forward your daily price sheet to our ingest address. We extract, normalise, and prepare it automatically.</p>
-          <div class="share-detail">prices@quayside.fish &mdash; that's all you need</div>
-        </div>
-        <div class="share-card">
-          <div class="share-card-method">Option B &mdash; Upload form</div>
-          <h3>Upload directly to the site</h3>
-          <p>Download our one-page Excel template with species dropdowns pre-filled. Fill in your prices after the market and upload here &mdash; it's live within minutes.</p>
-          <a href="{{ url_for('ports.port_upload', slug='peterhead') }}" class="btn-secondary" style="padding:10px 20px;font-size:11px;">Try the upload form &rarr;</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- WHAT THIS MEANS FOR YOUR PORT AND SELLERS -->
-<section class="benefits-section">
-  <div class="section-inner">
-    <div class="section-label">Why this matters to your bottom line</div>
-    <h2>Your data works for you<br><em>every single day.</em></h2>
-    <p class="benefits-intro">Every port on Quayside gets daily visibility with buyers, merchants, and processors who are actively deciding where to source &mdash; while you gain the market intelligence to act on.</p>
-    <div class="benefit-list fade-up">
-      <div class="benefit-card">
-        <h3>Know where you<br>stand in the <em>market</em></h3>
-        <p>For every species you sell, see where your price sits in the national range &mdash; today and over time. <strong>Understand how you're trending, not just what you sold.</strong> That's market intelligence you can act on, and share with your sellers.</p>
-      </div>
-      <div class="benefit-card">
-        <h3>Buyers see when<br>you're <em>competitive</em></h3>
-        <p>Quayside trade members use the dashboard to decide where to source. <strong>Your prices are visible to a pool of serious buyers &mdash; in their dashboard throughout the day, and in their inbox each afternoon after the markets close.</strong> Daily visibility you don't have to do anything to earn.</p>
-      </div>
-      <div class="benefit-card">
-        <h3>Good for the port.<br><em>Great for your vessels.</em></h3>
-        <p>Show sellers where their catch ranks nationally. When your monkfish is achieving top prices, that's a concrete retention argument. <strong>Vessels that know they're landing at a strong, visible market stay with you</strong> &mdash; and landing more is everything.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- STRAIGHT TALK -->
-<section style="background:var(--ink);padding:96px 48px;border-bottom:1px solid #2a2820;">
-  <div class="section-inner">
-    <div class="section-label" style="color:#3a3428;">Good to know</div>
-    <div class="talk-grid fade-up">
-      <div class="talk-card">
-        <h3>It costs<br>you <em style="font-style:italic;color:var(--tide-light);">nothing.</em></h3>
-        <p>Quayside is funded by trade subscribers &mdash; buyers, merchants and processors who pay for the aggregated view. <strong>Ports don't pay.</strong> The dashboard, the benchmarks, your own port email, the buyer visibility &mdash; all included.</p>
-      </div>
-      <div class="talk-card">
-        <h3>Market transparency is good<br>for <em style="font-style:italic;color:var(--tide-light);">everyone.</em></h3>
-        <p>The biggest ports in the UK already publish their prices. When potential buyers and your sellers can see the market is healthy and competitive, <strong>that's a positive for the whole industry.</strong> Other ports see the national range &mdash; min, average, max &mdash; not your individual rates. Fewer than three ports reporting a species? No port is named.</p>
-      </div>
-      <div class="talk-card">
-        <h3>You control what<br>goes <em style="font-style:italic;color:var(--tide-light);">public.</em></h3>
-        <p>You share your prices with us. We extract them, then share back exactly what we've read &mdash; for your eyes only &mdash; before anything is published. <strong>One click to confirm, one click to edit.</strong> Complete control over your public information. Nothing goes live without your say-so.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FINAL CTA -->
-<div class="final-cta">
-  <h2>Sign up. It costs nothing.</h2>
-  <p style="color:var(--muted);margin-bottom:32px;">Fill in a short form and we&rsquo;ll verify you&rsquo;re the port, get you set up, and you&rsquo;ll be live from day one &mdash; dashboard, your own port email, and daily visibility with buyers, all included.</p>
-  <a href="{{ url_for('ports.port_submit') }}" class="btn-primary" style="font-size:13px;padding:16px 40px;letter-spacing:0.12em;">Sign up free &rarr;</a>
-  <div class="cta-or-divider">or</div>
-  <p style="color:var(--muted);font-size:14px;">Email us directly at <a href="mailto:hello@quayside.fish" style="color:var(--muted);">hello@quayside.fish</a></p>
-  <p class="sub-text" style="margin-top:24px;">Free for port operators.</p>
-</div>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-logo">Quay<span>side</span></div>
-  <ul class="footer-links">
-    <li><a href="{{ url_for('public.landing') }}">Home</a></li>
-    <li><a href="#">Privacy</a></li>
-    <li><a href="mailto:hello@quayside.trade">Contact</a></li>
-  </ul>
-  <div class="footer-copy">&copy; 2026 Quayside Data Ltd</div>
-</footer>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-      }
-    });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.fade-up').forEach((el) => observer.observe(el));
+(function() {
+  var revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(function(el) { obs.observe(el); });
+  } else {
+    revealEls.forEach(function(el) { el.classList.add('visible'); });
+  }
+})();
 </script>
 {% endblock %}

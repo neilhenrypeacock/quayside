@@ -26,6 +26,7 @@ from quayside.db import (
     confirm_upload,
     create_upload,
     get_all_ports,
+    get_connection,
     get_last_scrape_info,
     get_latest_date,
     get_latest_port_date,
@@ -863,3 +864,26 @@ def port_onboarding_complete(slug):
     """Mark onboarding as completed for the current user."""
     mark_onboarding_complete(current_user.id)
     return jsonify({"ok": True})
+
+
+# ── Port enquiry (for-ports contact form) ────────────────────────────────────
+
+
+@port_bp.route("/port/enquiry", methods=["POST"])
+def port_enquiry():
+    """Store a port operator enquiry from the /for-ports contact form."""
+    name = request.form.get("name", "").strip()
+    port_name = request.form.get("port_name", "").strip()
+    email = request.form.get("email", "").strip()
+    phone = request.form.get("phone", "").strip()
+    if not name or not port_name or not email:
+        flash("Please fill in your name, port name, and email address.")
+        return redirect(url_for("public.for_ports") + "#contact")
+    conn = get_connection()
+    conn.execute(
+        "INSERT INTO port_enquiries (name, port_name, email, phone) VALUES (?,?,?,?)",
+        (name, port_name, email, phone or None),
+    )
+    conn.commit()
+    flash("Thanks — we'll be in touch within 24 hours.")
+    return redirect(url_for("public.for_ports") + "#contact")

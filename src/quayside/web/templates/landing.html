@@ -412,6 +412,39 @@
   max-width: 520px;
 }
 
+/* ── Problem section: three-stakeholder layout ── */
+.problem-impacts {
+  margin: 32px 0 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.problem-impact {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-body);
+  padding: 16px 20px;
+  border-left: 2px solid var(--rule);
+}
+.problem-impact-who {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--tide);
+  display: block;
+  margin-bottom: 6px;
+}
+.lp-kicker {
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--tide);
+  font-family: var(--font-sans);
+  font-style: italic;
+  max-width: 520px;
+}
+
 /* ── Reveal animations ── */
 .reveal {
   opacity: 0;
@@ -489,7 +522,22 @@
 <section class="lp-section lp-section--paper">
   <div class="lp-inner">
     <div class="section-label reveal">THE PROBLEM</div>
-    <p class="lp-body word-reveal" id="problem-text">Most fish merchants buy from the port they know, pay whatever the price is that day, and have no way to tell if they got a good deal or a bad one. Prices vary significantly across the UK — but that information is scattered across half a dozen port websites, PDF sheets, and phone calls to contacts at the docks. Some ports don't publish at all. The ones with the best networks have the advantage. Everyone else flies blind.</p>
+    <p class="lp-body word-reveal" id="problem-text">The UK fish market runs on incomplete information. Prices vary significantly from port to port — but there's no single place to see across the whole market. Everyone is working with only part of the picture.</p>
+    <div class="problem-impacts">
+      <div class="problem-impact reveal" style="transition-delay:0.15s">
+        <span class="problem-impact-who">Ports</span>
+        Can't show buyers why their auction is worth choosing. Competitive prices and strong catch volumes go unnoticed by merchants who never knew to look.
+      </div>
+      <div class="problem-impact reveal" style="transition-delay:0.3s">
+        <span class="problem-impact-who">Fishermen</span>
+        Land their catch without knowing what it would fetch at the port across the water. No benchmark. No leverage.
+      </div>
+      <div class="problem-impact reveal" style="transition-delay:0.45s">
+        <span class="problem-impact-who">Merchants</span>
+        Buy from the port they know, pay whatever the price is that day, and have no way to check if they got a good deal or a bad one.
+      </div>
+    </div>
+    <p class="lp-kicker reveal" style="transition-delay:0.6s">When the whole market can see itself clearly, it works better. For everyone.</p>
   </div>
 </section>
 
@@ -501,8 +549,8 @@
     <div class="tools-grid">
       <div class="tool-card reveal" style="transition-delay:0.1s">
         <div class="tool-label">Daily Email Digest</div>
-        <div class="tool-title">The morning briefing</div>
-        <p class="tool-desc">Prices, movers, and cross-port spreads from every port we cover — delivered to your inbox before the day's buying begins. One email. The whole market.</p>
+        <div class="tool-title">After the auctions close</div>
+        <p class="tool-desc">Prices, movers, and cross-port spreads from every port we cover — published after each day's trading. Read the full market. Plan your next buy.</p>
       </div>
       <div class="tool-card reveal" style="transition-delay:0.25s">
         <div class="tool-label">Port Dashboards</div>

@@ -10,8 +10,9 @@
     {% block head %}{% endblock %}
 </head>
 <body class="{% block bodyclass %}{% endblock %}">
+    <div class="nav-wrapper{% if hide_nav %} nav-hidden{% endif %}">
     {% block navbar %}
-    <nav class="nav{% if hide_nav %} nav--hidden{% endif %}">
+    <nav class="nav">
         <a href="/" class="nav-brand">Quay<span>side</span></a>
         <button class="nav-burger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
             <span></span><span></span><span></span>
@@ -77,29 +78,6 @@
             {% endif %}
         </div>
     </nav>
-    <script>
-    document.addEventListener('click', function(e) {
-        document.querySelectorAll('.nav-dropdown.active').forEach(function(dd) {
-            if (!dd.contains(e.target)) dd.classList.remove('active');
-        });
-    });
-    (function() {
-      var nav = document.querySelector('.nav');
-      var lastY = window.scrollY;
-      var threshold = 10;
-      window.addEventListener('scroll', function() {
-        var y = window.scrollY;
-        if (y < threshold) {
-          nav.classList.remove('nav--hidden');
-        } else if (y > lastY + threshold) {
-          nav.classList.add('nav--hidden');
-        } else if (y < lastY - threshold) {
-          nav.classList.remove('nav--hidden');
-        }
-        lastY = y;
-      }, { passive: true });
-    })();
-    </script>
     {% endblock %}
 
     {% if _ticker_items and not hide_ticker %}
@@ -114,6 +92,40 @@
       </div>
     </div>
     {% endif %}
+    </div>
+    <script>
+    document.addEventListener('click', function(e) {
+        document.querySelectorAll('.nav-dropdown.active').forEach(function(dd) {
+            if (!dd.contains(e.target)) dd.classList.remove('active');
+        });
+    });
+    (function() {
+      var wrapper = document.querySelector('.nav-wrapper');
+      if (!wrapper) return;
+      var lastY = window.scrollY;
+      var threshold = 5;
+      var ticking = false;
+      window.addEventListener('scroll', function() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function() {
+          var y = window.scrollY;
+          if (y <= 0) {
+            wrapper.classList.remove('nav-hidden');
+          } else if (y > lastY + threshold) {
+            wrapper.classList.add('nav-hidden');
+          } else if (y < lastY - threshold) {
+            wrapper.classList.remove('nav-hidden');
+          }
+          lastY = y;
+          ticking = false;
+        });
+      }, { passive: true });
+      window.addEventListener('hashchange', function() {
+        wrapper.classList.remove('nav-hidden');
+      });
+    })();
+    </script>
 
     {% if stats and not hide_stats %}
     <div class="stat-strip">

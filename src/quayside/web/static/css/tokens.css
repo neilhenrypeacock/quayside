@@ -49,6 +49,23 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── Nav wrapper (scroll-aware sticky container) ── */
+.nav-wrapper {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  transform: translateY(0);
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.nav-wrapper.nav-hidden {
+  transform: translateY(-100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-wrapper { transition: none; }
+}
+
 /* ── Nav ── */
 .nav {
   display: flex;
@@ -57,13 +74,6 @@ body {
   padding: 16px 32px;
   border-bottom: none;
   background: var(--zone-nav);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  transition: transform 0.3s ease;
-}
-.nav.nav--hidden {
-  transform: translateY(-100%);
 }
 .nav-brand {
   font-family: var(--font-serif);
