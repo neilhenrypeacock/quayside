@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 {% block title %}{{ port.name }} — Quayside{% endblock %}
 
-{% block nav %}
-<a href="javascript:void(0)" onclick="openHowToDrawer()" class="nav-link">How-to</a>
-<a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Add Prices</a>
+{% block navbar %}
+{% include '_nav_dashboard.html' %}
 {% endblock %}
 
 {% block head %}
@@ -140,6 +139,17 @@
         padding: 24px 0;
         background: var(--zone-mid);
         border-right: 1px solid #0f1820;
+        display: flex;
+        flex-direction: column;
+    }
+    .port-sidebar .sidebar-bottom {
+        margin-top: auto;
+        padding: 16px 8px 0;
+        border-top: 1px solid #0f1820;
+    }
+    .port-sidebar .sidebar-bottom a {
+        font-size: 10px;
+        color: #6a8a9a;
     }
     .port-sidebar .sidebar-logo {
         font-family: var(--font-serif);
@@ -1828,10 +1838,15 @@
         <li><a href="#section-compare">Compare</a></li>
         <li><a href="#section-customize">Customize</a></li>
         <li><a href="javascript:void(0)" onclick="openHowToDrawer()">How It Works</a></li>
-        <li><a href="{{ url_for('ports.port_upload', slug=port.slug) }}" class="sidebar-upload-link">Upload &amp; Edit</a></li>
+        <li><a href="{{ url_for('ports.port_upload', slug=port.slug) }}">Upload Prices</a></li>
         <li><a href="{{ url_for('ports.export_port_data', slug=port.slug) }}">Export CSV</a></li>
-        <li><a href="#" class="sidebar-share-link" onclick="event.preventDefault()" title="Coming soon">Share Your Data <span style="font-size:7px;letter-spacing:0.1em;background:rgba(200,64,26,0.12);color:var(--catch);padding:2px 5px;border-radius:2px;margin-left:4px;vertical-align:middle;">SOON</span></a></li>
     </ul>
+    <div class="sidebar-bottom">
+        <ul class="sidebar-nav">
+            <li><a href="#" onclick="event.preventDefault()">Settings</a></li>
+            <li><a href="#" onclick="event.preventDefault()">Account</a></li>
+        </ul>
+    </div>
 </aside>
 
 <!-- ══ MAIN CONTENT ═══════════════════════════════════════════════════════ -->

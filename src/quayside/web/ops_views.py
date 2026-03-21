@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import io
+import os
+import secrets as _secrets
 import sqlite3
 from collections import OrderedDict, defaultdict
 from datetime import date as _date_type
@@ -10,15 +12,56 @@ from datetime import datetime, timedelta
 
 from flask import Blueprint, jsonify, render_template, request, send_file
 
-from quayside.db import get_quality_issues, get_quality_summary
+from quayside.db import get_db, get_quality_issues, get_quality_summary
 
 ops_bp = Blueprint("ops", __name__)
+
+_OPS_TOKEN = os.environ.get("QUAYSIDE_OPS_TOKEN", "")
+
+
+def _check_ops_access() -> bool:
+    """Return True if the request has valid ops access.
+
+    Access rules:
+    - Debug mode (local dev): always allowed — no login needed.
+    - Production with no QUAYSIDE_OPS_TOKEN set: always allowed (owner hasn't locked it yet).
+    - Production with token set: require token via query param or cookie.
+    """
+    from flask import current_app
+
+    if current_app.debug:
+        return True
+    if not _OPS_TOKEN:
+        return True
+    token = request.args.get("token") or request.cookies.get("ops_access")
+    return _secrets.compare_digest(token, _OPS_TOKEN) if token else False
+
+
+@ops_bp.before_request
+def _require_ops_auth():
+    """Gate all ops routes behind token-based access."""
+    if not _check_ops_access():
+        return render_template("error.html", code=403, message="Ops access denied. Provide a valid token."), 403
+
+
+@ops_bp.after_request
+def _set_ops_cookie(response):
+    """Persist ops access as a cookie when token is provided via URL."""
+    if _OPS_TOKEN and request.args.get("token") == _OPS_TOKEN:
+        response.set_cookie(
+            "ops_access",
+            _OPS_TOKEN,
+            max_age=30 * 24 * 60 * 60,  # 30 days
+            httponly=True,
+            samesite="Lax",
+        )
+    return response
 
 
 @ops_bp.route("/ops")
 def ops_dashboard():
     """Internal ops dashboard — scraper health, port status, data coverage."""
-    conn = __import__("quayside.db", fromlist=["get_connection"]).get_connection()
+    conn = get_db()
     conn.row_factory = sqlite3.Row
     all_ports = [dict(r) for r in conn.execute("SELECT * FROM ports ORDER BY region, name").fetchall()]
 
@@ -429,8 +472,6 @@ def ops_dashboard():
         if _s["status"] == "failed" and not _s["error_type"]:
             _s["status"] = "empty"
             _s["last_data_date"] = latest_data_date.get(_pname)
-
-    conn.close()
 
     today_str = today.strftime("%Y-%m-%d")
     yesterday_str = (today - timedelta(days=1)).strftime("%Y-%m-%d")

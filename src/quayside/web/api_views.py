@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 from flask import Blueprint, Response, jsonify, request
 
-from quayside.db import get_all_ports, get_connection, get_prices_by_date
+from quayside.db import get_all_ports, get_db, get_prices_by_date
 from quayside.models import PriceRecord
 from quayside.species import normalise_species
 
@@ -27,10 +27,11 @@ def api_ingest():
     Payload: {port, date, rows: [{species, grade, price_avg, notes?}], overwrite?}
     Requires X-API-Key header (set QUAYSIDE_API_KEY env var).
     """
-    if _API_KEY:
-        provided = request.headers.get("X-API-Key", "")
-        if not secrets.compare_digest(provided, _API_KEY):
-            return jsonify({"error": "Invalid or missing API key."}), 401
+    if not _API_KEY:
+        return jsonify({"error": "API ingestion is not configured (QUAYSIDE_API_KEY not set)."}), 503
+    provided = request.headers.get("X-API-Key", "")
+    if not secrets.compare_digest(provided, _API_KEY):
+        return jsonify({"error": "Invalid or missing API key."}), 401
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "Invalid JSON payload."}), 400
@@ -111,7 +112,7 @@ def api_ingest():
         return jsonify({"error": "No valid rows to insert."}), 400
 
     # Write in a single transaction
-    conn = get_connection()
+    conn = get_db()
     try:
         conn.executemany(
             """INSERT OR REPLACE INTO prices
@@ -124,12 +125,10 @@ def api_ingest():
             ],
         )
         conn.commit()
-    except Exception as e:
+    except Exception:
         conn.rollback()
         logger.exception("Ingest transaction failed")
-        return jsonify({"error": "Database error.", "details": str(e)}), 500
-    finally:
-        conn.close()
+        return jsonify({"error": "Database error."}), 500
 
     return jsonify({
         "message": f"Submitted {len(records)} prices for {port_name} on {date}.",
@@ -164,7 +163,7 @@ def api_export_csv():
         date_from = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
 
     # Query prices
-    conn = get_connection()
+    conn = get_db()
     query = """SELECT date, port, species, grade, price_low, price_high, price_avg
                FROM prices
                WHERE port = ? AND date >= ? AND date <= ?"""
@@ -179,7 +178,6 @@ def api_export_csv():
 
     query += " ORDER BY date DESC, species, grade"
     rows = conn.execute(query, params).fetchall()
-    conn.close()
 
     # Build CSV
     buf = io.StringIO()

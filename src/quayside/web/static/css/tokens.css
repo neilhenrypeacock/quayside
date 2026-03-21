@@ -104,6 +104,22 @@ body {
   border-radius: 1px;
 }
 
+/* ── Dashboard simplified nav ── */
+.nav--dashboard .nav-links--dashboard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-left: auto;
+}
+.nav--dashboard .nav-burger--visible {
+  display: flex;
+}
+.nav--dashboard .nav-dropdown-menu--right {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
 /* ── Nav dropdowns ── */
 .nav-dropdown {
   position: relative;

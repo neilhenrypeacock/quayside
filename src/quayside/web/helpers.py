@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from quayside.db import (
     get_all_prices_for_date,
-    get_connection,
+    get_db,
     get_market_averages_for_date,
     get_market_averages_for_range,
     get_port_prices_history,
@@ -774,7 +774,7 @@ def build_performance_overview(
     sessions_last_week = len(last_week_dates)
 
     # Volume (boxes) from landings table if available
-    conn = get_connection()
+    conn = get_db()
 
     def _boxes_for_dates(dates: list[str]) -> int | None:
         if not dates:
@@ -792,7 +792,6 @@ def build_performance_overview(
 
     total_boxes = _boxes_for_dates(this_week_dates)
     last_week_boxes = _boxes_for_dates(last_week_dates)
-    conn.close()
 
     boxes_change = None
     if total_boxes and last_week_boxes and last_week_boxes > 0:

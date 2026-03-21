@@ -15,10 +15,40 @@ DB_PATH = Path(os.environ.get("QUAYSIDE_DB_PATH", str(_DEFAULT_DB)))
 
 
 def get_connection() -> sqlite3.Connection:
+    """Open a new SQLite connection. Caller is responsible for closing it.
+
+    Use this for non-web contexts (pipeline, CLI, background jobs).
+    Inside Flask request handlers, prefer ``get_db()`` which shares a single
+    connection per request and auto-closes at teardown.
+    """
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=5000")
     return conn
+
+
+def get_db() -> sqlite3.Connection:
+    """Return a request-scoped SQLite connection (Flask ``g`` object).
+
+    The connection is created once per request and closed automatically
+    when the request finishes (via ``close_db`` teardown registered in
+    ``app.py``).  This avoids opening multiple connections per request.
+    """
+    from flask import g
+
+    if "db" not in g:
+        g.db = get_connection()
+    return g.db
+
+
+def close_db(exc: BaseException | None = None) -> None:
+    """Close the request-scoped DB connection if one was opened."""
+    from flask import g
+
+    db = g.pop("db", None)
+    if db is not None:
+        db.close()
 
 
 def init_db() -> None:
@@ -487,21 +517,34 @@ def get_latest_date() -> str | None:
     return row[0] if row else None
 
 
-def get_latest_rich_date(min_ports: int = 2) -> str | None:
+def get_latest_rich_date(min_ports: int = 2, before_date: str | None = None) -> str | None:
     """Most recent date with data from at least `min_ports` ports.
 
     Prevents sparse weekend/partial data from becoming the default digest date.
     Falls back to get_latest_date() if no multi-port date exists.
+
+    If *before_date* is given, only dates strictly before it are considered.
     """
     conn = get_connection()
-    row = conn.execute(
-        """SELECT date FROM prices
-           GROUP BY date
-           HAVING COUNT(DISTINCT port) >= ?
-           ORDER BY date DESC
-           LIMIT 1""",
-        (min_ports,),
-    ).fetchone()
+    if before_date:
+        row = conn.execute(
+            """SELECT date FROM prices
+               WHERE date < ?
+               GROUP BY date
+               HAVING COUNT(DISTINCT port) >= ?
+               ORDER BY date DESC
+               LIMIT 1""",
+            (before_date, min_ports),
+        ).fetchone()
+    else:
+        row = conn.execute(
+            """SELECT date FROM prices
+               GROUP BY date
+               HAVING COUNT(DISTINCT port) >= ?
+               ORDER BY date DESC
+               LIMIT 1""",
+            (min_ports,),
+        ).fetchone()
     conn.close()
     if row:
         return row[0]

@@ -10,6 +10,7 @@
     {% block head %}{% endblock %}
 </head>
 <body class="{% block bodyclass %}{% endblock %}">
+    {% block navbar %}
     <nav class="nav">
         <a href="/" class="nav-brand">Quay<span>side</span></a>
         <button class="nav-burger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
@@ -83,6 +84,7 @@
         });
     });
     </script>
+    {% endblock %}
 
     {% if _ticker_items %}
     <div class="ticker-wrap">

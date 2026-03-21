@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import secrets
 from datetime import datetime, timedelta
 
 from flask import Blueprint, Response, jsonify, render_template, request
@@ -27,7 +28,7 @@ def _check_trade_access() -> bool:
     if not TRADE_TOKEN:
         return True
     token = request.args.get("token") or request.cookies.get("trade_access")
-    return token == TRADE_TOKEN
+    return secrets.compare_digest(token, TRADE_TOKEN) if token else False
 
 
 @trade_bp.route("/trade")

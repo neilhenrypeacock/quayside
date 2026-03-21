@@ -23,15 +23,27 @@ def landing():
     """Subscriber-focused marketing page."""
     from datetime import date as _date
 
-    date = get_latest_rich_date()
-    ld = build_landing_data(date) if date else None
     today_str = _date.today().strftime("%Y-%m-%d")
-    is_today = bool(ld and date == today_str)
-    ports_today = ld.get("port_count", 0) if is_today else 0
-    if is_today and ports_today >= 4:
+
+    # Does today have ≥3 ports reporting?
+    today_candidate = get_latest_rich_date(min_ports=3)
+
+    if today_candidate == today_str:
+        # Today has enough data — show live prices
+        date = today_str
+        ld = build_landing_data(date)
         data_label = "Today's"
+        is_today = True
+        ports_today = ld.get("port_count", 0) if ld else 0
     else:
+        # Show the latest pre-today date (yesterday or most recent trading day)
+        date = get_latest_rich_date(min_ports=2, before_date=today_str)
+        if not date:
+            date = get_latest_rich_date()  # absolute fallback
+        ld = build_landing_data(date) if date else None
         data_label = "Yesterday's"
+        is_today = False
+        ports_today = 0
     return render_template(
         "landing.html", ld=ld, data_label=data_label,
         is_today=is_today, ports_today=ports_today,

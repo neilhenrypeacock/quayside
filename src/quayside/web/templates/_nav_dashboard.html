@@ -1,0 +1,39 @@
+<nav class="nav nav--dashboard">
+    <a href="/" class="nav-brand">Quay<span>side</span></a>
+    <div class="nav-links nav-links--dashboard">
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('auth.logout') }}" class="nav-link">Sign Out</a>
+        {% endif %}
+        <div class="nav-dropdown">
+            <button class="nav-burger nav-burger--visible" onclick="this.parentElement.classList.toggle('active')" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-dropdown-menu nav-dropdown-menu--right"><div class="nav-dropdown-menu-inner">
+                <div class="nav-dropdown-header">Dev</div>
+                <a href="{{ url_for('ops.ops_dashboard') }}">Ops Dashboard</a>
+                <div class="nav-dropdown-sep"></div>
+                <div class="nav-dropdown-header">Digests</div>
+                <a href="{{ url_for('digest.digest_today') }}">Today's Digest</a>
+                <a href="{{ url_for('digest.weekly_digest') }}">Weekly Report</a>
+                <a href="{{ url_for('digest.monthly_digest') }}">Monthly Report</a>
+                <div class="nav-dropdown-sep"></div>
+                <div class="nav-dropdown-header">Ports</div>
+                <a href="{{ url_for('ports.port_dashboard', slug='peterhead') }}">Peterhead</a>
+                <a href="{{ url_for('ports.port_dashboard', slug='newlyn') }}">Newlyn</a>
+                <a href="{{ url_for('ports.port_dashboard', slug='brixham') }}">Brixham</a>
+                <a href="{{ url_for('ports.port_dashboard', slug='lerwick') }}">Lerwick</a>
+                <a href="{{ url_for('ports.port_dashboard', slug='scrabster') }}">Scrabster</a>
+                <a href="{{ url_for('ports.port_dashboard', slug='demo') }}">Demo Port</a>
+                <div class="nav-dropdown-sep"></div>
+                <a href="{{ url_for('trade.trade_dashboard') }}">Trade Dashboard</a>
+            </div></div>
+        </div>
+    </div>
+</nav>
+<script>
+document.addEventListener('click', function(e) {
+    document.querySelectorAll('.nav-dropdown.active').forEach(function(dd) {
+        if (!dd.contains(e.target)) dd.classList.remove('active');
+    });
+});
+</script>

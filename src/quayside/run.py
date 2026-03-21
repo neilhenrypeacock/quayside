@@ -36,6 +36,52 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def _validate_records(records):
+    """Filter out obviously invalid price records before DB upsert.
+
+    Rejects records where:
+    - price_avg is non-positive or above £200/kg
+    - date is in the future
+    - species is empty/missing
+    - price_low > price_high (when both are present)
+
+    Returns (valid_records, rejected_count).
+    """
+    from datetime import date
+
+    today = date.today().isoformat()
+    valid = []
+    rejected = 0
+    for r in records:
+        if not r.species or not r.species.strip():
+            rejected += 1
+            continue
+        if r.price_avg is not None and (r.price_avg <= 0 or r.price_avg > 200):
+            logger.warning(
+                "Rejected %s/%s/%s: price_avg=%.2f out of range",
+                r.port, r.species, r.date, r.price_avg,
+            )
+            rejected += 1
+            continue
+        if r.date > today:
+            logger.warning("Rejected %s/%s: future date %s", r.port, r.species, r.date)
+            rejected += 1
+            continue
+        if (
+            r.price_low is not None
+            and r.price_high is not None
+            and r.price_low > r.price_high
+        ):
+            logger.warning(
+                "Rejected %s/%s/%s: price_low (%.2f) > price_high (%.2f)",
+                r.port, r.species, r.date, r.price_low, r.price_high,
+            )
+            rejected += 1
+            continue
+        valid.append(r)
+    return valid, rejected
+
+
 def _run_scraper(name, fn):
     """Run a scraper function, return results or [] on failure.
 
@@ -199,6 +245,12 @@ def main() -> int:
         logger.warning("Failed scrapers: %s", ", ".join(failed))
     if empty:
         logger.info("Empty scrapers (no data today): %s", ", ".join(empty))
+
+    # Validate before storing
+    if all_prices:
+        all_prices, rejected = _validate_records(all_prices)
+        if rejected:
+            logger.warning("Rejected %d invalid records before upsert", rejected)
 
     # Store
     if all_prices:
@@ -432,6 +484,14 @@ def update_run() -> int:
 
     if not all_new_prices:
         logger.info("Update check complete — no source changes detected")
+        return 2
+
+    # Validate before storing
+    all_new_prices, rejected = _validate_records(all_new_prices)
+    if rejected:
+        logger.warning("Rejected %d invalid records before upsert", rejected)
+    if not all_new_prices:
+        logger.info("All changed records were invalid — nothing to upsert")
         return 2
 
     logger.info("Changed ports: %s — upserting %d records", changed_ports, len(all_new_prices))

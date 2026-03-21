@@ -11,7 +11,7 @@ import secrets
 
 from flask import Flask, jsonify, render_template, request, session
 
-from quayside.db import get_latest_rich_date, init_db, seed_demo_data, seed_demo_port_data
+from quayside.db import close_db, get_latest_rich_date, init_db, seed_demo_data, seed_demo_port_data
 from quayside.ports import seed_ports
 from quayside.report import build_landing_data
 from quayside.species import KEY_SPECIES
@@ -26,7 +26,19 @@ def create_app() -> Flask:
         __name__,
         template_folder=str(Path(__file__).parent / "templates"),
     )
-    app.secret_key = os.environ.get("QUAYSIDE_SECRET_KEY", "dev-secret-change-me")
+    _secret = os.environ.get("QUAYSIDE_SECRET_KEY", "")
+    if not _secret:
+        if os.environ.get("GUNICORN_CMD_ARGS") or os.environ.get("SERVER_SOFTWARE", "").startswith("gunicorn"):
+            raise RuntimeError(
+                "QUAYSIDE_SECRET_KEY must be set in production. "
+                "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        _secret = "dev-secret-change-me"
+        logger.warning("Using insecure dev SECRET_KEY — set QUAYSIDE_SECRET_KEY for production")
+    app.secret_key = _secret
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_SECURE"] = not app.debug
     app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB upload limit
 
     # ── CSRF protection ──
@@ -74,6 +86,9 @@ def create_app() -> Flask:
         if request.is_secure:
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
+
+    # ── Request-scoped DB connection teardown ──
+    app.teardown_appcontext(close_db)
 
     # ── Auth ──
     from quayside.web.auth import auth_bp, setup_login_manager

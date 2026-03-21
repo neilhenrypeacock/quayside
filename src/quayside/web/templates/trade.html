@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Trade Dashboard — Quayside{% endblock %}
 
+{% block navbar %}
+{% include '_nav_dashboard.html' %}
+{% endblock %}
+
 {% block head %}
 <style>
 /* ── Trade page layout: sidebar + scrollable content ── */
@@ -24,6 +28,17 @@
     background: var(--zone-mid);
     border-right: 1px solid #0f1820;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+.trade-sidebar .sidebar-bottom {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid #0f1820;
+}
+.trade-sidebar .sidebar-bottom a {
+    font-size: 10px;
+    color: #6a8a9a;
 }
 @media (max-width: 520px) {
     .trade-sidebar { display: none; }
@@ -1435,17 +1450,23 @@ td.species-name-cell { padding: 12px 10px 12px 4px; }
             <li><a href="#section-intelligence" data-zone="section-intelligence">Port Intelligence</a></li>
         </ul>
     </nav>
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule);">
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #0f1820;">
         <ul class="sidebar-nav" style="gap:0;">
-            <li><a href="/trade/ports" style="font-size:10px;color:var(--muted);">Port Directory &rarr;</a></li>
-            <li><a href="/methodology" target="_blank" style="font-size:10px;color:var(--muted);">Methodology &rarr;</a></li>
-            <li><a href="#section-export" onclick="scrollToZone('section-export');return false;" style="font-size:10px;color:var(--muted);">Export CSV &rarr;</a></li>
-            <li><a href="#" onclick="document.getElementById('feedback-modal-overlay').style.display='flex';return false;" style="font-size:10px;color:var(--muted);">Feedback &rarr;</a></li>
+            <li><a href="/trade/ports" style="font-size:10px;color:#6a8a9a;">Port Directory</a></li>
+            <li><a href="/methodology" target="_blank" style="font-size:10px;color:#6a8a9a;">Methodology</a></li>
+            <li><a href="#section-export" onclick="scrollToZone('section-export');return false;" style="font-size:10px;color:#6a8a9a;">Export CSV</a></li>
+            <li><a href="#" onclick="document.getElementById('feedback-modal-overlay').style.display='flex';return false;" style="font-size:10px;color:#6a8a9a;">Feedback</a></li>
         </ul>
     </div>
     <div class="sidebar-favs">
         <div class="sidebar-favs-label" id="sidebar-favs-summary"></div>
         <a class="sidebar-edit-link" onclick="showSpeciesPicker()">Edit Favourites</a>
+    </div>
+    <div class="sidebar-bottom">
+        <ul class="sidebar-nav" style="gap:0;">
+            <li><a href="#" onclick="event.preventDefault()">Settings</a></li>
+            <li><a href="#" onclick="event.preventDefault()">Account</a></li>
+        </ul>
     </div>
 </aside>
 
