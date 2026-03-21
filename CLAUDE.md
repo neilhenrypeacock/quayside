@@ -18,7 +18,7 @@ pytest                        # run tests
 ```
 src/quayside/
 ├── run.py              # Pipeline orchestrator — scrape → store → export → quality (460 lines)
-├── db.py               # SQLite connection, schema, upsert, queries (1353 lines)
+├── db.py               # SQLite connection, schema, upsert, queries (1424 lines)
 ├── models.py           # PriceRecord and LandingRecord dataclasses (32 lines)
 ├── export.py           # Per-port CSV export (33 lines)
 ├── email.py            # SMTP email delivery, env-var configured (83 lines)
@@ -56,16 +56,16 @@ src/quayside/
     ├── app.py          # Flask app factory, CSRF, security headers, context processors (157 lines)
     ├── auth.py         # Authentication blueprint — login, register, logout, roles (120 lines)
     ├── public.py       # Public pages — landing, overview, for-ports, for-traders, about (105 lines)
-    ├── port_views.py   # Port blueprint — dashboards, upload, confirm, export, chat (827 lines)
-    ├── trade_views.py  # Trade blueprint — trade dashboard, export, AI chat, compare (309 lines)
-    ├── ops_views.py    # Ops blueprint — ops dashboard, pipeline, quality, errors (832 lines)
+    ├── port_views.py   # Port blueprint — dashboards, upload, confirm, export, chat, onboarding (865 lines)
+    ├── trade_views.py  # Trade blueprint — trade dashboard, export, AI chat, compare (310 lines)
+    ├── ops_views.py    # Ops blueprint — ops dashboard, pipeline, quality, errors (873 lines)
     ├── api_views.py    # API blueprint — /api/v1/ingest (POST), /api/v1/export/csv (GET) (200 lines)
     ├── digest.py       # Digest blueprint — daily/weekly/monthly digest serving (86 lines)
     ├── helpers.py      # Data processing engine — market position, trends, insights (1475 lines)
     ├── static/
     │   ├── css/tokens.css    # CSS design tokens (1070 lines)
     │   └── img/              # Marketing images (nets.jpg, pots.jpg, dashboard-preview.jpg)
-    └── templates/            # 27 Jinja2 templates (~18,800 lines total)
+    └── templates/            # 30 Jinja2 templates (~19,500 lines total)
 ```
 
 ## Data model
@@ -235,6 +235,8 @@ Routes are served across 8 blueprint files registered in `src/quayside/web/app.p
 | `/port/<slug>/export` | port | Download CSV of port price data (365-day history) |
 | `/port/<slug>/template` | port | Download XLSX upload template for a port |
 | `/port/<slug>/chat` | port | Port-scoped AI chatbot (POST, Claude Haiku) |
+| `/port/<slug>/onboarding` | port | Port operator onboarding flow — welcome screens + guided tour |
+| `/port/<slug>/onboarding/complete` | port | Mark onboarding as complete (POST) |
 | `/port/submit` or `/port/<slug>/submit` | port | Port signup/contact form (no auth required) |
 | `/confirm/<token>` | port | HITL confirmation page — review extracted price data |
 | `/confirm/<token>/approve` | port | Approve confirmed upload (POST) |
@@ -260,21 +262,22 @@ Routes are served across 8 blueprint files registered in `src/quayside/web/app.p
 | `/api/v1/ingest` | api | API endpoint for price data ingestion (POST, API key auth) |
 | `/api/v1/export/csv` | api | API endpoint for bulk CSV export (GET, filter by port/date/species) |
 
-### Templates (27 files in `web/templates/` + 1 in `templates/`)
+### Templates (30 files in `web/templates/` + 1 in `templates/`)
 
 | Template | Lines | Used by |
 |---|---|---|
-| `base.html` | 148 | All pages — master layout with nav, ticker, stat strip |
+| `base.html` | 166 | All pages — master layout with nav, ticker, stat strip |
 | `landing.html` | 1494 | `/` — full marketing homepage |
-| `index.html` | 239 | `/overview` — staging hub with card grid |
+| `index.html` | 244 | `/overview` — staging hub with card grid |
 | `about.html` | 722 | `/about` |
 | `for_ports.html` | 867 | `/for-ports` |
 | `for_traders.html` | 2022 | `/for-traders` |
 | `methodology.html` | 179 | `/methodology` |
 | `login.html` | 208 | `/login` |
 | `register.html` | 214 | `/register` |
-| `dashboard.html` | 3056 | `/port/<slug>` — main port dashboard |
+| `dashboard.html` | 3597 | `/port/<slug>` — main port dashboard |
 | `prices_partial.html` | 151 | `/port/<slug>/prices` — AJAX prices table |
+| `onboarding.html` | 443 | `/port/<slug>/onboarding` — welcome screens + guided tour |
 | `upload_form.html` | 166 | `/port/<slug>/upload` |
 | `confirm.html` | 94 | `/confirm/<token>` |
 | `edit.html` | 98 | `/confirm/<token>/edit` |
@@ -282,7 +285,7 @@ Routes are served across 8 blueprint files registered in `src/quayside/web/app.p
 | `digest_wrapper.html` | 131 | `/digest` — wraps email digest template |
 | `weekly.html` | 486 | `/digest/weekly` |
 | `monthly.html` | 513 | `/digest/monthly` |
-| `trade.html` | 3399 | `/trade` — species matrix, sidebar nav |
+| `trade.html` | 3420 | `/trade` — species matrix, sidebar nav |
 | `trade_gate.html` | 25 | Trade paywall (£95/month) |
 | `trade_ports.html` | 314 | `/trade/ports` |
 | `ops.html` | 1104 | `/ops` |
@@ -290,6 +293,8 @@ Routes are served across 8 blueprint files registered in `src/quayside/web/app.p
 | `errors.html` | 546 | `/ops/errors` — error dashboard with fix actions |
 | `error.html` | 11 | 404/500 error pages |
 | `_chat_float.html` | 126 | Shared floating chat FAB partial (included in dashboard + trade) |
+| `_howto_drawer.html` | 274 | How-to guidance drawer partial (included in dashboard) |
+| `_nav_dashboard.html` | 39 | Simplified dashboard nav bar partial (immersive mode) |
 | `digest.html` (in `templates/`) | 1437 | Email-safe digest (standalone Jinja2, not in `web/templates/`) |
 
 ## Design system
@@ -309,9 +314,11 @@ Routes are served across 8 blueprint files registered in `src/quayside/web/app.p
 | `--up` | `#4aaa6a` | Price increase |
 | `--down` | `#c85040` | Price decrease |
 | `--ink-body` | `#3a4a58` | Body text on light backgrounds |
+| `--ink-deep` | `#2a3a48` | Footer, secondary dark text |
 | `--tide-light` | `#7ab0c8` | Text on dark/teal backgrounds |
 | `--zone-nav` | `#1c2b35` | Navigation bar background |
 | `--zone-deep` | `#0f1820` | Ticker, card footers |
+| `--zone-mid` | `#162028` | Mid-tone zones |
 | `--zone-strip` | `#141e24` | Stat strip background |
 
 Typography: Playfair Display (headings), IBM Plex Sans (body), IBM Plex Mono (data/labels/buttons). See `BRAND.md` for full typography and component pattern docs.
@@ -364,3 +371,5 @@ If GitHub Actions SSH deployment fails with `unable to authenticate` / `no suppo
 - `BRAND.md` — brand kit: colour palette (NOTE: warm palette — tokens.css has since shifted to cool-neutral), typography, design principles, component patterns
 - `PORTS.md` — comprehensive audit of all UK & Ireland fish ports, data availability, partnership strategy
 - `ROADMAP.md` — development phases and status
+- `HEALTH_AUDIT.md` — 15-page codebase security & quality audit (2026-03-20): 15 priority fixes including ops auth, HITL data gating, SECRET_KEY fallback, N+1 queries, warm-palette remnants
+- `scripts/generate_context.py` — pre-commit hook: updates `(NNN lines)` annotations and git log block in `claudechat.md` automatically; bypass with `SKIP_CONTEXT=1 git commit`

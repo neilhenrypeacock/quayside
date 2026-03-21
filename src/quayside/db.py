@@ -344,6 +344,18 @@ def _migrate(conn: sqlite3.Connection) -> None:
         """)
     except Exception:
         pass
+    # subscribers table (homepage email signup)
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS subscribers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                subscribed_at TEXT NOT NULL DEFAULT (datetime('now')),
+                source TEXT DEFAULT 'homepage'
+            )
+        """)
+    except Exception:
+        pass
     # users table
     try:
         conn.execute("""
@@ -377,6 +389,19 @@ def insert_trade_feedback(name: str, message: str, page_context: str = "") -> No
     )
     conn.commit()
     conn.close()
+
+
+def add_subscriber(email: str, source: str = "homepage") -> bool:
+    """Add email to subscribers list. Returns True if newly added, False if already exists."""
+    conn = get_connection()
+    cur = conn.execute(
+        "INSERT OR IGNORE INTO subscribers (email, subscribed_at, source) VALUES (?, datetime('now'), ?)",
+        (email.lower().strip(), source),
+    )
+    conn.commit()
+    added = cur.rowcount > 0
+    conn.close()
+    return added
 
 
 def get_user_by_id(user_id: int) -> dict | None:

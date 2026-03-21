@@ -650,6 +650,75 @@ def build_landing_data(date: str) -> dict:
     }
 
 
+HOMEPAGE_BENCHMARK_SPECIES = ["Haddock", "Monkfish", "Cod", "Lemon Sole"]
+
+
+def build_homepage_table(date: str) -> dict:
+    """Build the cross-port price table for homepage Section 6 (Live Data Proof).
+
+    Returns a dict with species, port columns (up to 3), per-cell prices,
+    and vs-30d percentage change per species.
+    """
+    port_codes = _get_port_codes()
+
+    # Best price per (canonical_species, port_name), tracking raw name for 30d lookup
+    best: dict[tuple[str, str], tuple[float, str]] = {}
+    for _, port, raw_species, _grade, _low, _high, avg, _wkg, _boxes in get_all_prices_for_date(date, exclude_demo=True):
+        if not avg:
+            continue
+        canonical = normalise_species(raw_species)
+        if canonical not in HOMEPAGE_BENCHMARK_SPECIES:
+            continue
+        key = (canonical, port)
+        if key not in best or avg > best[key][0]:
+            best[key] = (avg, raw_species)
+
+    # Pick up to 3 ports with the most benchmark species coverage today
+    port_coverage: dict[str, int] = defaultdict(int)
+    for canonical, port in best:
+        port_coverage[port] += 1
+    top_port_names = sorted(port_coverage, key=lambda p: port_coverage[p], reverse=True)[:3]
+    top_port_codes = [port_codes.get(p, p[:3].upper()) for p in top_port_names]
+
+    # Build cells: cells[canonical_species][port_code] = price
+    cells: dict[str, dict[str, float]] = {sp: {} for sp in HOMEPAGE_BENCHMARK_SPECIES}
+    for (canonical, port), (price, _raw) in best.items():
+        if port in top_port_names:
+            cells[canonical][port_codes.get(port, port[:3].upper())] = round(price, 2)
+
+    # 30-day averages (keyed by raw species name)
+    avgs_raw = get_30day_species_averages(date)
+
+    # vs_30d: compare best today price for each canonical species vs 30d market avg
+    vs_30d: dict[str, float | None] = {}
+    for canonical in HOMEPAGE_BENCHMARK_SPECIES:
+        best_price = None
+        best_raw = None
+        for (c, _p), (price, raw) in best.items():
+            if c == canonical and (best_price is None or price > best_price):
+                best_price = price
+                best_raw = raw
+        if best_raw and best_raw in avgs_raw and best_price and avgs_raw[best_raw] > 0:
+            pct = round((best_price / avgs_raw[best_raw] - 1) * 100, 1)
+            vs_30d[canonical] = pct
+        else:
+            vs_30d[canonical] = None
+
+    try:
+        date_upper = datetime.strptime(date, "%Y-%m-%d").strftime("%a, %d %b %Y").upper()
+    except Exception:
+        date_upper = date.upper()
+
+    return {
+        "date_upper": date_upper,
+        "species": HOMEPAGE_BENCHMARK_SPECIES,
+        "ports": top_port_codes,
+        "cells": cells,
+        "vs_30d": vs_30d,
+        "has_data": bool(best),
+    }
+
+
 def generate_report(date: str | None = None) -> Path:
     """Generate the HTML digest report for the given date (or latest).
 

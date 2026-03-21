@@ -83,10 +83,26 @@
             if (!dd.contains(e.target)) dd.classList.remove('active');
         });
     });
+    (function() {
+      var nav = document.querySelector('.nav');
+      var lastY = window.scrollY;
+      var threshold = 10;
+      window.addEventListener('scroll', function() {
+        var y = window.scrollY;
+        if (y < threshold) {
+          nav.classList.remove('nav--hidden');
+        } else if (y > lastY + threshold) {
+          nav.classList.add('nav--hidden');
+        } else if (y < lastY - threshold) {
+          nav.classList.remove('nav--hidden');
+        }
+        lastY = y;
+      }, { passive: true });
+    })();
     </script>
     {% endblock %}
 
-    {% if _ticker_items %}
+    {% if _ticker_items and not hide_ticker %}
     <div class="ticker-wrap">
       <div class="ticker">
         {% for item in _ticker_items %}

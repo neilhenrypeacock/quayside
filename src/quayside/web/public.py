@@ -2,52 +2,70 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 
-from flask import Blueprint, render_template
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from quayside.db import (
+    add_subscriber,
     get_all_ports,
     get_all_prices_for_date,
     get_last_scrape_info,
     get_latest_rich_date,
 )
-from quayside.report import build_landing_data
+from quayside.report import build_homepage_table, build_landing_data
 from quayside.web.helpers import build_scrape_info_display
 
 public_bp = Blueprint("public", __name__)
 
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
 
 @public_bp.route("/")
 def landing():
-    """Subscriber-focused marketing page."""
+    """Scroll-driven homepage."""
     from datetime import date as _date
 
     today_str = _date.today().strftime("%Y-%m-%d")
 
-    # Does today have ≥3 ports reporting?
     today_candidate = get_latest_rich_date(min_ports=3)
 
     if today_candidate == today_str:
-        # Today has enough data — show live prices
         date = today_str
         ld = build_landing_data(date)
-        data_label = "Today's"
         is_today = True
-        ports_today = ld.get("port_count", 0) if ld else 0
     else:
-        # Show the latest pre-today date (yesterday or most recent trading day)
         date = get_latest_rich_date(min_ports=2, before_date=today_str)
         if not date:
-            date = get_latest_rich_date()  # absolute fallback
+            date = get_latest_rich_date()
         ld = build_landing_data(date) if date else None
-        data_label = "Yesterday's"
         is_today = False
-        ports_today = 0
+
+    table = build_homepage_table(date) if date else None
+
     return render_template(
-        "landing.html", ld=ld, data_label=data_label,
-        is_today=is_today, ports_today=ports_today,
+        "landing.html",
+        ld=ld,
+        is_today=is_today,
+        table=table,
+        hide_ticker=True,
     )
+
+
+@public_bp.route("/subscribe", methods=["POST"])
+def subscribe():
+    """Handle homepage email subscribe form."""
+    email = request.form.get("email", "").strip()
+    if not email or not _EMAIL_RE.match(email):
+        flash("Please enter a valid email address.", "error")
+        return redirect(url_for("public.landing") + "#subscribe")
+    added = add_subscriber(email)
+    if added:
+        flash("You're in. Watch your inbox.", "success")
+    else:
+        flash("You're already subscribed.", "info")
+    return redirect(url_for("public.landing") + "#subscribe")
 
 
 @public_bp.route("/overview")
